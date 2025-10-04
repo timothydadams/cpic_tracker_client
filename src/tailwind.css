@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@custom-variant dark (&:is(.dark *));
+
+@layer utilities {
+  .taf::-webkit-scrollbar {
+    @apply w-2 h-5;
+  }
+
+  .taf::-webkit-scrollbar-track {
+    @apply rounded-full bg-zinc-200 dark:bg-zinc-500;
+  }
+
+  .taf::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-zinc-300 dark:bg-zinc-700;
+  }
+
+  .taf::-webkit-scrollbar-thumb:hover {
+    @apply bg-zinc-500 dark:bg-zinc-800;
+  }
+}

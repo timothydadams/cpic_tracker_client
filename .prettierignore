@@ -1,0 +1,7 @@
+node_modules
+templates
+server
+dist
+db
+.husky
+lib

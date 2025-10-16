@@ -8,9 +8,9 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import YupPassword from 'yup-password';
 YupPassword(yup);
-import { RegisteredInput } from '../../components/forms/Input';
-import { Button } from '../../components/catalyst/button.jsx';
-import { Heading, Subheading } from '../../components/catalyst/heading.jsx';
+import { RegisteredInput } from 'components/forms/Input';
+import { Button } from 'catalyst/button.jsx';
+import { Heading, Subheading } from 'catalyst/heading.jsx';
 import { enqueueSnackbar } from 'notistack';
 
 //form validation

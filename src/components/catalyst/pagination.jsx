@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 
-import { Button } from './button.jsx';
+import { Button } from './button';
 
 export function Pagination({
   'aria-label': ariaLabel = 'Page navigation',
@@ -20,13 +20,11 @@ export function PaginationPrevious({
   href = null,
   className,
   children = 'Previous',
-  onClick = null,
 }) {
   return (
     <span className={clsx(className, 'grow basis-0')}>
       <Button
-        {...(href === null && onClick === null ? { disabled: true } : { href })}
-        {...(onClick !== null && { onClick })}
+        {...(href === null ? { disabled: true } : { href })}
         plain
         aria-label='Previous page'
       >
@@ -50,17 +48,11 @@ export function PaginationPrevious({
   );
 }
 
-export function PaginationNext({
-  href = null,
-  className,
-  children = 'Next',
-  onClick = null,
-}) {
+export function PaginationNext({ href = null, className, children = 'Next' }) {
   return (
     <span className={clsx(className, 'flex grow basis-0 justify-end')}>
       <Button
-        {...(href === null && onClick == null ? { disabled: true } : { href })}
-        {...(onClick !== null && { onClick })}
+        {...(href === null ? { disabled: true } : { href })}
         plain
         aria-label='Next page'
       >
@@ -93,23 +85,16 @@ export function PaginationList({ className, ...props }) {
   );
 }
 
-export function PaginationPage({
-  href,
-  className,
-  current = false,
-  children,
-  onClick = null,
-}) {
+export function PaginationPage({ href, className, current = false, children }) {
   return (
     <Button
       href={href}
-      {...(onClick !== null && { onClick })}
       plain
       aria-label={`Page ${children}`}
       aria-current={current ? 'page' : undefined}
       className={clsx(
         className,
-        'min-w-[2.25rem] before:absolute before:-inset-px before:rounded-lg',
+        'min-w-9 before:absolute before:-inset-px before:rounded-lg',
         current && 'before:bg-zinc-950/5 dark:before:bg-white/10'
       )}
     >
@@ -129,40 +114,10 @@ export function PaginationGap({
       {...props}
       className={clsx(
         className,
-        'w-[2.25rem] select-none text-center text-sm/6 font-semibold text-zinc-950 dark:text-white'
+        'w-9 text-center text-sm/6 font-semibold text-zinc-950 select-none dark:text-white'
       )}
     >
       {children}
     </span>
   );
 }
-
-/* ADDED COMPONENTS */
-
-export const PaginationJump = ({
-  icon,
-  location = 'front',
-  href = null,
-  className,
-  children = 'Previous',
-  onClick = null,
-}) => {
-  return (
-    <span
-      className={clsx(
-        className,
-        location == 'front' ? 'grow basis-0' : 'flex grow basis-0 justify-end'
-      )}
-    >
-      <Button
-        {...(href === null && onClick === null ? { disabled: true } : { href })}
-        {...(onClick !== null && { onClick })}
-        plain
-        aria-label='Previous page'
-      >
-        {icon}
-        {children}
-      </Button>
-    </span>
-  );
-};

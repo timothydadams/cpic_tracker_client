@@ -1,4 +1,4 @@
-import { Avatar } from '../../components/catalyst/avatar.jsx';
+import { Avatar } from 'catalyst/avatar.jsx';
 import { UserCircleIcon } from '@heroicons/react/20/solid';
 
 export const UserAvatar = ({ user, ...props }) => {

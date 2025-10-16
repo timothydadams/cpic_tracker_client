@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { CameraInput } from '../../components/forms/PhotoInput';
+import { CameraInput } from 'components/forms/PhotoInput';
 import { useUpdateMutation, useGetUserQuery } from './usersApiSlice.js';
-import useAuth from '../../Hooks/useAuth.js';
-import { Button } from '../../components/catalyst/button.jsx';
-import { Heading, Subheading } from '../../components/catalyst/heading.jsx';
+import useAuth from 'hooks/useAuth.js';
+import { Button } from 'catalyst/button.jsx';
+import { Heading, Subheading } from 'catalyst/heading.jsx';
 import { enqueueSnackbar } from 'notistack';
 
 //AUTOMATICALLY CONROLS FORM State so you dont need a million useStates etc
@@ -11,10 +11,7 @@ import { enqueueSnackbar } from 'notistack';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import {
-  RegisteredInput,
-  RegisteredSelect,
-} from '../../components/forms/Input';
+import { RegisteredInput, RegisteredSelect } from 'components/forms/Input';
 
 //form validation
 const schema = yup.object().shape({

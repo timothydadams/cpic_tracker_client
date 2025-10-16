@@ -83,7 +83,7 @@ export default function DetailsCard({
 
   return (
     <>
-      <div className='bg-zinc-100 dark:bg-zinc-900 rounded-lg p-2 ring-1 ring-slate-900/5 shadow-sm dark:ring-slate-50/75'>
+      <div className='bg-zinc-100 dark:bg-zinc-900 rounded-lg p-2 ring-1 ring-slate-900/5 shadow-xs dark:ring-slate-50/75'>
         <Header
           details={details}
           metarStatus={metarStatus}

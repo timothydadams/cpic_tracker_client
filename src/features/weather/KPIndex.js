@@ -31,14 +31,6 @@ const statusColors = {
   unkown: 'red',
 };
 
-/*
-const Tile = ({children, stormCat, ...props}) => (
-    <Badge {...props} color={stormCat ? statusColors[stormCat] : "zinc"}>
-        {children}
-    </Badge>
-)
-*/
-
 const TimeDisplay = ({ startTime }) => {
   const [valid, setIsValid] = useState(false);
   const [end, setEndTime] = useState(null);

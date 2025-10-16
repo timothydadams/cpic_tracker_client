@@ -1,13 +1,13 @@
 import React from 'react';
-import { Link, Navigate } from 'react-router-dom';
-import { Text } from './catalyst/text.jsx';
-import { Heading, Subheading } from './catalyst/heading.jsx';
-import { Button } from './catalyst/button.jsx';
+import { Link } from 'catalyst/link';
+import { Text } from 'catalyst/text.jsx';
+import { Heading, Subheading } from 'catalyst/heading.jsx';
+import { Button } from 'catalyst/button.jsx';
 
-const ReturnLink = () => (
-  <Button href={-1} outline>
-    Go Back
-  </Button>
+const ReturnLink = ({ num = -1 }) => (
+  <Link href={num}>
+    <Button outline>Go Back</Button>
+  </Link>
 );
 
 export const NotFound = () => {
@@ -39,15 +39,15 @@ export const NotAuthorized = () => {
       <div className='h-full mx-auto'>
         <div className='grid place-items-center py-24 px-6 sm:py-32 lg:px-8'>
           <div className='text-center'>
-            <Text>404</Text>
-            <Heading className='mt-4 sm:text-5xl'>Page not found</Heading>
+            <Text>403</Text>
+            <Heading className='mt-4 sm:text-5xl'>Access Denied</Heading>
 
-            <Subheading className='mt-6 max-sm:hidden'>
-              Sorry, we couldn’t find the page you’re looking for.
+            <Subheading className='mt-6'>
+              Only CPIC Board members can edit these details.
             </Subheading>
 
             <div className='mt-10 flex items-center justify-center gap-x-6'>
-              <ReturnLink />
+              <ReturnLink num={-3} />
             </div>
           </div>
         </div>
@@ -57,14 +57,6 @@ export const NotAuthorized = () => {
 };
 
 export const NoResults = () => <Text>No results</Text>;
-
-export const Dashboard = () => {
-  return (
-    <div>
-      <Text>Welcome -- Dashboard home</Text>
-    </div>
-  );
-};
 
 export const Error = ({ error }) => {
   const { status } = error;

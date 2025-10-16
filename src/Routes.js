@@ -3,11 +3,11 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import { PersistAuth } from './features/auth/PersistAuth.js';
 import { ProtectRoute } from './features/auth/ProtectRoute';
 import { AnonymousOnly } from './features/auth/AnonymousOnly';
-import { Layout } from './components/layout/Layout';
-import { Text } from './components/catalyst/text.jsx';
+import { Layout } from 'components/layout/Layout';
+import { Text } from 'catalyst/text';
 
 //PUBLIC ROUTE COMPONENTS
-import { NotFound, NotAuthorized } from './components/Generic';
+import { NotFound, NotAuthorized } from 'components/Generic';
 
 //import Examples from './components/forms/headless/Examples';
 import Login from './features/auth/Login';
@@ -17,19 +17,17 @@ import CreateAccount from './features/users/CreateAccount';
 import { Profile } from './features/users/Profile';
 
 //ADMIN ONLY COMPONENTS
-import { Dashboard } from './components/Generic';
 import { UserManager } from './features/users/UserManager.js';
 
-import LandingPage from './Pages/LandingPage.js';
-import { Graph } from './features/skydrop/Graph.js';
-import { ShowAllStations } from './features/skydrop/ListAllLocations.js';
-import ExampleBento from './components/layout/Bento.js';
+import { Dashboard } from './Pages/Dashboard.js';
 import { StrategyList } from './features/strategies/StrategyList.js';
-import { TableList } from './features/strategies/TestList.js';
+import { ViewStrategy } from './features/strategies/ViewStrategy.js';
+import { StrategyForm } from './features/strategies/EditStrategyForm.js';
+import { FAQ } from './features/faq/faq.js';
 
 const AppRoutes = () => (
   <Routes>
-    <Route path='/' element={<Layout />}>
+    <Route element={<Layout />}>
       <Route element={<PersistAuth />}>
         <Route element={<AnonymousOnly />}>
           <Route path='createaccount' element={<CreateAccount />} />
@@ -37,12 +35,13 @@ const AppRoutes = () => (
         </Route>
 
         {/* PUBLIC ROUTES ACCESSIBLE TO ALL */}
-        <Route index element={<LandingPage />} />
-        <Route path='skydrop' element={<Graph />} />
-        <Route path='skydroplist' element={<ShowAllStations />} />
-        <Route path='chat' element={<ExampleBento />} />
+        <Route index element={<Dashboard />} />
         <Route path='strategies' element={<StrategyList />} />
-        <Route path='testList' element={<TableList />} />
+        <Route path='strategies/:id' element={<ViewStrategy />} />
+
+        <Route path='faq' element={<FAQ />} />
+        <Route path='tos' element={<Text>Terms of Service</Text>} />
+        <Route path='policies' element={<Text>Policies</Text>} />
 
         {/* AUTH NEEDED */}
         <Route path='home/*' element={<ProtectRoute allowedRoles={[]} />}>
@@ -52,7 +51,18 @@ const AppRoutes = () => (
           <Route path='profile' element={<Profile />} />
         </Route>
 
-        {/* AUTH + ADMIN ONLY */}
+        {/* AUTH - CPIC Members 
+         --update strategy details, add notes, resources, add stakeholder info
+        */}
+
+        {/* AUTH - CPIC Admin */}
+        <Route element={<ProtectRoute allowedRoles={['Admin']} />}>
+          <Route path='strategies/:id/edit' element={<StrategyForm />} />
+        </Route>
+
+        {/* AUTH - CPIC Implementers */}
+
+        {/* AUTH - ADMIN ONLY */}
         <Route
           path='admin/*'
           element={<ProtectRoute allowedRoles={['Admin']} />}

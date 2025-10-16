@@ -3,7 +3,7 @@ import React, { useEffect } from 'react';
 import { useGetJokeQuery } from '../../app/api/jokesApiSlice.js';
 import { useGetMetarByICAOQuery } from '../../app/api/aviationWXCenterSlice.js';
 import { useGetMetarQuery, useGetMetarByCoordsQuery } from './wxApiSlice.js';
-import { Text } from '../../components/catalyst/text.jsx';
+import { Text } from '../../components/c2/text.jsx';
 
 export const AWCMetar = ({ coords, ...props }) => {
   const { latitude, longitude } = coords;

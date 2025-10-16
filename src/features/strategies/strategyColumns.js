@@ -1,5 +1,5 @@
 import { createColumnHelper } from '@tanstack/react-table';
-import { TruncatedCellWithToolTip } from './TestList';
+import { TruncatedCellWithToolTip } from './StrategyList';
 
 const columnHelper = createColumnHelper();
 

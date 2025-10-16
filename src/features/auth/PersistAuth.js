@@ -7,12 +7,11 @@ import {
 } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRefreshMutation, useSendLogoutMutation } from './authApiSlice';
-import usePersist from '../../Hooks/usePersist';
+import usePersist from 'hooks/usePersist';
 import { useSelector } from 'react-redux';
 import { selectCurrentToken } from './authSlice';
-import { Loading } from '../../components/Spinners';
-import { Error } from '../../components/Generic';
-import Cookies from 'js-cookie';
+import { Loading } from 'components/Spinners';
+import { Error } from 'components/Generic';
 
 export const PersistAuth = () => {
   //const isAuthenticated = !!Cookies.get('cpic_isAuthenticated');

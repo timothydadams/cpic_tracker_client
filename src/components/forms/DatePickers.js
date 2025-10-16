@@ -11,11 +11,11 @@ const styles = {
   input: ({}) => [
     tw`z-0`,
     tw`text-gray-900 ring-gray-300 placeholder:text-gray-400 focus:ring-blue-500`,
-    tw`block w-full rounded-md border-0 py-1.5  shadow-sm ring-1 ring-inset focus:ring-2 focus:ring-inset  sm:text-sm sm:leading-6`,
+    tw`block w-full rounded-md border-0 py-1.5  shadow-xs ring-1 ring-inset focus:ring-2 focus:ring-inset  sm:text-sm sm:leading-6`,
   ],
   calendarButton: ({}) => [
     tw`m-0.5 rounded-full p-1 text-dark-blue outline-white`,
-    tw`focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2`,
+    tw`focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-2`,
     css(`
         &:hover {
             color: ${theme`colors.light-blue`};

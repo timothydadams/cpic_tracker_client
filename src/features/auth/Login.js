@@ -3,27 +3,18 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from './authSlice';
 import { useLoginMutation } from './authApiSlice';
-import usePersist from '../../Hooks/usePersist';
+import usePersist from 'hooks/usePersist';
 //form support
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import useAuth from '../../Hooks/useAuth.js';
-import { RegisteredInput } from '../../components/forms/Input';
-import {
-  Checkbox,
-  CheckboxField,
-  CheckboxGroup,
-} from '../../components/catalyst/checkbox.jsx';
-import {
-  Description,
-  Fieldset,
-  Label,
-  Legend,
-} from '../../components/catalyst/fieldset.jsx';
-import { Text } from '../../components/catalyst/text.jsx';
-import { Button } from '../../components/catalyst/button.jsx';
-import { Heading, Subheading } from '../../components/catalyst/heading.jsx';
+import useAuth from 'hooks/useAuth.js';
+import { RegisteredInput } from 'components/forms/Input';
+import { Checkbox, CheckboxField, CheckboxGroup } from 'catalyst/checkbox.jsx';
+import { Description, Fieldset, Label, Legend } from 'catalyst/fieldset.jsx';
+import { Text } from 'catalyst/text.jsx';
+import { Button } from 'catalyst/button.jsx';
+import { Heading, Subheading } from 'catalyst/heading.jsx';
 import GoogleAuth from './google_auth.js';
 
 const schema = yup
@@ -100,7 +91,7 @@ const Login = () => {
         </div>
 
         <div className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'>
-          <div className=' py-8 px-4 shadow sm:rounded-lg sm:px-10'>
+          <div className=' py-8 px-4 shadow-sm sm:rounded-lg sm:px-10'>
             <form className='space-y-6' onSubmit={handleSubmit(handleLogin)}>
               <RegisteredInput
                 type='text'

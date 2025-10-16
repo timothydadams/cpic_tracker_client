@@ -1,6 +1,26 @@
 import { Buffer } from 'buffer';
 import { DateTime } from 'luxon';
 
+export const convertNumericValuesToStringRecursive = (obj) => {
+  const newObj = {};
+  for (const key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      if (
+        typeof obj[key] === 'object' &&
+        obj[key] !== null &&
+        !Array.isArray(obj[key])
+      ) {
+        newObj[key] = convertNumericValuesToStringRecursive(obj[key]); // Recursively call for nested objects
+      } else if (typeof obj[key] === 'number') {
+        newObj[key] = obj[key].toString();
+      } else {
+        newObj[key] = obj[key];
+      }
+    }
+  }
+  return newObj;
+};
+
 export const getPayloadFromToken = (token) => {
   if (!token || token === '') return {};
 

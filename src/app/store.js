@@ -1,20 +1,16 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { apiSlice } from './api/apiSlice';
-//import { wxSlice } from "./api/wxService";
 import authReducer from '../features/auth/authSlice';
-import wxReducer from '../features/weather/wxSlice';
+//import wxReducer from '../features/weather/wxSlice';
+import strategyReducer from '../features/strategies/strategiesSlice';
 
 export const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth: authReducer,
-    wx: wxReducer,
-    //[wxSlice.reducerPath]: wxSlice.reducer,
+    strategy: strategyReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat([
-      apiSlice.middleware,
-      // wxSlice.middleware,
-    ]),
+    getDefaultMiddleware().concat([apiSlice.middleware]),
   devTools: true,
 });

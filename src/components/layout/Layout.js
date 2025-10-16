@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-//import { Avatar } from '../catalyst/avatar.jsx';
+import { GoalIcon, MapIcon } from 'lucide-react';
 import {
   Dropdown,
   DropdownButton,
@@ -7,13 +7,13 @@ import {
   DropdownItem,
   DropdownLabel,
   DropdownMenu,
-} from '../catalyst/dropdown.jsx';
+} from 'catalyst/dropdown.jsx';
 import {
   Navbar,
   NavbarItem,
   NavbarSection,
   NavbarSpacer,
-} from '../catalyst/navbar.jsx';
+} from 'catalyst/navbar.jsx';
 import {
   Sidebar,
   SidebarBody,
@@ -24,8 +24,8 @@ import {
   SidebarLabel,
   SidebarSection,
   SidebarSpacer,
-} from '../catalyst/sidebar.jsx';
-import { SidebarLayout } from '../catalyst/sidebar-layout.jsx';
+} from 'catalyst/sidebar.jsx';
+import { SidebarLayout } from 'catalyst/sidebar-layout.jsx';
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
@@ -54,15 +54,14 @@ import {
 import {
   ChartBarSquareIcon,
   PresentationChartLineIcon,
-} from '@heroicons/react/24/outline';
+} from '@heroicons/react/24/solid';
 
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useSendLogoutMutation } from '../../features/auth/authApiSlice.js';
-import useAuth from '../../Hooks/useAuth.js';
+import useAuth from 'hooks/useAuth.js';
 import { userNavItems, adminNavItems } from './navLists.js';
 import { DarkModeToggle } from './DarkModeToggle.js';
-import useTheme from '../../Hooks/useTheme.js';
-import { SkyropNav } from './Skydrop.js';
+import useTheme from 'hooks/useTheme.js';
 
 import { UserAgreement } from './TermsOfService.js';
 import { UserAvatar } from './UserAvatar.js';
@@ -77,14 +76,14 @@ const ProfileSection = ({ user }) => {
           <UserAvatar user={user} className='size-12' />
         </div>
         <div className='ml-3'>
-          <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900 dark:text-gray-300 group-hover:dark:text-white'>
+          <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white'>
             {display_name
               ? display_name
               : given_name && family_name
                 ? `${given_name} ${family_name}`
                 : 'Anonymous'}
           </p>
-          <p className='text-xs font-medium text-gray-500 group-hover:text-gray-700 dark:text-gray-400 group-hover:dark:text-gray-300'>
+          <p className='text-xs font-medium text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300'>
             {status && status}
           </p>
         </div>
@@ -240,24 +239,12 @@ export const Layout = () => {
           <SidebarBody>
             <SidebarSection>
               <SidebarItem href='/strategies'>
-                <HomeIcon />
+                <GoalIcon />
                 <SidebarLabel>View Strategies</SidebarLabel>
               </SidebarItem>
-              <SidebarItem href='/testList'>
-                <ChatBubbleLeftEllipsisIcon />
-                <SidebarLabel>Test Table</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href='/orders'>
-                <TicketIcon />
-                <SidebarLabel>Orders</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href='/settings'>
-                <Cog6ToothIcon />
-                <SidebarLabel>Settings</SidebarLabel>
-              </SidebarItem>
-              <SidebarItem href='/broadcasts'>
-                <MegaphoneIcon />
-                <SidebarLabel>Broadcasts</SidebarLabel>
+              <SidebarItem href='/policies'>
+                <MapIcon />
+                <SidebarLabel>View Goals & Policies</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 
@@ -271,7 +258,15 @@ export const Layout = () => {
 
             <SidebarSpacer />
             <SidebarSection>
+              <SidebarItem href='/faq'>
+                <QuestionMarkCircleIcon />
+                <SidebarLabel>FAQ</SidebarLabel>
+              </SidebarItem>
               <UserAgreement />
+              <SidebarItem href='tos'>
+                <SparklesIcon />
+                <SidebarLabel>Terms of Service</SidebarLabel>
+              </SidebarItem>
               <SidebarItem href='/changelog'>
                 <SparklesIcon />
                 <SidebarLabel>Changelog</SidebarLabel>

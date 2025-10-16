@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, Navigate, Outlet } from 'react-router-dom';
-import useAuth from '../../Hooks/useAuth';
+import useAuth from 'hooks/useAuth';
 
 export const ProtectRoute = ({ allowedRoles = [] }) => {
   const location = useLocation();
@@ -8,6 +8,8 @@ export const ProtectRoute = ({ allowedRoles = [] }) => {
   //console.log('user in protectRoute component', user);
   const { id, roles, isAdmin } = user;
   const userHasRouteRole = roles.some((x) => allowedRoles?.includes(x));
+
+  //console.log('allowed roles:', allowedRoles)
 
   if (isAdmin) {
     return <Outlet />;

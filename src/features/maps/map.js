@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useReducer } from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-import { Text } from '../../components/catalyst/text.jsx';
-import { Button } from '../../components/catalyst/button.jsx';
+import { Text } from 'catalyst/text.jsx';
+import { Button } from 'catalyst/button.jsx';
 import { stateReducer } from 'utils/helpers.js';
 mapboxgl.accessToken = process.env.MAP_BOX_KEY;
 
@@ -113,7 +113,7 @@ export const Map = ({
           </Button>
         </div>
       </div>
-      <div className='h-[26rem]' ref={mapContainer} />
+      <div className='h-104' ref={mapContainer} />
     </div>
   );
 };

@@ -1,103 +1,157 @@
-import { Avatar } from '../../components/catalyst/avatar.jsx';
-import { Badge } from '../../components/catalyst/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '../../components/catalyst/table.jsx';
-//import { Text } from '../../components/catalyst/text.jsx';
-import { UserAvatar } from '../../components/layout/UserAvatar.js';
-import { EditRolesModal } from './UserRolesModal.js';
+import { Badge } from 'components/catalyst/badge';
+import { DataTable } from 'components/DataTable.js';
+import { UserAvatar } from 'components/layout/UserAvatar.js';
 import { useGetRolesQuery } from './usersApiSlice.js';
-
 import { CheckIcon, XMarkIcon } from '@heroicons/react/16/solid';
+import { createColumnHelper } from '@tanstack/react-table';
+import { Modal } from 'components/modal.js';
+import { EditRolesForm } from './EditUserRolesForm.js';
 
 const HasRole = () => <CheckIcon className='size-6 text-green-500' />;
 const NoRole = () => <XMarkIcon className='size-6 text-rose-500' />;
 
-export function UserList({ users }) {
-  const { data, isLoading, isFetching, isSuccess, isError, error } =
-    useGetRolesQuery();
+const checkUserRoles = (userRoles = [], key) => {
+  return [key].some((needle) => userRoles.includes(needle));
+};
 
-  const checkUserRoles = (userRoles, key) => {
-    return [key].some((needle) => userRoles.includes(needle));
-  };
+const columnHelper = createColumnHelper();
+
+const columns = [
+  columnHelper.display({
+    id: 'user_details',
+    header: () => 'User',
+    cell: ({ row, table }) => {
+      const user = row.original;
+      const { roles, refetchUsers } = table.options.meta;
+
+      return (
+        <div className='flex items-center gap-4'>
+          <UserAvatar user={user} className='size-12' />
+          <div>
+            <div className='font-medium'>
+              {user.given_name} {user.family_name}
+            </div>
+            <div className='text-zinc-500'>
+              <Modal
+                buttonText={user.email}
+                title={`Modify roles for ${user.email}`}
+              >
+                <EditRolesForm
+                  user={{ id: user.id, email: user.email }}
+                  availableRoles={roles}
+                  refetchUsers={refetchUsers}
+                />
+              </Modal>
+              {/*<EditRolesModal
+                      user={{ id: user.id, email: user.email }}
+                      availableRoles={roles}
+                      refetchUsers={refetchUsers}
+                    />*/}
+            </div>
+          </div>
+        </div>
+      );
+    },
+    accessorFn: (row) => {
+      return `${row.family_name} ${row.given_name} ${row.email}`;
+    },
+  }),
+  columnHelper.accessor('disabled', {
+    id: 'status',
+    header: () => 'Status',
+    cell: ({ row }) => {
+      const user = row.original;
+      return user.disabled === false ? (
+        <Badge color='lime'>Enabled</Badge>
+      ) : (
+        <Badge color='rose'>Disabled</Badge>
+      );
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
+    accessorFn: (row) => {
+      return row.disabled === false ? 'Enabled' : 'Disabled';
+    },
+  }),
+  columnHelper.display({
+    header: 'Admin',
+    cell: ({ row }) => {
+      const { roles } = row.original;
+      return checkUserRoles(roles, 'Admin') ? <HasRole /> : <NoRole />;
+    },
+  }),
+  columnHelper.display({
+    header: 'CPIC Admin',
+    cell: ({ row }) => {
+      const { roles } = row.original;
+      return checkUserRoles(roles, 'CPIC Admin') ? <HasRole /> : <NoRole />;
+    },
+  }),
+  columnHelper.display({
+    header: 'CPIC Member',
+    cell: ({ row }) => {
+      const { roles } = row.original;
+      return checkUserRoles(roles, 'CPIC Member') ? <HasRole /> : <NoRole />;
+    },
+  }),
+  columnHelper.display({
+    header: 'Implementer',
+    cell: ({ row }) => {
+      const { roles } = row.original;
+      return checkUserRoles(roles, 'Implementer') ? <HasRole /> : <NoRole />;
+    },
+  }),
+  columnHelper.display({
+    header: 'Viewer',
+    cell: ({ row }) => {
+      const { roles } = row.original;
+      return checkUserRoles(roles, 'Viewer') ? <HasRole /> : <NoRole />;
+    },
+  }),
+];
+
+export function UserList({ users, refetchUsers }) {
+  const {
+    data: appRoles,
+    isLoading,
+    isFetching,
+    isSuccess,
+    isError,
+    error,
+  } = useGetRolesQuery();
 
   return (
-    <Table
-      grid
-      dense
-      className='[--gutter:--spacing(6)] sm:[--gutter:--spacing(8)]'
-    >
-      <TableHead>
-        <TableRow>
-          <TableHeader rowSpan='2' className='text-center'>
-            User
-          </TableHeader>
-          <TableHeader rowSpan='2'>Status</TableHeader>
-          <TableHeader rowSpan='1' colSpan='4' className='text-center'>
-            Roles
-          </TableHeader>
-        </TableRow>
-        <TableRow>
-          <TableHeader>Global Admin</TableHeader>
-          <TableHeader>CPIC Admin</TableHeader>
-          <TableHeader>CPIC Member</TableHeader>
-          <TableHeader>Viewer</TableHeader>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {users.map((user) => (
-          <TableRow key={user.id}>
-            <TableCell>
-              <div className='flex items-center gap-4'>
-                <UserAvatar user={user} className='size-12' />
-                <div>
-                  <div className='font-medium'>
-                    {user.given_name} {user.family_name}
-                  </div>
-                  <div className='text-zinc-500'>
-                    <EditRolesModal
-                      user={{ id: user.id, email: user.email }}
-                      availableRoles={data}
-                    />
-                  </div>
-                </div>
-              </div>
-            </TableCell>
-            <TableCell>
-              {user.disabled === false ? (
-                <Badge color='lime'>Enabled</Badge>
-              ) : (
-                <Badge color='rose'>Disabled</Badge>
-              )}
-            </TableCell>
-            <TableCell>
-              {checkUserRoles(user.roles, 'Admin') ? <HasRole /> : <NoRole />}
-            </TableCell>
-            <TableCell>
-              {checkUserRoles(user.roles, 'CPIC Admin') ? (
-                <HasRole />
-              ) : (
-                <NoRole />
-              )}
-            </TableCell>
-            <TableCell>
-              {checkUserRoles(user.roles, 'CPIC Member') ? (
-                <HasRole />
-              ) : (
-                <NoRole />
-              )}
-            </TableCell>
-            <TableCell>
-              {checkUserRoles(user.roles, 'Viewer') ? <HasRole /> : <NoRole />}
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    users &&
+    appRoles && (
+      <DataTable
+        data={users}
+        columns={columns}
+        metaData={{
+          roles: appRoles,
+          refetchUsers,
+        }}
+        columnSearch={{
+          columnId: 'user_details',
+          placeholder: 'Filter users...',
+        }}
+        filters={[
+          {
+            column: 'status',
+            title: 'Status',
+            options: [
+              {
+                value: 'Disabled',
+                label: 'Disabled',
+              },
+              {
+                value: 'Enabled',
+                label: 'Enabled',
+              },
+            ],
+          },
+        ]}
+      />
+    )
   );
 }

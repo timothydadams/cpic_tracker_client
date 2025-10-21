@@ -2,7 +2,7 @@ import React from 'react';
 import { useLocation, Navigate, Outlet } from 'react-router-dom';
 import useAuth from 'hooks/useAuth';
 
-export const ProtectRoute = ({ allowedRoles = [] }) => {
+export const ProtectRoute = ({ allowedRoles = [], message }) => {
   const location = useLocation();
   const user = useAuth();
   //console.log('user in protectRoute component', user);
@@ -19,7 +19,13 @@ export const ProtectRoute = ({ allowedRoles = [] }) => {
     return <Outlet />;
   } else {
     if (id) {
-      return <Navigate to='/unauthorized' state={{ from: location }} replace />;
+      return (
+        <Navigate
+          to='/unauthorized'
+          state={{ from: location, customMessage: message }}
+          replace
+        />
+      );
     }
     return <Navigate to='/login' state={{ from: location }} replace />;
   }

@@ -30,7 +30,7 @@ const AppRoutes = () => (
     <Route element={<Layout />}>
       <Route element={<PersistAuth />}>
         <Route element={<AnonymousOnly />}>
-          <Route path='createaccount' element={<CreateAccount />} />
+          {/* <Route path='createaccount' element={<CreateAccount />} /> */}
           <Route path='login' element={<Login />} />
         </Route>
 
@@ -40,7 +40,11 @@ const AppRoutes = () => (
         <Route path='strategies/:id' element={<ViewStrategy />} />
 
         <Route path='faq' element={<FAQ />} />
-        <Route path='tos' element={<Text>Terms of Service</Text>} />
+        <Route
+          path='terms-of-service'
+          element={<Text>Terms of Service</Text>}
+        />
+        <Route path='privacy-policy' element={<Text>Privacy Policy</Text>} />
         <Route path='policies' element={<Text>Policies</Text>} />
 
         {/* AUTH NEEDED */}
@@ -56,7 +60,14 @@ const AppRoutes = () => (
         */}
 
         {/* AUTH - CPIC Admin */}
-        <Route element={<ProtectRoute allowedRoles={['Admin']} />}>
+        <Route
+          element={
+            <ProtectRoute
+              allowedRoles={['Admin', 'CPIC Admin']}
+              message='Only CPIC Admins can edit these strategy details.'
+            />
+          }
+        >
           <Route path='strategies/:id/edit' element={<StrategyForm />} />
         </Route>
 

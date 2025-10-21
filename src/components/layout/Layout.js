@@ -63,7 +63,8 @@ import { userNavItems, adminNavItems } from './navLists.js';
 import { DarkModeToggle } from './DarkModeToggle.js';
 import useTheme from 'hooks/useTheme.js';
 
-import { UserAgreement } from './TermsOfService.js';
+import { TermsOfService } from './TermsOfService.js';
+import { PrivacyPolicy } from './PrivacyPolicy.js';
 import { UserAvatar } from './UserAvatar.js';
 
 const ProfileSection = ({ user }) => {
@@ -73,7 +74,7 @@ const ProfileSection = ({ user }) => {
     <div className='group block shrink-0'>
       <div className='flex items-center'>
         <div>
-          <UserAvatar user={user} className='size-12' />
+          <UserAvatar user={user} className='size-10' />
         </div>
         <div className='ml-3'>
           <p className='text-sm font-medium text-gray-700 group-hover:text-gray-900 dark:text-gray-300 dark:group-hover:text-white'>
@@ -220,15 +221,17 @@ export const Layout = () => {
                 className='min-w-80 lg:min-w-64'
                 anchor='bottom start'
               >
-                <DropdownItem href='/teams/1/settings'>
+                <DropdownItem href='/app/settings' disabled>
                   <Cog8ToothIcon />
                   <DropdownLabel>Settings</DropdownLabel>
                 </DropdownItem>
+                {/* 
                 <DropdownDivider />
                 <DropdownItem href='/teams/create'>
                   <PlusIcon />
                   <DropdownLabel>New team&hellip;</DropdownLabel>
                 </DropdownItem>
+                */}
               </DropdownMenu>
             </Dropdown>
             <SidebarSection className='max-lg:hidden'>
@@ -262,11 +265,8 @@ export const Layout = () => {
                 <QuestionMarkCircleIcon />
                 <SidebarLabel>FAQ</SidebarLabel>
               </SidebarItem>
-              <UserAgreement />
-              <SidebarItem href='tos'>
-                <SparklesIcon />
-                <SidebarLabel>Terms of Service</SidebarLabel>
-              </SidebarItem>
+              <PrivacyPolicy />
+              <TermsOfService />
               <SidebarItem href='/changelog'>
                 <SparklesIcon />
                 <SidebarLabel>Changelog</SidebarLabel>

@@ -4,10 +4,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import usePersist from 'hooks/usePersist';
 
 const GoogleIcon = (props) => (
-  <div className='mt-6 grid grid-cols-2 gap-4'>
+  <div className='mt-6 gap-4'>
     <button
       {...props}
-      className='flex w-full items-center justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/5 dark:hover:bg-white/20'
+      className='flex w-full items-center cursor-pointer justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/5 dark:hover:bg-white/20'
     >
       <svg viewBox='0 0 24 24' aria-hidden='true' className='h-5 w-5'>
         <path
@@ -27,13 +27,14 @@ const GoogleIcon = (props) => (
           fill='#34A853'
         />
       </svg>
-      <span className='text-sm/6 font-semibold'>Google</span>
+      <span className='text-sm/6 font-semibold'>Login with Google</span>
     </button>
   </div>
 );
 
-const GoogleAuth = () => {
-  const { data } = useGetGoogleURIQuery();
+const GoogleAuth = ({ extraState }) => {
+  console.log('extra state:', extraState);
+  const { data } = useGetGoogleURIQuery({ params: extraState });
   const [persist] = usePersist();
   const navigate = useNavigate();
   const location = useLocation();

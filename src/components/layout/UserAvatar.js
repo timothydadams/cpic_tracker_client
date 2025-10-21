@@ -6,7 +6,6 @@ export const UserAvatar = ({ user, ...props }) => {
     return <UserCircleIcon {...props} />;
   } else {
     const { profile_pic = null, given_name = '', family_name = '' } = user;
-    //console.log(user);
     return (
       <Avatar
         src={profile_pic}

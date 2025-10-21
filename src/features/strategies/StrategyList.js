@@ -304,7 +304,9 @@ export const StrategyList = () => {
   const columns = React.useMemo(() => {
     return allColumns.filter(
       (column) =>
-        !column.meta?.roles || column.meta.roles.some((r) => roles.includes(r))
+        (column.meta?.roles.length === 0 && roles.length === 0) ||
+        !column.meta?.roles ||
+        column.meta.roles.some((r) => roles.includes(r))
     );
   }, [roles]);
 

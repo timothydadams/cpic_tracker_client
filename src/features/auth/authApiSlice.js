@@ -1,5 +1,7 @@
 import { apiSlice } from '../../app/api/apiSlice';
-import { logout, setCredentials } from './authSlice';
+import { logout, setCredentials, setUserData } from './authSlice';
+import { userApiSlice } from '../users/usersApiSlice';
+import { resetUser } from '../users/usersSlice';
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -9,24 +11,33 @@ export const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { ...credentials },
       }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
+          const id = getState().auth.id;
+          const userData = await dispatch(
+            userApiSlice.endpoints.getUser.initiate(id)
+          ).unwrap();
+          dispatch(setUserData(userData));
         } catch (e) {
           console.log(e);
         }
       },
     }),
     getGoogleURI: builder.query({
-      query: () => `/auth/google-url`,
+      query: ({ params }) => ({
+        url: `/auth/google-url`,
+        params,
+      }),
     }),
     sendLogout: builder.mutation({
       query: () => ({
         url: '/auth/logout',
         method: 'POST',
       }),
+      //invalidatesTags: ['User'],
       async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
@@ -45,14 +56,19 @@ export const authApiSlice = apiSlice.injectEndpoints({
         method: 'POST',
         body: { duration },
       }),
-      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+      //invalidatesTags: ['User'],
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
+          const id = getState().auth.id;
+          const userData = await dispatch(
+            userApiSlice.endpoints.getUser.initiate(id)
+          ).unwrap();
+          dispatch(setUserData(userData));
         } catch (e) {
           console.log('tried to refresh', e);
-          //dispatch( logout() )
         }
       },
     }),

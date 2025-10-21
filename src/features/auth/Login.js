@@ -17,10 +17,13 @@ import { Button } from 'catalyst/button.jsx';
 import { Heading, Subheading } from 'catalyst/heading.jsx';
 import GoogleAuth from './google_auth.js';
 
+import { PresentationChartLineIcon } from '@heroicons/react/24/solid';
+
+import { LoginForm } from 'components/login-form';
+
 const schema = yup
   .object({
     email: yup.string().email().required(),
-    //username: yup.string().required(),
     password: yup.string().required(),
   })
   .required();
@@ -74,6 +77,27 @@ const Login = () => {
 
   return (
     <>
+      <div className='flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10'>
+        <div className='flex w-full max-w-sm flex-col gap-6'>
+          <div className='flex items-center gap-2 self-center font-medium'>
+            <div className='bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md'>
+              <PresentationChartLineIcon className='size-4' />
+            </div>
+            Winthrop Comprehensive Plan Tracker
+          </div>
+          <LoginForm />
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Login;
+
+/** OLD COMPONENT
+ * 
+ 
+ <>
       <div className='text-gray-400 flex flex-col justify-center py-6 sm:px-6 lg:px-8'>
         <div className='sm:mx-auto sm:w-full sm:max-w-md'>
           <Heading className='mt-4 text-center tracking-tight'>
@@ -88,6 +112,7 @@ const Login = () => {
               {errorMsg}
             </p>
           )}
+
         </div>
 
         <div className='mt-8 sm:mx-auto sm:w-full sm:max-w-md'>
@@ -153,7 +178,7 @@ const Login = () => {
                 </div>
               </div>
 
-              <div className='mt-6'>
+              <div className='mt-6 w-full'>
                 <GoogleAuth />
               </div>
               <div className='mt-6 flex flex-row justify-between'>
@@ -166,7 +191,7 @@ const Login = () => {
                 <div className='text-sm'>
                   <Button plain href='/createaccount' className='font-medium'>
                     Create an account
-                  </Button>
+                  </Button> 
                 </div>
               </div>
             </div>
@@ -174,7 +199,7 @@ const Login = () => {
         </div>
       </div>
     </>
-  );
-};
 
-export default Login;
+
+
+ */

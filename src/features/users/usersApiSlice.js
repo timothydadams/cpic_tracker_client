@@ -1,5 +1,6 @@
 import { apiSlice } from '../../app/api/apiSlice';
 //import { logout, setCredentials } from "../auth/authSlice";
+import { setUserDetails } from './usersSlice';
 
 export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -64,25 +65,21 @@ export const userApiSlice = apiSlice.injectEndpoints({
       },
     }),
     getUser: builder.query({
-      // note: an optional `queryFn` may be used in place of `query`
       query: (id) => `/users/${id}`,
-      // Pick out data and prevent nested properties in a hook or selector
+      providesTags: ['User'],
       transformResponse: (response, meta, arg) => {
-        console.log('response in transform:', response);
-        if (response?.user?.profile == null) {
-          //const user = {...response}
-          response.user.profile = {
-            firstName: '',
-            lastName: '',
-            bio: '',
-          };
-          //return user;
-        }
-        return response.user;
+        return response.data;
       },
-      // Pick out errors and prevent nested properties in a hook or selector
-      //transformErrorResponse: (response, meta, arg) => response.status,
-      //providesTags: (result, error, id) => [{ type: 'Post', id }],
+      /*
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+          try {
+            const { data } = await queryFulfilled;
+            dispatch(setUserDetails(data));
+          } catch (e) {
+            console.log('could not load user info',e);
+          }
+        },
+      */
     }),
   }),
 });

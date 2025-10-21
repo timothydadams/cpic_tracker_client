@@ -1,9 +1,10 @@
 import { useSelector } from 'react-redux';
-import { selectCurrentToken } from '../features/auth/authSlice';
-import { jwtDecode } from 'jwt-decode';
+import { selectAuthenticatedUser } from '../features/auth/authSlice';
 
 const useAuth = () => {
-  const token = useSelector(selectCurrentToken);
+  const user = useSelector(selectAuthenticatedUser);
+
+  const data = { ...user };
 
   const appRoles = [
     'Viewer',
@@ -13,37 +14,15 @@ const useAuth = () => {
     'Admin',
   ];
 
-  if (token) {
-    const { roles, ...user } = jwtDecode(token);
-
-    for (const role of appRoles) {
-      const userKey = `is${role.replace(' ', '')}`;
-      user[userKey] = role === 'Viewer' ? true : false;
-      if (roles.includes(role)) {
-        user[userKey] = true;
-        user['status'] = role;
-      }
-    }
-
-    return {
-      ...user,
-      roles,
-    };
-  }
-
-  const unauthedUser = {
-    id: null,
-    email: null,
-    roles: [],
-    status: 'Viewer',
-  };
-
   for (const role of appRoles) {
-    const userKey = `is${role.replace(' ', '')}`;
-    unauthedUser[userKey] = role === 'Viewer' ? true : false;
+    const key = `is${role.replace(' ', '')}`;
+    data[key] = data.roles.includes(role) ? true : false;
+    if (data[key] == true) {
+      data.status = role;
+    }
   }
 
-  return unauthedUser;
+  return data;
 };
 
 export default useAuth;

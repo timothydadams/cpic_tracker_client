@@ -14,7 +14,7 @@ import {
   ListBulletIcon,
 } from '@heroicons/react/20/solid';
 
-export const UserAgreement = () => {
+export const TermsOfService = () => {
   let [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -24,11 +24,11 @@ export const UserAgreement = () => {
         onClick={() => setIsOpen(true)}
       >
         <ListBulletIcon />
-        <SidebarLabel>User Agreement</SidebarLabel>
+        <SidebarLabel>Terms of Service</SidebarLabel>
       </SidebarItem>
 
       <Dialog open={isOpen} onClose={setIsOpen} size='2xl'>
-        <DialogTitle>Terms and conditions</DialogTitle>
+        <DialogTitle>Terms of Service</DialogTitle>
         <DialogDescription>
           By using this application, you agree to the following terms and
           conditions:

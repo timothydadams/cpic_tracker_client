@@ -2,15 +2,14 @@ import React from 'react';
 import { Link } from 'catalyst/link';
 import { Text } from 'catalyst/text.jsx';
 import { Heading, Subheading } from 'catalyst/heading.jsx';
-import { Button } from 'catalyst/button.jsx';
-
-const ReturnLink = ({ num = -1 }) => (
-  <Link href={num}>
-    <Button outline>Go Back</Button>
-  </Link>
-);
+//import { Button } from 'catalyst/button.jsx';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Button } from 'ui/button';
 
 export const NotFound = () => {
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
+
   return (
     <>
       <div className='h-full mx-auto'>
@@ -24,7 +23,7 @@ export const NotFound = () => {
             </Subheading>
 
             <div className='mt-10 flex items-center justify-center gap-x-6'>
-              <ReturnLink />
+              <Button onClick={goBack}>Go Back</Button>
             </div>
           </div>
         </div>
@@ -34,6 +33,11 @@ export const NotFound = () => {
 };
 
 export const NotAuthorized = () => {
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
+  const location = useLocation();
+  const { customMessage } = location.state;
+
   return (
     <>
       <div className='h-full mx-auto'>
@@ -43,11 +47,13 @@ export const NotAuthorized = () => {
             <Heading className='mt-4 sm:text-5xl'>Access Denied</Heading>
 
             <Subheading className='mt-6'>
-              Only CPIC Board members can edit these details.
+              {customMessage
+                ? customMessage
+                : 'Only CPIC Board members can perform this action.'}
             </Subheading>
 
             <div className='mt-10 flex items-center justify-center gap-x-6'>
-              <ReturnLink num={-3} />
+              <Button onClick={goBack}>Go Back</Button>
             </div>
           </div>
         </div>
@@ -62,7 +68,8 @@ export const Error = ({ error }) => {
   const { status } = error;
   const serverRes = error?.data?.message || 'Opps!';
   const rtkQueryMsg = error?.message || '';
-  //LInk styles: css={styles.links({ variant: 'support' })}
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
   return (
     <>
       <div className='w-96 mx-auto'>
@@ -81,7 +88,7 @@ export const Error = ({ error }) => {
                   Sign In <span aria-hidden='true'>&rarr;</span>
                 </Link>
               ) : (
-                <ReturnLink />
+                <Button onClick={goBack}>Go Back</Button>
               )}
             </div>
           </div>

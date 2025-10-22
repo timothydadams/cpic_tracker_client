@@ -38,7 +38,11 @@ module.exports = (env, argv) => {
             },
           },
         },
-
+        //MARKDOWN FILE IMPORTS
+        {
+          test: /\.md$/,
+          use: 'raw-loader',
+        },
         // Styles: Inject CSS into the head with source maps
         {
           test: /\.(sass|css|scss)$/,

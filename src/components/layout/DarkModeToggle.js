@@ -1,27 +1,31 @@
 import React from 'react';
 import { MoonIcon, SunIcon } from '@heroicons/react/20/solid';
-
+import useTheme from 'hooks/useTheme.js';
 import { NavbarItem } from 'catalyst/navbar.jsx';
 import { SidebarItem, SidebarLabel } from 'catalyst/sidebar.jsx';
+import { NavbarSection } from '../catalyst/navbar';
 
-export const DarkModeToggle = ({ theme, action, type = 'button' }) => {
+export const DarkModeToggle = ({ theme, setTheme, type = 'sidebar' }) => {
   const toggleTheme = () => {
-    action((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  const btnAction = type === 'button' ? true : false;
-
-  let icon =
-    theme === 'light' ? (
-      <MoonIcon onClick={btnAction === true ? toggleTheme : null} />
-    ) : (
-      <SunIcon onClick={btnAction === true ? toggleTheme : null} />
-    );
+  let icon = theme === 'light' ? <MoonIcon /> : <SunIcon />;
 
   let content;
 
-  if (type === 'button') {
-    content = <NavbarItem aria-label='Toggle Dark Mode'>{icon}</NavbarItem>;
+  if (type === 'navbar') {
+    content = (
+      <NavbarSection>
+        <NavbarItem
+          onClick={toggleTheme}
+          className='will-change-transform appearance-none [-webkit-appearance:none]'
+          aria-label='Toggle Dark Mode'
+        >
+          {icon}
+        </NavbarItem>
+      </NavbarSection>
+    );
   } else {
     content = (
       <SidebarItem aria-label='Toggle Dark Mode' onClick={toggleTheme}>

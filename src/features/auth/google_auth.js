@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useGetGoogleURIQuery } from './authApiSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import usePersist from 'hooks/usePersist';
+import { Badge } from 'ui/badge';
 
 const GoogleIcon = (props) => (
   <div className='mt-6 gap-4'>
@@ -33,21 +34,24 @@ const GoogleIcon = (props) => (
 );
 
 const GoogleAuth = ({ extraState }) => {
-  console.log('extra state:', extraState);
-  const { data } = useGetGoogleURIQuery({ params: extraState });
+  const { data, error } = useGetGoogleURIQuery({ params: extraState });
   const [persist] = usePersist();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.state?.from || '/';
+  //const navigate = useNavigate();
+  //const location = useLocation();
+  //const currentPath = location.state?.from || '/';
 
-  useEffect(() => {
-    console.log('url', data);
-  }, [data]);
+  if (error || !data?.url) {
+    return (
+      <Badge variant='destructive'>Network Error: Unable to communicate</Badge>
+    );
+  }
 
-  return data ? (
-    <GoogleIcon onClick={() => (window.location.href = data.url)} />
-  ) : (
-    <></>
-  );
+  return <GoogleIcon onClick={() => (window.location.href = data.url)} />;
+
+  //return error || ! data?.url
+  //  ? ()
+  //  : data
+  //    ? ()
+  //    : (<></>);
 };
 export default GoogleAuth;

@@ -6,7 +6,10 @@ module.exports = {
   mode: 'jit',
   darkMode: ['selector'],
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
-  plugins: [require('@tailwindcss/forms')],
+  plugins: [
+    //require('@tailwindcss/forms'),
+    //require('@tailwindcss/typography'),
+  ],
   theme: {
     extend: {
       keyframes: {},

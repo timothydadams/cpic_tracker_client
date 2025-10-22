@@ -21,9 +21,21 @@ import { UserManager } from './features/users/UserManager.js';
 
 import { Dashboard } from './Pages/Dashboard.js';
 import { StrategyList } from './features/strategies/StrategyList.js';
+import { FocusAreaList } from './features/focus_areas/FocusAreaList.js';
 import { ViewStrategy } from './features/strategies/ViewStrategy.js';
 import { StrategyForm } from './features/strategies/EditStrategyForm.js';
 import { FAQ } from './features/faq/faq.js';
+
+import { MarkdownWrapper } from 'components/layout/MarkdownWrapper.js';
+import privacyPolicy from 'components/layout/PrivacyNotice.md';
+import tos from 'components/layout/TOS.md';
+import Markdown from 'react-markdown';
+
+const MarkdownPage = ({ contents }) => (
+  <MarkdownWrapper>
+    <Markdown>{contents}</Markdown>
+  </MarkdownWrapper>
+);
 
 const AppRoutes = () => (
   <Routes>
@@ -42,10 +54,13 @@ const AppRoutes = () => (
         <Route path='faq' element={<FAQ />} />
         <Route
           path='terms-of-service'
-          element={<Text>Terms of Service</Text>}
+          element={<MarkdownPage contents={tos} />}
         />
-        <Route path='privacy-policy' element={<Text>Privacy Policy</Text>} />
-        <Route path='policies' element={<Text>Policies</Text>} />
+        <Route
+          path='privacy-policy'
+          element={<MarkdownPage contents={privacyPolicy} />}
+        />
+        <Route path='policies' element={<FocusAreaList />} />
 
         {/* AUTH NEEDED */}
         <Route path='home/*' element={<ProtectRoute allowedRoles={[]} />}>

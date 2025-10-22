@@ -1,6 +1,9 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
 @config '../tailwind.config.js';
 
 @custom-variant dark (&:is(.dark *));
@@ -83,6 +86,11 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.439 0 0);
+}
+
+@theme {
+  --font-sans: Inter, sans-serif;
+  --font-sans--font-feature-settings: 'cv11';
 }
 
 @theme inline {

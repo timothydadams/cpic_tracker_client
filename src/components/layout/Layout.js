@@ -33,7 +33,6 @@ import {
   Cog8ToothIcon,
   LightBulbIcon,
   PlusIcon,
-  ShieldCheckIcon,
   UserIcon,
 } from '@heroicons/react/16/solid';
 import {
@@ -49,6 +48,8 @@ import {
   UserCircleIcon,
   PaperAirplaneIcon,
   ChatBubbleLeftEllipsisIcon,
+  ShieldCheckIcon,
+  ListBulletIcon,
 } from '@heroicons/react/20/solid';
 
 import {
@@ -63,8 +64,9 @@ import { userNavItems, adminNavItems } from './navLists.js';
 import { DarkModeToggle } from './DarkModeToggle.js';
 import useTheme from 'hooks/useTheme.js';
 
-import { TermsOfService } from './TermsOfService.js';
-import { PrivacyPolicy } from './PrivacyPolicy.js';
+//import { TermsOfService } from './TermsOfService.js';
+//import { PrivacyPolicy } from './PrivacyPolicy.js';
+import { ModalFromMarkdown } from './NavItemModelWithMd.js';
 import { UserAvatar } from './UserAvatar.js';
 
 const ProfileSection = ({ user }) => {
@@ -193,8 +195,7 @@ export const Layout = () => {
         <Navbar>
           <NavbarSpacer />
           <NavbarSection>
-            <DarkModeToggle theme={theme} action={setTheme} type={'button'} />
-
+            <DarkModeToggle theme={theme} setTheme={setTheme} type='navbar' />
             <Dropdown>
               <DropdownButton as={NavbarItem}>
                 <UserAvatar user={user} />
@@ -235,7 +236,11 @@ export const Layout = () => {
               </DropdownMenu>
             </Dropdown>
             <SidebarSection className='max-lg:hidden'>
-              <DarkModeToggle theme={theme} action={setTheme} type={'menu'} />
+              <DarkModeToggle
+                theme={theme}
+                setTheme={setTheme}
+                type='sidebar'
+              />
             </SidebarSection>
           </SidebarHeader>
 
@@ -265,8 +270,19 @@ export const Layout = () => {
                 <QuestionMarkCircleIcon />
                 <SidebarLabel>FAQ</SidebarLabel>
               </SidebarItem>
-              <PrivacyPolicy />
-              <TermsOfService />
+              <ModalFromMarkdown
+                title='Privacy Policy'
+                description=''
+                Icon={<ShieldCheckIcon />}
+                file='privacy'
+              />
+              <ModalFromMarkdown
+                title='Terms Of Service'
+                description=''
+                Icon={<ListBulletIcon />}
+                file='tos'
+              />
+
               <SidebarItem href='/changelog'>
                 <SparklesIcon />
                 <SidebarLabel>Changelog</SidebarLabel>

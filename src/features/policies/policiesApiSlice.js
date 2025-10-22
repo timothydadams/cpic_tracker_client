@@ -29,7 +29,7 @@ export const policyApiSlice = apiSlice.injectEndpoints({
     getAllPolicies: builder.query({
       query: (params) => ({
         url: '/policies',
-        params, // RTK Query will automatically serialize this object into a query string
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         return response.data;

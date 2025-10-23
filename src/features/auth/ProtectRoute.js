@@ -9,7 +9,12 @@ export const ProtectRoute = ({ allowedRoles = [], message }) => {
   const { id, roles, isAdmin } = user;
   const userHasRouteRole = roles.some((x) => allowedRoles?.includes(x));
 
-  //console.log('allowed roles:', allowedRoles)
+  console.log('user details in protected route component', {
+    user,
+    id,
+    roles,
+    isAdmin,
+  });
 
   if (isAdmin) {
     return <Outlet />;

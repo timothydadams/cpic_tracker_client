@@ -7,13 +7,16 @@ import {
 import { enqueueSnackbar } from 'notistack';
 import { useGetAllImplementersQuery } from '../implementers/implementersApiSlice';
 import { Loading } from 'components/Spinners';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useWatch, useFieldArray } from 'react-hook-form';
 import { getDirtyValues } from 'utils/rhf_helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Button } from 'ui/button';
 import { Separator } from 'ui/separator';
 import { Checkbox } from 'ui/checkbox';
+
+import { useSelector } from 'react-redux';
+import { selectImplementers } from '../implementers/implementersSlice';
 
 import {
   Field,
@@ -25,6 +28,7 @@ import {
   FieldSet,
   FieldLegend,
 } from 'ui/field';
+
 import { Input } from 'ui/input';
 import { Textarea } from 'ui/textarea';
 import { FormWrapper } from './FormWrapper';
@@ -49,6 +53,7 @@ const schema = yup.object().shape({
   status_id: yup.string().required(),
   timeline_id: yup.string().required(),
   implementers: yup.array().min(1),
+  primary_implementer: yup.string().required(),
 });
 
 const addLabelValue = (item, labelKey, valueKey) => {
@@ -114,6 +119,8 @@ export const StatusSelector = ({ id, fieldState, ...props }) => {
 };
 
 export const ImplementerToggle = ({ fieldState, ...props }) => {
+  const implementers = useSelector(selectImplementers);
+  /*
   const params = {
     cpic_smes: 'true',
   };
@@ -122,17 +129,18 @@ export const ImplementerToggle = ({ fieldState, ...props }) => {
     useGetAllImplementersQuery({
       params,
       applyTransformation: true,
-    });
+  });
+  */
 
   return (
-    transformedImplementers && (
+    implementers && (
       <>
         <MultiSelect
           {...props}
           aria-invalid={fieldState.invalid}
           placeholder='Add implementers...'
           maxCount={5}
-          options={transformedImplementers}
+          options={implementers}
           aria-label='Implementer selection'
           variant='inverted'
         />
@@ -144,7 +152,13 @@ export const ImplementerToggle = ({ fieldState, ...props }) => {
 export const StrategyForm = () => {
   const { id } = useParams();
 
-  const params = {
+  const { data: implementers, isLoading: isLoading_imps } =
+    useGetAllImplementersQuery({
+      params: { cpic_smes: 'true' },
+      applyTransformation: true,
+    });
+
+  const strategyParams = {
     timeline: 'true',
     policy: 'true',
     status: 'true',
@@ -159,7 +173,7 @@ export const StrategyForm = () => {
   } = useGetStrategyQuery(
     {
       id,
-      params,
+      params: strategyParams,
     },
     {
       skip: !id,
@@ -176,22 +190,66 @@ export const StrategyForm = () => {
   const form = useForm({
     mode: 'onBlur',
     resolver: yupResolver(schema),
+    defaultValues: {
+      status_id: '',
+      timeline_id: '',
+      content: '',
+      implementers: [],
+      primary_implementer: '',
+    },
   });
 
   const {
+    reset,
     getValues,
+    setValue,
     control,
     formState: { dirtyFields },
   } = form;
 
-  /*
-    const { fields, append, remove, move } = useFieldArray({
-        control,
-        name: 'implementers',
-    });
-    */
+  React.useEffect(() => {
+    if (strategy?.implementers) {
+      const { implementers, ...rest } = strategy;
+      const primary_implementer =
+        implementers.find((i) => i.is_primary === true)?.implementer_id || null;
+      if (primary_implementer) {
+        setValue('primary_implementer', primary_implementer);
+      }
+      //setValue("content", strategy.content);
+      //setValue("implementers", implementers.map(i => i.implementer_id));
+      //setValue("status_id", strategy.status_id);
+      //setValue("timeline_id", strategy.timeline_id);
 
-  //const { formState: { dirtyFields }} = form;
+      //console.log("found primary imp:", primary_implementer);
+      reset({
+        ...rest,
+        implementers: implementers.map((i) => i.implementer_id),
+      });
+    }
+  }, [strategy, reset]);
+
+  // Watch the value of the 'category' field
+  const selectedImplementers = useWatch({
+    control,
+    name: 'implementers',
+  });
+
+  const mappedImplementers = React.useMemo(() => {
+    return selectedImplementers.map((i) =>
+      implementers.find((imp) => imp.id === i)
+    );
+  });
+
+  React.useEffect(() => {
+    if (selectedImplementers && strategy) {
+      const { implementers, ...rest } = strategy;
+      const primary_implementer =
+        implementers.find((i) => i.is_primary === true)?.implementer_id || null;
+      if (primary_implementer) {
+        setValue('primary_implementer', primary_implementer);
+      }
+    }
+  }, [selectedImplementers]);
 
   const handleStrategyUpdate = async (data, e) => {
     e.preventDefault();
@@ -234,137 +292,186 @@ export const StrategyForm = () => {
     }
   };
 
-  return isLoading ? (
+  console.log('selected imps:', selectedImplementers);
+
+  const loading = isLoading == true || isLoading_imps == true;
+
+  return loading ? (
     <Loading />
   ) : (
-    <>
-      <FormWrapper
-        strategyDetails={strategy}
-        form={form}
-        formId='strategy-form'
-        className='w-full'
-      >
-        <form
-          id='strategy-form'
-          className='mt-4 space-y-6'
-          onSubmit={form.handleSubmit(handleStrategyUpdate)}
+    strategy && (
+      <>
+        <FormWrapper
+          strategyDetails={strategy}
+          form={form}
+          formId='strategy-form'
+          className='w-full'
         >
-          <div className='flex justify-between'>
-            <div>
+          <form
+            id='strategy-form'
+            className='mt-4 space-y-6'
+            onSubmit={form.handleSubmit(handleStrategyUpdate)}
+          >
+            <div className='flex justify-between'>
+              <div>
+                <Controller
+                  name='status_id'
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      orientation='responsive'
+                      data-invalid={fieldState.invalid}
+                    >
+                      <FieldContent>
+                        <FieldLabel htmlFor='strategy-status-id-field'>
+                          Status
+                        </FieldLabel>
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </FieldContent>
+                      <StatusSelector
+                        fieldState={fieldState}
+                        id='strategy-status-id-field'
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </Field>
+                  )}
+                />
+              </div>
+
+              <div>
+                <Controller
+                  name='timeline_id'
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field
+                      orientation='responsive'
+                      data-invalid={fieldState.invalid}
+                    >
+                      <FieldContent>
+                        <FieldLabel htmlFor='strategy-timeline-id-field'>
+                          Timeline
+                        </FieldLabel>
+                        {fieldState.invalid && (
+                          <FieldError errors={[fieldState.error]} />
+                        )}
+                      </FieldContent>
+                      <TimelineSelector
+                        fieldState={fieldState}
+                        id='strategy-timeline-id-field'
+                        name={field.name}
+                        value={field.value}
+                        onValueChange={field.onChange}
+                      />
+                    </Field>
+                  )}
+                />
+              </div>
+            </div>
+
+            <Separator orientation='horizontal' />
+
+            <Controller
+              name='content'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor='strategy-description'>
+                    Strategy Description
+                  </FieldLabel>
+                  <Textarea
+                    {...field}
+                    id='strategy-description'
+                    aria-invalid={fieldState.invalid}
+                    placeholder='content...'
+                    className='min-h-[150px]'
+                  />
+                  <FieldDescription></FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Separator orientation='horizontal' />
+
+            <Controller
+              name='implementers'
+              control={control}
+              render={({ field, fieldState }) => (
+                <FieldSet>
+                  <FieldLegend variant='label'>Implementers</FieldLegend>
+                  <FieldDescription>
+                    Manage assigned Implementers
+                  </FieldDescription>
+
+                  <ImplementerToggle
+                    fieldState={fieldState}
+                    name={field.name}
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                  />
+
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldSet>
+              )}
+            />
+
+            {mappedImplementers && (
               <Controller
-                name='status_id'
-                control={form.control}
-                defaultValue={strategy.status_id}
+                name='primary_implementer'
+                control={control}
+                defaultValue=''
                 render={({ field, fieldState }) => (
                   <Field
                     orientation='responsive'
                     data-invalid={fieldState.invalid}
                   >
                     <FieldContent>
-                      <FieldLabel htmlFor='strategy-status-id-field'>
-                        Status
+                      <FieldLabel htmlFor='primary-implementer-id-field'>
+                        Primary Implementer
                       </FieldLabel>
                       {fieldState.invalid && (
                         <FieldError errors={[fieldState.error]} />
                       )}
                     </FieldContent>
-                    <StatusSelector
-                      fieldState={fieldState}
-                      id='strategy-status-id-field'
+
+                    <Select
                       name={field.name}
                       value={field.value}
                       onValueChange={field.onChange}
-                    />
+                    >
+                      <SelectTrigger
+                        id='primary-implementer-id-field'
+                        className='min-w-[180px]'
+                        aria-invalid={fieldState.invalid}
+                      >
+                        <SelectValue placeholder='select primary implementer' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mappedImplementers.map((implementer) => (
+                          <SelectItem
+                            key={implementer.id}
+                            value={implementer.id}
+                          >
+                            {implementer.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </Field>
                 )}
               />
-            </div>
-
-            <div>
-              <Controller
-                name='timeline_id'
-                control={form.control}
-                defaultValue={strategy.timeline_id}
-                render={({ field, fieldState }) => (
-                  <Field
-                    orientation='responsive'
-                    data-invalid={fieldState.invalid}
-                  >
-                    <FieldContent>
-                      <FieldLabel htmlFor='strategy-timeline-id-field'>
-                        Timeline
-                      </FieldLabel>
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </FieldContent>
-                    <TimelineSelector
-                      fieldState={fieldState}
-                      id='strategy-timeline-id-field'
-                      name={field.name}
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    />
-                  </Field>
-                )}
-              />
-            </div>
-          </div>
-
-          <Separator orientation='horizontal' />
-
-          <Controller
-            name='content'
-            control={form.control}
-            defaultValue={strategy.content}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor='strategy-description'>
-                  Strategy Description
-                </FieldLabel>
-                <Textarea
-                  {...field}
-                  id='strategy-description'
-                  aria-invalid={fieldState.invalid}
-                  placeholder='content...'
-                  className='min-h-[150px]'
-                />
-                <FieldDescription></FieldDescription>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
             )}
-          />
-
-          <Separator orientation='horizontal' />
-
-          <Controller
-            name='implementers'
-            control={form.control}
-            defaultValue={strategy.implementers.map((i) => i.implementer_id)}
-            render={({ field, fieldState }) => (
-              <FieldSet>
-                <FieldLegend variant='label'>Implementers</FieldLegend>
-                <FieldDescription>
-                  Manage assigned Implementers
-                </FieldDescription>
-
-                <ImplementerToggle
-                  fieldState={fieldState}
-                  name={field.name}
-                  defaultValue={field.value}
-                  onValueChange={field.onChange}
-                />
-
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </FieldSet>
-            )}
-          />
-        </form>
-      </FormWrapper>
-    </>
+          </form>
+        </FormWrapper>
+      </>
+    )
   );
 };

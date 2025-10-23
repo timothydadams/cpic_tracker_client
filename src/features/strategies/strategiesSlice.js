@@ -1,20 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { strategyApiSlice } from './strategiesApiSlice';
 
-//const initialState = {
-//  statuses: [],
-//  timelineOptions: [],
-//};
-
 const strategySlice = createSlice({
   name: 'strategy',
   initialState: {
+    strategies: [],
     statuses: [],
     timelineOptions: [],
   },
   reducers: {
+    setStrategies: (state, action) => {
+      state.strategies = action.payload;
+    },
     setStatuses: (state, action) => {
-      console.log('action:', action);
       const { statuses } = action.payload;
       state.statuses = statuses;
     },

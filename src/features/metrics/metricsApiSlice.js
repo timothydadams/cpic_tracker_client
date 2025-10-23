@@ -1,6 +1,6 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 
-export const metricsApiSlice = apiSlice.injectEndpoints({
+export const metricsApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     getImplementerMetrics: builder.query({
       query: (params) => ({

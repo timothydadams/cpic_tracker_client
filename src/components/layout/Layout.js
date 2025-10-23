@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { GoalIcon, MapIcon } from 'lucide-react';
+import { GoalIcon, MapIcon, ChartNoAxesCombinedIcon } from 'lucide-react';
 import {
   Dropdown,
   DropdownButton,
@@ -63,9 +63,6 @@ import useAuth from 'hooks/useAuth.js';
 import { userNavItems, adminNavItems } from './navLists.js';
 import { DarkModeToggle } from './DarkModeToggle.js';
 import useTheme from 'hooks/useTheme.js';
-
-//import { TermsOfService } from './TermsOfService.js';
-//import { PrivacyPolicy } from './PrivacyPolicy.js';
 import { ModalFromMarkdown } from './NavItemModelWithMd.js';
 import { UserAvatar } from './UserAvatar.js';
 
@@ -149,6 +146,7 @@ export const Layout = () => {
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
   const user = useAuth();
+  console.log('user in layout:', user);
   const {
     name,
     given_name,
@@ -160,6 +158,7 @@ export const Layout = () => {
     id,
     roles,
     status,
+    isAdmin,
     isGlobalAdmin,
     isCPICAdmin,
     isCPICMember,
@@ -167,12 +166,17 @@ export const Layout = () => {
   } = user;
 
   useEffect(() => {
-    let items = adminNavItems.filter((u) =>
-      roles.some((x) => u.allowedRoles?.includes(x))
-    );
-    setAdminNav([...items]);
+    if (!roles.includes('Viewer')) {
+      let items = adminNavItems.filter((u) =>
+        roles.some((x) => u.allowedRoles?.includes(x))
+      );
+      setAdminNav([...items]);
+    } else {
+      setAdminNav([]);
+    }
+
     return () => {};
-  }, [id]);
+  }, [roles]);
 
   useEffect(() => {
     let activeUser = id === null ? false : true;
@@ -189,6 +193,10 @@ export const Layout = () => {
     return () => {};
   }, [id]);
 
+  useEffect(() => {
+    console.log('admin items', adminNav);
+  }, [adminNav]);
+
   return (
     <SidebarLayout
       navbar={
@@ -198,7 +206,7 @@ export const Layout = () => {
             <DarkModeToggle theme={theme} setTheme={setTheme} type='navbar' />
             <Dropdown>
               <DropdownButton as={NavbarItem}>
-                <UserAvatar user={user} />
+                <UserAvatar user={user} className='h-6 w-6' />
               </DropdownButton>
               <NavList
                 list={userNav}
@@ -253,6 +261,10 @@ export const Layout = () => {
               <SidebarItem href='/policies'>
                 <MapIcon />
                 <SidebarLabel>View Goals & Policies</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem href='/'>
+                <ChartNoAxesCombinedIcon />
+                <SidebarLabel>View Metrics</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 

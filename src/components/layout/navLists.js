@@ -32,21 +32,7 @@ export const userNavItems = [
     id: uuidv4(),
   },
   {
-    label: 'My Settings',
-    path: 'user-settings',
-    requiresUser: true,
-    icon: <Cog8ToothIcon />,
-    id: uuidv4(),
-  },
-  {
     label: 'divider',
-    id: uuidv4(),
-  },
-  {
-    label: 'Privacy Policy',
-    path: 'privacy-policy',
-    requiresUser: false,
-    icon: <ShieldCheckIcon />,
     id: uuidv4(),
   },
   {
@@ -85,21 +71,9 @@ export const adminNavItems = [
     id: uuidv4(),
   },
   {
-    label: 'Manage Roles',
-    path: 'admin/roles',
-    allowedRoles: ['Admin'],
-    id: uuidv4(),
-  },
-  {
-    label: 'Manage Permissions',
-    path: 'admin/permissions',
-    allowedRoles: ['Admin'],
-    id: uuidv4(),
-  },
-  {
     label: 'Manage Strategies',
     path: 'strategies',
-    allowedRoles: ['CPIC Admin'],
+    allowedRoles: ['Admin', 'CPIC Admin'],
     id: uuidv4(),
   },
 ];

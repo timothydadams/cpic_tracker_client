@@ -1,8 +1,8 @@
 import { useSelector } from 'react-redux';
-import { selectAuthenticatedUser } from '../features/auth/authSlice';
+import { selectUser } from '../features/auth/authSlice';
 
 const useAuth = () => {
-  const user = useSelector(selectAuthenticatedUser);
+  const user = useSelector(selectUser);
 
   const data = { ...user };
 
@@ -21,6 +21,8 @@ const useAuth = () => {
       data.status = role;
     }
   }
+
+  console.log('user details in useAuth() component:', data);
 
   return data;
 };

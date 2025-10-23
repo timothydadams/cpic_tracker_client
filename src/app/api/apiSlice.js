@@ -43,7 +43,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
   return result;
 };
 
-export const apiSlice = createApi({
+export const api = createApi({
   baseQuery: baseQueryWithReauth,
   refetchOnFocus: true,
   tagTypes: ['User'],

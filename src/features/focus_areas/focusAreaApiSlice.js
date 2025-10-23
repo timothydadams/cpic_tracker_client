@@ -1,6 +1,6 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 
-export const focusAreaApiSlice = apiSlice.injectEndpoints({
+export const focusAreaApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     createFocusArea: builder.mutation({
       query: (details) => ({
@@ -32,13 +32,7 @@ export const focusAreaApiSlice = apiSlice.injectEndpoints({
         params, // RTK Query will automatically serialize this object into a query string
       }),
       transformResponse: (response, meta, arg) => {
-        const result = response.data;
-        const { policies, ...rest } = result;
-        let tmp = [...policies].sort(
-          (a, b) => a['policy_number'] - b['policy_number']
-        );
-        result.policies = tmp;
-        return { policies: tmp, ...rest };
+        return response.data;
       },
     }),
     getAllFocusAreas: builder.query({

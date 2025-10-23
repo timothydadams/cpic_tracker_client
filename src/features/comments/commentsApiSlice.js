@@ -1,6 +1,6 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 
-export const commentApiSlice = apiSlice.injectEndpoints({
+export const commentApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     createComment: builder.mutation({
       query: (details) => ({

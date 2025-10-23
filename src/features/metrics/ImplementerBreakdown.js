@@ -19,15 +19,15 @@ export const ImplementerBreakdown = () => {
     ready && (
       <>
         <Subheading>Implementer Count:Full Work Breakdown</Subheading>
-        {fullData.map((item) => (
-          <p>
+        {fullData.map((item, i) => (
+          <p key={`full_${i}`}>
             {item.implementer_name} - {item.count}
           </p>
         ))}
 
         <Subheading>Implementer Count: Primary Lead</Subheading>
-        {leadData.map((item) => (
-          <p>
+        {leadData.map((item, i) => (
+          <p key={`lead_${i}`}>
             {item.implementer_name} - {item.count}
           </p>
         ))}

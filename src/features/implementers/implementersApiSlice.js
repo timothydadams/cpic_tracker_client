@@ -1,7 +1,8 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 import { convertNumericValuesToStringRecursive } from 'utils/helpers';
+import { setImplementers } from './implementersSlice';
 
-export const implementersApiSlice = apiSlice.injectEndpoints({
+export const implementersApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     createImplementer: builder.mutation({
       query: (details) => ({
@@ -53,6 +54,14 @@ export const implementersApiSlice = apiSlice.injectEndpoints({
           }));
         }
         return converted;
+      },
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setImplementers({ data }));
+        } catch (e) {
+          console.log(e);
+        }
       },
     }),
   }),

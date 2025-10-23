@@ -300,6 +300,8 @@ export const StrategyList = () => {
   const user = useAuth();
   const { roles } = user;
 
+  console.log('user roles', roles);
+
   // Conditionally generate the columns based on the user's role
   const columns = React.useMemo(() => {
     return allColumns.filter(

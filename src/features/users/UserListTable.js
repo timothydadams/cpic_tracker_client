@@ -102,13 +102,6 @@ const columns = [
       return checkUserRoles(roles, 'Implementer') ? <HasRole /> : <NoRole />;
     },
   }),
-  columnHelper.display({
-    header: 'Viewer',
-    cell: ({ row }) => {
-      const { roles } = row.original;
-      return checkUserRoles(roles, 'Viewer') ? <HasRole /> : <NoRole />;
-    },
-  }),
 ];
 
 export function UserList({ users, refetchUsers }) {

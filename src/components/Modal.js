@@ -18,8 +18,6 @@ export const Modal = ({
 }) => {
   let [isOpen, setIsOpen] = React.useState(false);
 
-  console.log('props in modal:', props);
-
   return (
     <>
       <Button type='button' plain onClick={() => setIsOpen(true)}>

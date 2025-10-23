@@ -27,19 +27,19 @@ const chartConfig = {
   strategies: {
     label: 'Strategies',
   },
-  Ongoing: {
+  ongoing: {
     label: 'Ongoing',
     color: 'var(--chart-1)',
   },
-  'Short-Term': {
+  short_term: {
     label: 'Short-Term',
     color: 'var(--chart-2)',
   },
-  'Mid-Term': {
+  mid_term: {
     label: 'Mid-Term',
     color: 'var(--chart-3)',
   },
-  'Long-Term': {
+  long_term: {
     label: 'Long-Term',
     color: 'var(--chart-4)',
   },
@@ -51,6 +51,17 @@ export function ChartPieDonutText({ title, data }) {
   const totalStrategies = React.useMemo(() => {
     return data.reduce((acc, curr) => acc + curr.count, 0);
   }, []);
+
+  const charData = React.useMemo(() => {
+    return data.map((item) => {
+      const key = item.timeline.replace('-', '_').toLowerCase();
+      return {
+        ...item,
+        key,
+        fill: `var(--color-${key})`,
+      };
+    });
+  });
 
   return (
     <Card className='flex flex-col'>
@@ -64,14 +75,14 @@ export function ChartPieDonutText({ title, data }) {
           className='mx-auto aspect-square max-h-[250px] w-full'
         >
           <PieChart>
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent nameKey='key' />}
+            />
             <Pie
-              data={data.map((item) => ({
-                ...item,
-                fill: `var(--color-${item.timeline})`,
-              }))}
+              data={charData}
               dataKey='count'
-              nameKey='timeline'
+              nameKey='key'
               innerRadius={60}
               strokeWidth={5}
             >

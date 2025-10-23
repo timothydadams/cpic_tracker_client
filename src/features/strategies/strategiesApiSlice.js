@@ -1,8 +1,8 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 import { setStatuses } from './strategiesSlice';
 import { convertNumericValuesToStringRecursive } from 'utils/helpers';
 
-export const strategyApiSlice = apiSlice.injectEndpoints({
+export const strategyApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     createStrategy: builder.mutation({
       query: (details) => ({

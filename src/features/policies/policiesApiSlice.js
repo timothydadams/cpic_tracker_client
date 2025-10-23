@@ -1,6 +1,6 @@
-import { apiSlice } from '../../app/api/apiSlice';
+import { api } from '../../app/api/apiSlice';
 
-export const policyApiSlice = apiSlice.injectEndpoints({
+export const policyApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     createPolicy: builder.mutation({
       query: (details) => ({

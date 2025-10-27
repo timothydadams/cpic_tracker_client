@@ -106,6 +106,39 @@ const allColumns = [
       return value.includes(row.getValue(id));
     },
   }),
+  columnHelper.accessor('focus_area.name', {
+    id: 'focusArea',
+    cell: (info) => info.getValue(),
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title='Focus Area' />
+    ),
+    footer: (info) => info.column.id,
+    //enableHiding: false,
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
+    },
+  }),
+  columnHelper.display({
+    id: 'policy-strategy',
+    header: ({ column }) => {
+      return (
+        <Button
+          variant='ghost'
+          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+        >
+          Ref #
+          <ArrowUpDown className='ml-2 h-4 w-4' />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const strategy = row.original;
+      return `${strategy.policy.policy_number}.${strategy.strategy_number}`;
+    },
+    accessorFn: (row) => {
+      return parseFloat(`${row.policy.policy_number}.${row.strategy_number}`);
+    },
+  }),
   columnHelper.accessor('timeline.title', {
     id: 'timeline',
     cell: (info) => info.getValue(),
@@ -164,18 +197,6 @@ const allColumns = [
     cell: (info) => info.getValue(),
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title='Policy' />
-    ),
-    footer: (info) => info.column.id,
-    enableHiding: false,
-    filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
-    },
-  }),
-  columnHelper.accessor('policy.area.name', {
-    id: 'focusArea',
-    cell: (info) => info.getValue(),
-    header: ({ column }) => (
-      <DataTableColumnHeader column={column} title='Focus Area' />
     ),
     footer: (info) => info.column.id,
     enableHiding: false,
@@ -312,7 +333,10 @@ export const StrategyList = () => {
     );
   }, [roles]);
 
-  const { data: strategies } = useGetAllStrategiesQuery();
+  const { data: strategies } = useGetAllStrategiesQuery({
+    include:
+      'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
+  });
   const { data: statusOptions } = useGetAllStatusesQuery();
   //const statusOptions = useSelector(selectStatuses);
   //const altLimit = useSelector(selectCurrentAlt);
@@ -351,7 +375,7 @@ export const StrategyList = () => {
     <Loading />
   ) : (
     <>
-      <Heading>Strategies</Heading>
+      <Heading>Explore All Strategies</Heading>
       <div className='container mx-auto py-10'>
         <DataTable
           data={strategies}
@@ -381,7 +405,7 @@ export const StrategyList = () => {
             },
             {
               column: 'focusArea',
-              title: 'Recommended Area',
+              title: 'Focus Area',
               options: focusareas.map(({ name }) => ({
                 value: name,
                 label: name,

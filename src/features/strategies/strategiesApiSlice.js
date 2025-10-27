@@ -49,7 +49,10 @@ export const strategyApiSlice = api.injectEndpoints({
       },
     }),
     getAllStrategies: builder.query({
-      query: () => `/strategies`,
+      query: (params) => ({
+        url: `/strategies`,
+        params,
+      }),
       transformResponse: (response, meta, arg) => {
         return response.data;
       },

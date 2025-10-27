@@ -254,14 +254,16 @@ export const Layout = () => {
 
           <SidebarBody>
             <SidebarSection>
-              <SidebarItem href='/strategies'>
-                <GoalIcon />
-                <SidebarLabel>View Strategies</SidebarLabel>
-              </SidebarItem>
               <SidebarItem href='/policies'>
                 <MapIcon />
-                <SidebarLabel>View Goals & Policies</SidebarLabel>
+                <SidebarLabel>Goals & Policies</SidebarLabel>
               </SidebarItem>
+
+              <SidebarItem href='/strategies'>
+                <GoalIcon />
+                <SidebarLabel>All Strategies</SidebarLabel>
+              </SidebarItem>
+
               <SidebarItem href='/'>
                 <ChartNoAxesCombinedIcon />
                 <SidebarLabel>View Metrics</SidebarLabel>

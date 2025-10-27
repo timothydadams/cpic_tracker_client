@@ -1,3 +1,4 @@
+import React from 'react';
 import { Column } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, ChevronsUpDown, EyeOff } from 'lucide-react';
 
@@ -11,7 +12,12 @@ import {
   DropdownMenuTrigger,
 } from 'ui/dropdown-menu';
 
-export function DataTableColumnHeader({ column, title, className }) {
+export function DataTableColumnHeader({
+  column,
+  title,
+  preventHide,
+  className,
+}) {
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
@@ -44,11 +50,16 @@ export function DataTableColumnHeader({ column, title, className }) {
             <ArrowDown />
             Desc
           </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
-            <EyeOff />
-            Hide
-          </DropdownMenuItem>
+
+          {!preventHide && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => column.toggleVisibility(false)}>
+                <EyeOff />
+                Hide
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

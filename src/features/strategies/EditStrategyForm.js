@@ -243,10 +243,19 @@ export const StrategyForm = () => {
   React.useEffect(() => {
     if (selectedImplementers && strategy) {
       const { implementers, ...rest } = strategy;
-      const primary_implementer =
-        implementers.find((i) => i.is_primary === true)?.implementer_id || null;
-      if (primary_implementer) {
-        setValue('primary_implementer', primary_implementer);
+      if (
+        implementers &&
+        Array.isArray(implementers) &&
+        implementers.length > 0
+      ) {
+        const primary_implementer =
+          implementers.find((i) => i.is_primary === true)?.implementer_id ||
+          null;
+        if (primary_implementer) {
+          setValue('primary_implementer', primary_implementer, {
+            shouldDirty: false,
+          });
+        }
       }
     }
   }, [selectedImplementers]);

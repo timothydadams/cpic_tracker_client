@@ -34,7 +34,9 @@ export function DataTable({
   columnSearch,
   metaData = {},
   filters = [],
+  initialState = {},
 }) {
+  //const memoizedData = React.useMemo(() => data, [data]);
   const user = useAuth();
   const { isAdmin, isCPICAdmin, isCPICMember, isImplementer } = user;
 
@@ -44,6 +46,22 @@ export function DataTable({
   const [columnVisibility, setColumnVisibility] = React.useState({});
   const [columnFilters, setColumnFilters] = React.useState([]);
   const [sorting, setSorting] = React.useState([]);
+
+  React.useEffect(() => {
+    const {
+      sorting: initialSortingState = [],
+      columnVisibility: initialVisibility = null,
+    } = initialState;
+
+    console.log({ sorting, columnVisibility });
+
+    if (initialSortingState) {
+      setSorting((prev) => initialSortingState);
+    }
+    if (initialVisibility) {
+      setColumnVisibility((prev) => initialVisibility);
+    }
+  }, [initialState]);
 
   const table = useReactTable({
     data,

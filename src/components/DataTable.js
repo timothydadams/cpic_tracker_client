@@ -23,7 +23,7 @@ import {
   TableRow,
 } from 'ui/table';
 
-import useAuth from 'hooks/useAuth';
+import useAuth from 'hooks/useAuth.js';
 
 import { DataTablePagination } from './datatable-pagination';
 import { DataTableToolbar } from './datatable-toolbar';

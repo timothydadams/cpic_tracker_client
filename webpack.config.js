@@ -105,9 +105,20 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
-        'process.env': JSON.stringify(process.env),
       }),
-      new Dotenv(),
+      ...(isDev
+        ? [new Dotenv()]
+        : [
+            new webpack.DefinePlugin({
+              'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
+              'process.env.GOOGLE_CLIENT_ID': JSON.stringify(
+                process.env.GOOGLE_CLIENT_ID
+              ),
+              'process.env.HUSKY': JSON.stringify(process.env.HUSKY),
+              'process.env.API_URL': JSON.stringify(process.env.API_URL),
+            }),
+          ]),
+      //new Dotenv(),
       isDev && isServed && new ReactRefreshPlugin(),
       new CleanWebpackPlugin(),
       new CopyWebpackPlugin({

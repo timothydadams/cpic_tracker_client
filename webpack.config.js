@@ -131,6 +131,10 @@ module.exports = (env, argv) => {
               ignore: ['*.DS_Store'],
             },
           },
+          {
+            from: 'public/favicon.svg',
+            to: 'favicon.svg',
+          },
         ],
       }),
       new MiniCssExtractPlugin({

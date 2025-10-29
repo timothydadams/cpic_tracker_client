@@ -4,7 +4,7 @@
     "paths": {
       "@/*": ["./src/*"],
       "components": ["src/components/*"],
-      "hooks": ["src/hooks/*"],
+      "hooks": ["src/Hooks/*"],
       "catalyst": ["src/components/catalyst/*"],
       "utils": ["src/utils/*"],
       "assets": ["src/assets/*"],

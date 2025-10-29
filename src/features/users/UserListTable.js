@@ -4,7 +4,7 @@ import { UserAvatar } from 'components/layout/UserAvatar.js';
 import { useGetRolesQuery } from './usersApiSlice.js';
 import { CheckIcon, XMarkIcon } from '@heroicons/react/16/solid';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Modal } from 'components/modal.js';
+import { Modal } from 'components/Modal.js';
 import { EditRolesForm } from './EditUserRolesForm.js';
 
 const HasRole = () => <CheckIcon className='size-6 text-green-500' />;

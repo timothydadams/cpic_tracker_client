@@ -28,7 +28,7 @@ import useAuth from 'hooks/useAuth';
 import { DataTableColumnHeader } from 'components/datatable-column-header';
 import { DataTableRowActions } from 'components/datatable-row-actions';
 import { Loading } from 'components/Spinners';
-import { Modal } from 'components/modal';
+import { Modal } from 'components/Modal';
 
 export const StatusBadge = ({ status }) => {
   //const status = cell.getValue();

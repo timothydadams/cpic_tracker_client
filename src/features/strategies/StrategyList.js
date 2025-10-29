@@ -36,7 +36,7 @@ import { useGetAllFocusAreasQuery } from '../focus_areas/focusAreaApiSlice';
 import { DataTableColumnHeader } from 'components/datatable-column-header';
 import { DataTableRowActions } from 'components/datatable-row-actions';
 import { Loading } from 'components/Spinners';
-import { Modal } from 'components/modal';
+import { Modal } from 'components/Modal';
 import { useSelector } from 'react-redux';
 import { selectStatuses } from './strategiesSlice';
 //import { StrategyForm } from './EditStrategyForm';

@@ -227,7 +227,9 @@ const allColumns = [
               Copy strategy details
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Link href={`${strategy.id}`}>View Details</Link>
+              <Link href={`${strategy.id}`} className='w-full'>
+                View Details
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>CPIC Actions</DropdownMenuLabel>
@@ -263,7 +265,9 @@ const allColumns = [
               Copy strategy details
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Link href={`${strategy.id}`}>View Details</Link>
+              <Link href={`${strategy.id}`} className='w-full'>
+                View Details
+              </Link>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -295,7 +299,9 @@ const allColumns = [
               Copy strategy details
             </DropdownMenuItem> */}
             <DropdownMenuItem>
-              <Link href={`${strategy.id}`}>View Details</Link>
+              <Link href={`${strategy.id}`} className='w-full'>
+                View Details
+              </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>CPIC Actions</DropdownMenuLabel>
@@ -303,7 +309,9 @@ const allColumns = [
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
             <DropdownMenuItem>
-              <Link href={`${strategy.id}/edit`}>Edit</Link>
+              <Link href={`${strategy.id}/edit`} className='w-full'>
+                Edit
+              </Link>
             </DropdownMenuItem>
             {/**
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>

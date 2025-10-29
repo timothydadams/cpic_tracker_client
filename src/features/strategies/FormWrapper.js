@@ -62,7 +62,9 @@ export const FormWrapper = ({
             <Button
               type='button'
               variant='outline'
-              onClick={() => form.reset()}
+              onClick={() =>
+                form.reset({ ...strategyDetails }, { triggerWatch: false })
+              }
             >
               Reset
             </Button>

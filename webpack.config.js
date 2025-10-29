@@ -15,7 +15,8 @@ module.exports = (env, argv) => {
   return {
     context: __dirname,
     entry: path.resolve(__dirname, 'src', 'index.js'),
-    devtool: isDev ? 'inline-source-map' : false,
+    //devtool: isDev ? 'inline-source-map' : false,
+    devtool: false,
     output: {
       path: path.resolve(__dirname, 'dist'),
       publicPath: '/',
@@ -153,6 +154,7 @@ module.exports = (env, argv) => {
           directory: path.join(__dirname, 'public'),
         },
         compress: true,
+        host: '0.0.0.0', //required to test with other networked devices on LAN
         port: 3000,
         //headers: {
         //  "Access-Control-Allow-Origin": "*",

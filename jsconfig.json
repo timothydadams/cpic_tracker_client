@@ -2,7 +2,14 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "components": ["src/components/*"],
+      "hooks": ["src/hooks/*"],
+      "catalyst": ["src/components/catalyst/*"],
+      "utils": ["src/utils/*"],
+      "assets": ["src/assets/*"],
+      "lib": ["src/lib/*"],
+      "ui": ["src/components/ui/*"]
     }
   }
 }

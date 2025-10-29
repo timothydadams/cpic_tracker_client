@@ -83,13 +83,13 @@ module.exports = (env, argv) => {
     resolve: {
       extensions: ['.ts', '.js', '.jsx'],
       alias: {
-        components: path.resolve(__dirname, 'src/components/'),
-        hooks: path.resolve(__dirname, 'src/hooks/'),
-        catalyst: path.resolve(__dirname, 'src/components/catalyst/'),
-        utils: path.resolve(__dirname, 'src/utils/'),
-        assets: path.resolve(__dirname, 'src/assets/'),
-        lib: path.resolve(__dirname, 'src/lib/'),
-        ui: path.resolve(__dirname, 'src/components/ui'),
+        components: path.resolve(__dirname, './src/components/'),
+        hooks: path.resolve(__dirname, './src/hooks/'),
+        catalyst: path.resolve(__dirname, './src/components/catalyst/'),
+        utils: path.resolve(__dirname, './src/utils/'),
+        assets: path.resolve(__dirname, './src/assets/'),
+        lib: path.resolve(__dirname, './src/lib/'),
+        ui: path.resolve(__dirname, './src/components/ui'),
 
         // Other aliases
       },

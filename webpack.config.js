@@ -105,6 +105,7 @@ module.exports = (env, argv) => {
     plugins: [
       new webpack.ProvidePlugin({
         Buffer: ['buffer', 'Buffer'],
+        'process.env': JSON.stringify(process.env),
       }),
       new Dotenv(),
       isDev && isServed && new ReactRefreshPlugin(),

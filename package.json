@@ -11,7 +11,7 @@
     "build-prod": "rm -rf dist && webpack --mode=production",
     "webpack-dev-server": "webpack-dev-server",
     "dev": "webpack-dev-server --hot --mode=development",
-    "prepare": "husky install",
+    "prepare": "husky || true",
     "pre-commit": "lint-staged",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

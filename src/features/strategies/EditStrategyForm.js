@@ -309,8 +309,6 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
       };
     }
 
-    console.log('changed fields:', changedFields);
-
     try {
       const res = await updateStrategy({ id, data: changedFields }).unwrap();
       enqueueSnackbar('Strategy updated...', { variant: 'success' });

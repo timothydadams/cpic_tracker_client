@@ -5,16 +5,8 @@ import useAuth from 'hooks/useAuth';
 export const ProtectRoute = ({ allowedRoles = [], message }) => {
   const location = useLocation();
   const user = useAuth();
-  //console.log('user in protectRoute component', user);
   const { id, roles, isAdmin } = user;
   const userHasRouteRole = roles.some((x) => allowedRoles?.includes(x));
-
-  console.log('user details in protected route component', {
-    user,
-    id,
-    roles,
-    isAdmin,
-  });
 
   if (isAdmin) {
     return <Outlet />;
@@ -35,16 +27,3 @@ export const ProtectRoute = ({ allowedRoles = [], message }) => {
     return <Navigate to='/login' state={{ from: location }} replace />;
   }
 };
-
-/*
-  return roles.some((x) => allowedRoles?.includes(x)) ? (
-    <Outlet />
-  ) : id && allowedRoles.length == 0 ? (
-    <Outlet />
-  ) : id ? (
-    <Navigate to='/unauthorized' state={{ from: location }} replace />
-  ) : (
-    <Navigate to='/login' state={{ from: location }} replace />
-  );
-  
-*/

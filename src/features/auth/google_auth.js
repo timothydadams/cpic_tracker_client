@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import {
-  useGetGoogleURIQuery,
-  useVerifyGoogleTokenMutation,
-} from './authApiSlice';
+import { useGetGoogleURIQuery } from './authApiSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import usePersist from 'hooks/usePersist';
 import { Badge } from 'ui/badge';
 
 import { useGoogleLogin } from '@react-oauth/google';
+import { current } from '@reduxjs/toolkit';
 
 const GoogleIcon = (props) => (
   <div className='mt-6 gap-4'>
@@ -39,12 +37,11 @@ const GoogleIcon = (props) => (
 );
 
 const GoogleAuth = ({ extraState }) => {
-  const { data, error } = useGetGoogleURIQuery({ params: extraState });
-  const [persist] = usePersist();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const currentPath = location.state?.from || '/';
-  const [verifyToken, { isLoading }] = useVerifyGoogleTokenMutation();
+  const scopes = [
+    'https://www.googleapis.com/auth/userinfo.profile',
+    'https://www.googleapis.com/auth/userinfo.email',
+    'openid',
+  ];
 
   const redirectURI =
     process.env.NODE_ENV == 'development'
@@ -54,29 +51,13 @@ const GoogleAuth = ({ extraState }) => {
   const login = useGoogleLogin({
     flow: 'auth-code',
     ux_mode: 'redirect',
+    scope: scopes.join(' '),
+    prompt: 'consent',
     redirect_uri: `${redirectURI}/api/auth/google-callback/`,
-    state: encodeURIComponent(JSON.stringify({ persist })),
-    onSuccess: async (tokenResponse) => {
-      console.log('google response:', tokenResponse);
-      await verifyToken(tokenResponse);
-    },
+    state: encodeURIComponent(JSON.stringify(extraState)),
     onError: (err) => console.log(err),
   });
 
-  /*
-  if (error || !data?.url) {
-    return (
-      <Badge variant='destructive'>Network Error: Unable to communicate</Badge>
-    );
-  }
-
-  */
-
-  /* 
-  
-  return <GoogleIcon onClick={() => (window.location.href = data.url)} />;
-  
-  */
   return <GoogleIcon onClick={() => login()} />;
 };
 export default GoogleAuth;

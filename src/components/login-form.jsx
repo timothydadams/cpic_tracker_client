@@ -94,7 +94,10 @@ export function LoginForm({ className, ...props }) {
         </CardHeader>
         <CardContent>
           <div className='flex flex-col gap-4'>
-            <GoogleAuth className='w-full' extraState={{ persist }} />
+            <GoogleAuth
+              className='w-full'
+              extraState={{ persist, path: currentPath }}
+            />
           </div>
 
           <Separator orientation='horizontal' className='mt-6' />

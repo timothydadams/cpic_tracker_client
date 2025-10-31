@@ -1,3 +1,4 @@
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { selectUser } from '../features/auth/authSlice';
 
@@ -22,7 +23,9 @@ const useAuth = () => {
     }
   }
 
-  console.log('user details in useAuth() component:', data);
+  //const memoized = React.useMemo(() => data);
+
+  //console.log('user details in useAuth() component:', data);
 
   return data;
 };

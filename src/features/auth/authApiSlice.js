@@ -22,6 +22,22 @@ export const authApiSlice = api.injectEndpoints({
         }
       },
     }),
+    verifyGoogleToken: builder.mutation({
+      query: (details) => ({
+        url: '/auth/verify-google-token',
+        method: 'POST',
+        body: { ...details },
+      }),
+      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const { accessToken } = data;
+          dispatch(setCredentials({ accessToken }));
+        } catch (e) {
+          console.log(e);
+        }
+      },
+    }),
     getGoogleURI: builder.query({
       query: ({ params }) => ({
         url: `/auth/google-url`,
@@ -119,4 +135,5 @@ export const {
   useSendLogoutMutation,
   useRefreshMutation,
   useGetGoogleURIQuery,
+  useVerifyGoogleTokenMutation,
 } = authApiSlice;

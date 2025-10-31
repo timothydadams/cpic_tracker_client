@@ -1,8 +1,13 @@
 import React, { useEffect } from 'react';
-import { useGetGoogleURIQuery } from './authApiSlice';
+import {
+  useGetGoogleURIQuery,
+  useVerifyGoogleTokenMutation,
+} from './authApiSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import usePersist from 'hooks/usePersist';
 import { Badge } from 'ui/badge';
+
+import { useGoogleLogin } from '@react-oauth/google';
 
 const GoogleIcon = (props) => (
   <div className='mt-6 gap-4'>
@@ -36,22 +41,42 @@ const GoogleIcon = (props) => (
 const GoogleAuth = ({ extraState }) => {
   const { data, error } = useGetGoogleURIQuery({ params: extraState });
   const [persist] = usePersist();
-  //const navigate = useNavigate();
-  //const location = useLocation();
-  //const currentPath = location.state?.from || '/';
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.state?.from || '/';
+  const [verifyToken, { isLoading }] = useVerifyGoogleTokenMutation();
 
+  const redirectURI =
+    process.env.NODE_ENV == 'development'
+      ? 'http://localhost:3500'
+      : 'https://api.cpic.dev';
+
+  const login = useGoogleLogin({
+    flow: 'auth-code',
+    ux_mode: 'redirect',
+    redirect_uri: `${redirectURI}/api/auth/google-callback/`,
+    state: encodeURIComponent(JSON.stringify({ persist })),
+    onSuccess: async (tokenResponse) => {
+      console.log('google response:', tokenResponse);
+      await verifyToken(tokenResponse);
+    },
+    onError: (err) => console.log(err),
+  });
+
+  /*
   if (error || !data?.url) {
     return (
       <Badge variant='destructive'>Network Error: Unable to communicate</Badge>
     );
   }
 
-  return <GoogleIcon onClick={() => (window.location.href = data.url)} />;
+  */
 
-  //return error || ! data?.url
-  //  ? ()
-  //  : data
-  //    ? ()
-  //    : (<></>);
+  /* 
+  
+  return <GoogleIcon onClick={() => (window.location.href = data.url)} />;
+  
+  */
+  return <GoogleIcon onClick={() => login()} />;
 };
 export default GoogleAuth;

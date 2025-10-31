@@ -216,7 +216,6 @@ export const StrategyForm = () => {
 
   //update the default values of the form with strategy data
   React.useEffect(() => {
-    console.log('strategy useEffect triggered');
     if (strategy?.implementers) {
       const { implementers, ...rest } = strategy;
       //check if there is already an assigned primary implementer

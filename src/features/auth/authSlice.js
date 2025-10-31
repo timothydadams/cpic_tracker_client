@@ -15,7 +15,7 @@ const authSlice = createSlice({
   },
   reducers: {
     setCredentials: (state, action) => {
-      console.log('credentials payload:', action.payload);
+      //console.log('credentials payload:', action.payload);
       const { accessToken } = action.payload;
       const parsedToken = jwtDecode(accessToken);
       //state.id = parsedToken.id;

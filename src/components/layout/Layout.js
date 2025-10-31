@@ -193,10 +193,6 @@ export const Layout = () => {
     return () => {};
   }, [id]);
 
-  useEffect(() => {
-    console.log('admin items', adminNav);
-  }, [adminNav]);
-
   return (
     <SidebarLayout
       navbar={

@@ -146,7 +146,7 @@ export const Layout = () => {
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
   const user = useAuth();
-  console.log('user in layout:', user);
+  //console.log('user in layout:', user);
   const {
     name,
     given_name,

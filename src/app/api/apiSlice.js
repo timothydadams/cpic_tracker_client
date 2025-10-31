@@ -4,7 +4,7 @@ import { setCredentials, logout } from '../../features/auth/authSlice';
 const base_url =
   process.env.NODE_ENV == 'development'
     ? 'http://localhost:3500'
-    : process.env.URL_API;
+    : process.env.API_URL;
 
 const baseQuery = fetchBaseQuery({
   baseUrl: `${base_url}/api`,

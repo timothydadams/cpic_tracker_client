@@ -6,7 +6,8 @@ import { store } from './app/store.js';
 import { Provider } from 'react-redux';
 import { SnackbarProvider } from 'notistack';
 import { GoogleOAuthProvider } from '@react-oauth/google';
-import { TooltipProvider } from 'components/ui/tooltip';
+import { TooltipProvider } from 'ui/tooltip';
+import { TouchProvider } from 'ui/hybrid-tooltip';
 
 import './tailwind.css';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -15,7 +16,7 @@ const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container);
 root.render(
   <React.StrictMode>
-    <TooltipProvider>
+    <TouchProvider>
       <GoogleOAuthProvider clientId={process.env.GOOGLE_CLIENT_ID}>
         <SnackbarProvider
           anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -29,6 +30,6 @@ root.render(
           </BrowserRouter>
         </Provider>
       </GoogleOAuthProvider>
-    </TooltipProvider>
+    </TouchProvider>
   </React.StrictMode>
 );

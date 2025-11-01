@@ -1,6 +1,13 @@
 import * as React from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip';
+//import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip';
+import {
+  HybridTooltipProvider,
+  HybridTooltip,
+  HybridTooltipTrigger,
+  HybridTooltipContent,
+} from 'ui/hybrid-tooltip';
+
 import { DataTable } from 'components/DataTable.js';
 import { Heading } from 'catalyst/heading';
 import { Link } from 'catalyst/link';
@@ -56,12 +63,14 @@ export const TruncatedCellWithToolTip = ({ cell }) => {
   const cellVal = cell.getValue();
   const shortText = `${cellVal.substring(0, 22)}...`;
   return (
-    <Tooltip>
-      <TooltipTrigger>{shortText}</TooltipTrigger>
-      <TooltipContent>
-        <p>{cellVal}</p>
-      </TooltipContent>
-    </Tooltip>
+    <HybridTooltipProvider>
+      <HybridTooltip>
+        <HybridTooltipTrigger>{shortText}</HybridTooltipTrigger>
+        <HybridTooltipContent>
+          <p>{cellVal}</p>
+        </HybridTooltipContent>
+      </HybridTooltip>
+    </HybridTooltipProvider>
   );
 };
 
@@ -79,7 +88,17 @@ export const StatusBadge = ({ cell }) => {
   }
   return (
     <div className='items-center text-center gap-2'>
-      {/* <Icon className="text-muted-foreground size-4" /> */}
+      <HybridTooltipProvider>
+        <HybridTooltip>
+          <HybridTooltipTrigger>
+            <Icon className='text-muted-foreground size-4' />
+          </HybridTooltipTrigger>
+          <HybridTooltipContent>
+            <p>{status}</p>
+          </HybridTooltipContent>
+        </HybridTooltip>
+      </HybridTooltipProvider>
+      {/* <Icon className="text-muted-foreground size-4" /> 
       <Tooltip>
         <TooltipTrigger>
           <Icon className='text-muted-foreground size-4' />
@@ -87,7 +106,7 @@ export const StatusBadge = ({ cell }) => {
         <TooltipContent>
           <p>{status}</p>
         </TooltipContent>
-      </Tooltip>
+      </Tooltip>*/}
     </div>
   );
 };
@@ -176,14 +195,25 @@ const allColumns = [
       const { implementers = [] } = row.original;
       return (
         <div className='text-center'>
-          <Tooltip>
+          <HybridTooltipProvider>
+            <HybridTooltip>
+              <HybridTooltipTrigger>{`${implementers.length}`}</HybridTooltipTrigger>
+              <HybridTooltipContent>
+                {implementers.map(({ implementer }) => (
+                  <p key={implementer.id}>{implementer.name}</p>
+                ))}
+              </HybridTooltipContent>
+            </HybridTooltip>
+          </HybridTooltipProvider>
+
+          {/* <Tooltip>
             <TooltipTrigger>{`${implementers.length}`}</TooltipTrigger>
             <TooltipContent>
               {implementers.map(({ implementer }) => (
                 <p key={implementer.id}>{implementer.name}</p>
               ))}
             </TooltipContent>
-          </Tooltip>
+          </Tooltip> */}
         </div>
       );
     },

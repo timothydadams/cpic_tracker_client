@@ -1,6 +1,11 @@
 import * as React from 'react';
 import { createColumnHelper } from '@tanstack/react-table';
-import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip';
+import {
+  HybridTooltipProvider,
+  HybridTooltip,
+  HybridTooltipTrigger,
+  HybridTooltipContent,
+} from 'ui/hybrid-tooltip';
 import { DataTable } from 'components/DataTable.js';
 import { Heading } from 'catalyst/heading';
 import { Link } from 'catalyst/link';
@@ -44,7 +49,17 @@ export const StatusBadge = ({ status }) => {
   }
   return (
     <div className='items-center text-center gap-2'>
-      {/* <Icon className="text-muted-foreground size-4" /> */}
+      <HybridTooltipProvider>
+        <HybridTooltip>
+          <HybridTooltipTrigger>
+            <Icon className='text-muted-foreground size-4' />
+          </HybridTooltipTrigger>
+          <HybridTooltipContent>
+            <p>{status}</p>
+          </HybridTooltipContent>
+        </HybridTooltip>
+      </HybridTooltipProvider>
+      {/* <Icon className="text-muted-foreground size-4" /> 
       <Tooltip>
         <TooltipTrigger>
           <Icon className='text-muted-foreground size-4' />
@@ -52,7 +67,7 @@ export const StatusBadge = ({ status }) => {
         <TooltipContent>
           <p>{status}</p>
         </TooltipContent>
-      </Tooltip>
+      </Tooltip>*/}
     </div>
   );
 };

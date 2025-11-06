@@ -25,6 +25,7 @@ import { useGetStrategyCommentsQuery } from './strategiesApiSlice';
 import useAuth from 'hooks/useAuth';
 import { ResourcesTabs } from './Resources';
 import { EmptyContainer } from './EmptyContainer';
+import { AddCommentForm } from '../comments/comment_input';
 
 import { RegisteredInput } from 'components/forms/Input.js';
 /*
@@ -69,25 +70,21 @@ const DescriptionRow = ({ fields }) => (
   </div>
 );
 
-export const AddCommentForm = () => {
-  return (
-    <>
-      <RegisteredInput
-        className='flex w-full max-w-sm items-center space-x-2'
-        type='text'
-        placeholder='Add your comment...'
-        element='textarea'
-      />
-      <Button type='submit'>Comment</Button>
-    </>
-  );
-};
+const CommentCard = ({ comment }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle>{comment.user_id}</CardTitle>
+      <CardDescription>{comment.createdAt}</CardDescription>
+    </CardHeader>
+    <CardContent>{comment.content}</CardContent>
+  </Card>
+);
 
 const Comments = ({ strategyId }) => {
   const params = {
     replies: 'true',
   };
-  const { data: comments } = useGetStrategyCommentsQuery({
+  const { data: comments, refetch } = useGetStrategyCommentsQuery({
     id: strategyId,
     params,
   });
@@ -95,15 +92,19 @@ const Comments = ({ strategyId }) => {
   return (
     comments && (
       <>
+        <AddCommentForm refetchComments={refetch} strategy={strategyId} />
         {comments.length == 0 ? (
           <EmptyContainer
             title='No comments yet'
             description='add a comment!'
           />
         ) : (
-          comments.map((i) => <p>{i.content}</p>)
+          <div className='m-5'>
+            {comments.map((comment, i) => (
+              <CommentCard comment={comment} key={i} />
+            ))}
+          </div>
         )}
-        <AddCommentForm />
       </>
     )
   );
@@ -159,6 +160,7 @@ export const Implementers = ({ implementers }) => {
 };
 
 export const PolicyOverview = ({ policy }) => {
+  console.log('policy data:', policy);
   const { id, description, policy_number, area } = policy;
   const { data: focus_area, isLoading } = useGetFocusAreaQuery(
     {

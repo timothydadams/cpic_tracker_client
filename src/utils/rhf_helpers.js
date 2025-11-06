@@ -15,6 +15,8 @@ export function getDirtyValues(dirtyFields, values) {
   return dirtyValues;
 }
 
+export const sanitizeString = (string) => DOMPurify.sanitize(string);
+
 export const recursivelySanitizeObject = (dirtyObj) => {
   const cleanObj = Array.isArray(dirtyObj) ? [] : {};
 

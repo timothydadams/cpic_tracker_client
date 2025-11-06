@@ -8,7 +8,7 @@ import { enqueueSnackbar } from 'notistack';
 import { useGetAllImplementersQuery } from '../implementers/implementersApiSlice';
 import { Loading } from 'components/Spinners';
 import { useForm, Controller, useWatch, useFieldArray } from 'react-hook-form';
-import { getDirtyValues } from 'utils/rhf_helpers';
+import { getDirtyValues, recursivelySanitizeObject } from 'utils/rhf_helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Button } from 'ui/button';
@@ -309,7 +309,10 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
     }
 
     try {
-      const res = await updateStrategy({ id, data: changedFields }).unwrap();
+      const res = await updateStrategy({
+        id,
+        data: recursivelySanitizeObject(changedFields),
+      }).unwrap();
       enqueueSnackbar('Strategy updated...', { variant: 'success' });
       refetchStrategy();
     } catch (err) {

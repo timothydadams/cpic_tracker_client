@@ -91,6 +91,7 @@ export const authApiSlice = api.injectEndpoints({
         try {
           const { data } = await queryFulfilled;
           const { accessToken } = data;
+          console.log('access token:', accessToken);
           dispatch(setCredentials({ accessToken }));
           /*
           const id = getState().auth.id;

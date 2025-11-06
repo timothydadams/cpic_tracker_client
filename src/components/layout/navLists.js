@@ -23,6 +23,10 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/20/solid';
 
+import { InviteUsers } from '../../features/users/InviteUserForm';
+import { CreateCodeForm } from '../../features/invites/CreateCodeForm';
+import { AssignedStrategies } from '../../features/strategies/AssignedStrategies';
+
 export const userNavItems = [
   {
     label: 'My profile',
@@ -74,6 +78,19 @@ export const adminNavItems = [
     label: 'Manage Strategies',
     path: 'strategies',
     allowedRoles: ['Admin', 'CPIC Admin'],
+    id: uuidv4(),
+  },
+  {
+    label: 'Invite Users',
+    Component: () => <CreateCodeForm />,
+    allowedRoles: ['Admin', 'CPIC Admin', 'CPIC Member', 'Implementer'],
+    id: uuidv4(),
+  },
+  {
+    label: 'My Strategies',
+    path: 'my-strategies',
+    //Component: () => <AssignedStrategies />,
+    allowedRoles: ['CPIC Admin', 'CPIC Member', 'Implementer'],
     id: uuidv4(),
   },
 ];

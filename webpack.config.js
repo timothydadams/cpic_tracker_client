@@ -84,6 +84,7 @@ module.exports = (env, argv) => {
       extensions: ['.ts', '.js', '.jsx'],
       alias: {
         components: path.resolve(__dirname, 'src/components'),
+        features: path.resolve(__dirname, 'src/features'),
         hooks: path.resolve(__dirname, 'src/Hooks'),
         catalyst: path.resolve(__dirname, 'src/components/catalyst'),
         utils: path.resolve(__dirname, 'src/utils'),

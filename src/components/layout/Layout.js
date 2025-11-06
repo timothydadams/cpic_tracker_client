@@ -65,6 +65,7 @@ import { DarkModeToggle } from './DarkModeToggle.js';
 import useTheme from 'hooks/useTheme.js';
 import { ModalFromMarkdown } from './NavItemModelWithMd.js';
 import { UserAvatar } from './UserAvatar.js';
+import { ModalNavItem } from './ModalForm.js';
 
 const ProfileSection = ({ user }) => {
   const { display_name, family_name, given_name, status } = user;
@@ -95,14 +96,24 @@ const ProfileSection = ({ user }) => {
 const SideBarList = ({ header = null, list, ...props }) => {
   return (
     <SidebarSection {...props}>
-      {header && <SidebarHeading>Admin Actions</SidebarHeading>}
+      {header && <SidebarHeading>{header}</SidebarHeading>}
       {list.map((item) => {
-        return (
-          <SidebarItem href={item.path} key={item.id}>
-            {item.icon && item.icon}
-            {item.label && item.label}
-          </SidebarItem>
-        );
+        if (item.Component) {
+          return (
+            <ModalNavItem
+              title={item.label}
+              Icon={item.icon}
+              Component={item.Component}
+            />
+          );
+        } else {
+          return (
+            <SidebarItem href={item.path} key={item.id}>
+              {item.icon && item.icon}
+              {item.label && item.label}
+            </SidebarItem>
+          );
+        }
       })}
     </SidebarSection>
   );
@@ -269,7 +280,7 @@ export const Layout = () => {
             {adminNav.length > 0 && (
               <SideBarList
                 className=''
-                header='Admin Actions'
+                header='Quick Actions'
                 list={adminNav}
               />
             )}

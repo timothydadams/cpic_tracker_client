@@ -4,9 +4,9 @@ import { setUserDetails } from './usersSlice';
 
 export const userApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
-    create: builder.mutation({
+    register: builder.mutation({
       query: (userDetails) => ({
-        url: '/users',
+        url: '/users/register',
         method: 'POST',
         body: { ...userDetails },
       }),
@@ -85,7 +85,7 @@ export const userApiSlice = api.injectEndpoints({
 });
 
 export const {
-  useCreateMutation,
+  useRegisterMutation,
   useUpdateMutation,
   useGetUserQuery,
   useGetAllUsersQuery,
@@ -93,4 +93,5 @@ export const {
   useGetUserRolesQuery,
   useAddRoleToUserMutation,
   useRemoveRoleFromUserMutation,
+  useValidateCodeQuery,
 } = userApiSlice;

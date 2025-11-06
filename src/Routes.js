@@ -11,7 +11,7 @@ import { NotFound, NotAuthorized } from 'components/Generic';
 
 //import Examples from './components/forms/headless/Examples';
 import Login from './features/auth/Login';
-import CreateAccount from './features/users/CreateAccount';
+import CreateAccount from './features/users/Register.js';
 
 //AUTH REQUIRED COMPONENTS
 import { Profile } from './features/users/Profile';
@@ -20,7 +20,8 @@ import { Profile } from './features/users/Profile';
 import { UserManager } from './features/users/UserManager.js';
 
 import { Dashboard } from './Pages/Dashboard.js';
-import { StrategyList } from './features/strategies/StrategyList.js';
+import { FullStrategyList } from './features/strategies/StrategyList.js';
+import { AssignedStrategies } from './features/strategies/AssignedStrategies.js';
 import { FocusAreaList } from './features/focus_areas/FocusAreaList.js';
 import { ViewStrategy } from './features/strategies/ViewStrategy.js';
 import { StrategyForm } from './features/strategies/EditStrategyForm.js';
@@ -42,13 +43,13 @@ const AppRoutes = () => (
     <Route element={<Layout />}>
       <Route element={<PersistAuth />}>
         <Route element={<AnonymousOnly />}>
-          {/* <Route path='createaccount' element={<CreateAccount />} /> */}
+          <Route path='register/:code' element={<CreateAccount />} />
           <Route path='login' element={<Login />} />
         </Route>
 
         {/* PUBLIC ROUTES ACCESSIBLE TO ALL */}
         <Route index element={<Dashboard />} />
-        <Route path='strategies' element={<StrategyList />} />
+        <Route path='strategies' element={<FullStrategyList />} />
         <Route path='strategies/:id' element={<ViewStrategy />} />
 
         <Route path='faq' element={<FAQ />} />
@@ -63,11 +64,9 @@ const AppRoutes = () => (
         <Route path='policies' element={<FocusAreaList />} />
 
         {/* AUTH NEEDED */}
-        <Route path='home/*' element={<ProtectRoute allowedRoles={[]} />}>
-          <Route index element={<Text>Auth User redirected</Text>} />
-        </Route>
         <Route element={<ProtectRoute allowedRoles={[]} />}>
           <Route path='profile' element={<Profile />} />
+          <Route path='my-strategies' element={<AssignedStrategies />} />
         </Route>
 
         {/* AUTH - CPIC Members 

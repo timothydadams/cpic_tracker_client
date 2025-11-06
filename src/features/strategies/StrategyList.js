@@ -295,7 +295,7 @@ const allColumns = [
               Copy strategy details
             </DropdownMenuItem>
             <DropdownMenuItem>
-              <Link href={`${strategy.id}`} className='w-full'>
+              <Link href={`/strategies/${strategy.id}`} className='w-full'>
                 View Details
               </Link>
             </DropdownMenuItem>
@@ -304,7 +304,7 @@ const allColumns = [
       );
     },
     meta: {
-      roles: [],
+      roles: ['Implementer'],
     },
   }),
   columnHelper.display({
@@ -355,10 +355,9 @@ const allColumns = [
   }),
 ];
 
-export const StrategyList = () => {
+export const StrategyTableList = ({ strategies, title }) => {
   const user = useAuth();
   const { roles } = user;
-
   // Conditionally generate the columns based on the user's role
   const columns = React.useMemo(() => {
     return allColumns.filter(
@@ -369,22 +368,14 @@ export const StrategyList = () => {
     );
   }, [roles]);
 
-  const { data: strategies } = useGetAllStrategiesQuery({
-    include:
-      'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
-  });
   const { data: statusOptions } = useGetAllStatusesQuery();
-  //const statusOptions = useSelector(selectStatuses);
-  //const altLimit = useSelector(selectCurrentAlt);
   const { data: timelineOptions } = useGetAllTimelineOptionsQuery();
   const { data: policies } = useGetAllPoliciesQuery({
     area: 'true',
     strategies: 'false',
   });
   const { data: focusareas } = useGetAllFocusAreasQuery();
-
   const [isLoading, setIsLoading] = React.useState(true);
-
   React.useEffect(() => {
     if (
       strategies &&
@@ -411,7 +402,7 @@ export const StrategyList = () => {
     <Loading />
   ) : (
     <>
-      <Heading>Explore All Strategies</Heading>
+      {title && <Heading>{title}</Heading>}
       <div className='container mx-auto py-10'>
         <DataTable
           data={strategies}
@@ -461,5 +452,18 @@ export const StrategyList = () => {
         />
       </div>
     </>
+  );
+};
+
+export const FullStrategyList = () => {
+  const { data: strategies, isLoading } = useGetAllStrategiesQuery({
+    include:
+      'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
+  });
+
+  return isLoading ? (
+    <Loading />
+  ) : (
+    <StrategyTableList strategies={strategies} title='Explore All Strategies' />
   );
 };

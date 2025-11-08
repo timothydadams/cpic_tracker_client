@@ -69,10 +69,10 @@ export function ChartPieDonutText({ title, data }) {
         <CardTitle>{title}</CardTitle>
         <CardDescription>{now.toLocaleDateString()}</CardDescription>
       </CardHeader>
-      <CardContent className='flex-1 pb-0'>
+      <CardContent className='flex-grow min-h-0'>
         <ChartContainer
           config={chartConfig}
-          className='mx-auto aspect-square max-h-[250px] w-full'
+          className='mx-auto aspect-square min-h-[250px]'
         >
           <PieChart>
             <ChartTooltip

@@ -63,10 +63,10 @@ export function ChartPieLabel({ data, title }) {
         <CardTitle>{title}</CardTitle>
         <CardDescription>{now.toLocaleDateString()}</CardDescription>
       </CardHeader>
-      <CardContent className='flex-1 pb-0'>
+      <CardContent className='flex-grow min-h-0'>
         <ChartContainer
           config={chartConfig}
-          className='[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[250px] pb-0 w-full'
+          className='[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square min-h-[250px]'
         >
           <PieChart>
             {/* <ChartTooltip content={<ChartTooltipContent hideLabel />} /> */}
@@ -78,7 +78,7 @@ export function ChartPieLabel({ data, title }) {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className='flex-col gap-2 text-sm'>
+      <CardFooter className='flex-grow min-h-0 flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
           Some footer stuff here <TrendingUp className='h-4 w-4' />
         </div>

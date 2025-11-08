@@ -22,6 +22,12 @@ export function SkeletonCard() {
   );
 }
 
+const ResponsiveChartContainer = ({ children }) => (
+  <div className='relative w-full pb-[250px]'>
+    <div className='absolute left-0 right-0 bottom-0 top-0'>{children}</div>
+  </div>
+);
+
 export const StrategyBreakdown = () => {
   const { data, isLoading } = useGetStrategyStatusMetricsQuery();
   const { data: tData, isLoading: tIsLoading } =

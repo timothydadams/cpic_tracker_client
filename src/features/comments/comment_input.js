@@ -1,9 +1,9 @@
 import React from 'react';
 import { RegisteredInput } from 'components/forms/Input.js';
 import { Button } from 'ui/button';
-
+import { RelativeTimeCard } from 'ui/relative-time-card';
 import { IconCheck, IconInfoCircle, IconPlus } from '@tabler/icons-react';
-import { ArrowUpIcon, Search } from 'lucide-react';
+import { ArrowUpIcon, Search, SendHorizonalIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,6 +23,15 @@ import { sanitizeString } from 'utils/rhf_helpers';
 import { useCreateCommentMutation } from './commentsApiSlice';
 import useAuth from 'hooks/useAuth';
 import { useParams } from 'react-router-dom';
+
+const TimeCard = ({ timestamp }) => {
+  const createdDate = new Date(timestamp);
+  return (
+    <RelativeTimeCard date={createdDate} side='left'>
+      {createdDate.toLocaleDateString()}
+    </RelativeTimeCard>
+  );
+};
 
 export const AddCommentForm = ({ refetchComments }) => {
   const { id: userId } = useAuth();
@@ -47,6 +56,7 @@ export const AddCommentForm = ({ refetchComments }) => {
       console.log('comment data', commentData);
       try {
         const res = await addComment(commentData).unwrap();
+        setContents('');
         refetchComments();
       } catch (e) {
         console.log(e);
@@ -73,7 +83,7 @@ export const AddCommentForm = ({ refetchComments }) => {
             size='icon-xs'
             onClick={handleAddComment}
           >
-            <ArrowUpIcon />
+            <SendHorizonalIcon />
             <span className='sr-only'>Add Comment</span>
           </InputGroupButton>
         </InputGroupAddon>

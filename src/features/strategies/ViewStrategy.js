@@ -4,6 +4,7 @@ import { useGetStrategyQuery } from './strategiesApiSlice';
 import { AppWindowIcon, CodeIcon } from 'lucide-react';
 import { Button } from 'ui/button';
 import { Link } from 'catalyst/link';
+import { RelativeTimeCard } from 'ui/relative-time-card';
 import { Button as CButton } from 'catalyst/button';
 import {
   Card,
@@ -24,43 +25,8 @@ import { useGetImplementerQuery } from '../implementers/implementersApiSlice';
 import { useGetStrategyCommentsQuery } from './strategiesApiSlice';
 import useAuth from 'hooks/useAuth';
 import { ResourcesTabs } from './Resources';
-import { EmptyContainer } from './EmptyContainer';
+import { EmptyContainer } from '../../components/EmptyContainer';
 import { AddCommentForm } from '../comments/comment_input';
-
-import { RegisteredInput } from 'components/forms/Input.js';
-/*
-
-api response (data):
-{
-        "id": 1,
-        "content": "Promote future endeavors at Norcross Point such as more concerts and theatrical offerings in the open-air stage",
-        "last_comms_date": null,
-        "createdAt": "2025-09-13T17:41:05.656Z",
-        "updatedAt": "2025-09-13T17:41:05.656Z",
-        "policy_id": "2d056291-6508-4b79-9781-2e8672180890",
-        "strategy_number": 5,
-        "timeline_id": 2,
-        "status_id": 1,
-        "timeline": {
-            "id": 2,
-            "title": "Short-Term"
-        },
-        "policy": {
-            "id": "2d056291-6508-4b79-9781-2e8672180890",
-            "description": "Work to establish a calendar of year-round community events",
-            "policy_number": 5,
-            "focus_area_id": 7,
-            "area": {
-                "id": 7,
-                "name": "Recreation and Culture"
-            }
-        },
-        "status": {
-            "id": 1,
-            "title": "Needs Updating"
-        }
-    }
-*/
 
 const DescriptionRow = ({ fields }) => (
   <div className='flex h-5 items-center space-x-4 text-sm'>
@@ -70,11 +36,22 @@ const DescriptionRow = ({ fields }) => (
   </div>
 );
 
+const TimeCard = ({ timestamp }) => {
+  const createdDate = new Date(timestamp);
+  return (
+    <RelativeTimeCard date={createdDate} side='left'>
+      {createdDate.toLocaleDateString()}
+    </RelativeTimeCard>
+  );
+};
+
 const CommentCard = ({ comment }) => (
   <Card>
     <CardHeader>
       <CardTitle>{comment.user_id}</CardTitle>
-      <CardDescription>{comment.createdAt}</CardDescription>
+      <CardDescription>
+        <TimeCard timestamp={comment.createdAt} />
+      </CardDescription>
     </CardHeader>
     <CardContent>{comment.content}</CardContent>
   </Card>

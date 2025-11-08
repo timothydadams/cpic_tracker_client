@@ -50,6 +50,20 @@ import {
   InputGroupInput,
 } from 'ui/input-group';
 
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemGroup,
+  ItemMedia,
+  ItemSeparator,
+  ItemTitle,
+} from 'ui/item';
+
+import { EmptyContainer } from 'components/EmptyContainer';
+import { Subheading } from 'catalyst/heading';
+
 const schema = yup.object().shape({
   maxUses: yup.number().required(),
   expiresInDays: yup.number().required(),
@@ -64,41 +78,29 @@ const addLabelValue = (item, labelKey, valueKey) => {
   };
 };
 
-const MyExistingCodes = ({ roles }) => {
-  console.log('roles', roles);
-  const { data: myCodes, isLoading } = useGetMyCodesQuery();
-  const [mappedCodes, setMappedCodes] = React.useState([]);
-
-  React.useEffect(() => {
-    if (myCodes && roles) {
-      const mapped = myCodes.map((c) => {
-        console.log('code:', { c });
-        let name = roles.find((r) => r.id === c.roleId)?.name;
-        return {
-          ...c,
-          roleName: name,
-        };
-      });
-      setMappedCodes((prev) => mapped);
-    }
-  }, [myCodes, roles]);
-
-  if (isLoading) {
+const ExistingCodeList = ({ codes }) => {
+  if (!codes) {
     return <Skeleton className='w-full h-[100px]' />;
   }
 
+  if (codes.length === 0) {
+    return (
+      <EmptyContainer
+        title='You have no sharable links'
+        description='Generate codes using the forms below'
+      />
+    );
+  }
+
   return (
-    mappedCodes && (
-      <Card>
-        <CardHeader>
-          <CardTitle>My Existing Codes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {mappedCodes.map((c) => (
-            <CopyUrlField invite={c} key={c.id} />
-          ))}
-        </CardContent>
-      </Card>
+    codes && (
+      <div className='pt-6 flex w-full flex-col gap-6 gap-y-2'>
+        {codes.map((code) => (
+          <div key={code.id}>
+            <CopyUrlField invite={code} />
+          </div>
+        ))}
+      </div>
     )
   );
 };
@@ -206,6 +208,31 @@ export const CreateCodeForm = ({}) => {
   const { data: roles, isLoading } = useGetRolesQuery();
   const [createCode, { isLoading: isLoadingCode }] = useCreateCodeMutation();
 
+  const params = {
+    activeOnly: true,
+  };
+
+  const {
+    data: myCodes,
+    isLoading: codesLoading,
+    refetch,
+  } = useGetMyCodesQuery({ params });
+
+  const [mappedInviteCodes, setMappedCodes] = React.useState([]);
+
+  React.useEffect(() => {
+    if (myCodes && roles) {
+      const mapped = myCodes.map((c) => {
+        let name = roles.find((r) => r.id === c.roleId)?.name;
+        return {
+          ...c,
+          roleName: name,
+        };
+      });
+      setMappedCodes((prev) => mapped);
+    }
+  }, [myCodes, roles]);
+
   const [codeGenerated, setCodeGenerated] = React.useState(false);
 
   const {
@@ -232,6 +259,7 @@ export const CreateCodeForm = ({}) => {
       const payload = await createCode(sanitized).unwrap();
       if (payload) {
         setCodeGenerated({ ...payload, roleName: selectedRoleName });
+        refetch();
       }
     } catch (err) {
       console.log(err);
@@ -243,74 +271,84 @@ export const CreateCodeForm = ({}) => {
     selectedRole !== '' ? roles.find((r) => r.id === selectedRole)?.name : '';
 
   return (
-    <div>
-      <MyExistingCodes roles={roles} />
+    <div classname='w-full'>
+      <Subheading>Manage Invite Codes</Subheading>
 
-      <form
-        className='mt-4 space-y-6'
-        onSubmit={handleSubmit(handleCreateCode)}
-      >
-        <RegisteredInput
-          type='number'
-          min='1'
-          label='Max Uses'
-          name='maxUses'
-          register={register}
-          errors={errors}
+      <div>
+        <ExistingCodeList
+          roles={roles}
+          codes={mappedInviteCodes}
+          refetch={refetch}
         />
+      </div>
 
-        <RegisteredInput
-          type='number'
-          min='1'
-          label='Expires in (days)'
-          name='expiresInDays'
-          register={register}
-          errors={errors}
-        />
+      <div>
+        <form
+          className='mt-4 space-y-6'
+          onSubmit={handleSubmit(handleCreateCode)}
+        >
+          <RegisteredInput
+            type='number'
+            min='1'
+            label='Max Uses'
+            name='maxUses'
+            register={register}
+            errors={errors}
+          />
 
-        <Controller
-          name='roleId'
-          control={control}
-          render={({ field, fieldState }) => (
-            <Field orientation='responsive' data-invalid={fieldState.invalid}>
-              <FieldContent>
-                <FieldLabel htmlFor='role-id-field-selector'>
-                  Select role:
-                </FieldLabel>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </FieldContent>
-              <RoleSelector
-                fieldState={fieldState}
-                id='role-id-field-selector'
-                name={field.name}
-                value={field.value}
-                onValueChange={field.onChange}
-              />
-            </Field>
-          )}
-        />
+          <RegisteredInput
+            type='number'
+            min='1'
+            label='Expires in (days)'
+            name='expiresInDays'
+            register={register}
+            errors={errors}
+          />
 
-        {codeGenerated && <CopyUrlField invite={codeGenerated} />}
-
-        <div className='pt-5 flex justify-end'>
-          <Button
-            type='submit'
-            outline='true'
-            disabled={!isDirty || !isValid || isLoadingCode}
-          >
-            {isLoadingCode ? (
-              <>
-                <Spinner />
-                Processing
-              </>
-            ) : (
-              'Generate New Code'
+          <Controller
+            name='roleId'
+            control={control}
+            render={({ field, fieldState }) => (
+              <Field orientation='responsive' data-invalid={fieldState.invalid}>
+                <FieldContent>
+                  <FieldLabel htmlFor='role-id-field-selector'>
+                    Select role:
+                  </FieldLabel>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </FieldContent>
+                <RoleSelector
+                  fieldState={fieldState}
+                  id='role-id-field-selector'
+                  name={field.name}
+                  value={field.value}
+                  onValueChange={field.onChange}
+                />
+              </Field>
             )}
-          </Button>
-        </div>
-      </form>
+          />
+
+          {codeGenerated && <CopyUrlField invite={codeGenerated} />}
+
+          <div className='pt-5 flex justify-end'>
+            <Button
+              type='submit'
+              outline='true'
+              disabled={!isDirty || !isValid || isLoadingCode}
+            >
+              {isLoadingCode ? (
+                <>
+                  <Spinner />
+                  Processing
+                </>
+              ) : (
+                'Generate New Code'
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

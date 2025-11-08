@@ -39,9 +39,10 @@ export const inviteApiSlice = api.injectEndpoints({
       },
     }),
     getMyCodes: builder.query({
-      query: () => ({
+      query: ({ params }) => ({
         url: `/invites/my-codes`,
         method: 'GET',
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         return response.data;

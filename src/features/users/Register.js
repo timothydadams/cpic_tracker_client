@@ -6,7 +6,9 @@ import {
   useLocation,
   Link,
   useParams,
+  useSearchParams,
 } from 'react-router-dom';
+import { FormMessage } from 'ui/form';
 import { useRegisterMutation } from './usersApiSlice';
 import { useValidateCodeQuery } from '../invites/inviteApiSlice';
 import { Skeleton } from 'ui/skeleton';
@@ -49,9 +51,12 @@ const schema = yup.object().shape({
 });
 
 export default function CreateAccount() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const message = searchParams.get('message');
   const { code } = useParams();
   const { data: inviteDetails, isLoading: isLoadingCode } =
     useValidateCodeQuery(code);
+
   const [create, { isLoading, isError, error }] = useRegisterMutation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -77,10 +82,12 @@ export default function CreateAccount() {
       const res = await create({
         user: data,
         inviteCode: code,
+        inviteDetails,
       }).unwrap();
       enqueueSnackbar('Account Created', { variant: 'success' });
-      navigate(redirectPath, { replace: true });
+      navigate('/login', { replace: true });
     } catch (err) {
+      console.log(err);
       enqueueSnackbar('Failed to create account', { variant: 'error' });
     }
   };
@@ -106,13 +113,12 @@ export default function CreateAccount() {
               <GoogleAuth
                 className='w-full'
                 extraState={{
-                  newuser: inviteDetails,
                   path: currentPath,
                   inviteCode: code,
                 }}
               />
             </div>
-
+            {message && <div className=''>{message}</div>}
             <form
               className='mt-4 space-y-6'
               onSubmit={handleSubmit(onCreateAccount)}

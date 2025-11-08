@@ -1,6 +1,6 @@
 import React from 'react';
 import { useGetRolesQuery } from '../users/usersApiSlice';
-import { useCreateCodeMutation } from './inviteApiSlice';
+import { useCreateCodeMutation, useGetMyCodesQuery } from './inviteApiSlice';
 import {
   Card,
   CardContent,
@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from 'ui/card';
+import { Label } from 'ui/label';
 import {
   Field,
   FieldDescription,
@@ -36,15 +37,11 @@ import { RegisteredInput } from 'components/forms/Input';
 import { Button } from 'catalyst/button';
 import useAuth from 'hooks/useAuth';
 import { Skeleton } from 'ui/skeleton';
+import { Spinner } from 'ui/spinner';
 
 import { useCopyToClipboard } from '@uidotdev/usehooks';
 
-import {
-  IconCheck,
-  IconCopy,
-  IconInfoCircle,
-  IconStar,
-} from '@tabler/icons-react';
+import { IconCheck, IconCopy } from '@tabler/icons-react';
 
 import {
   InputGroup,
@@ -52,12 +49,6 @@ import {
   InputGroupButton,
   InputGroupInput,
 } from 'ui/input-group';
-
-import {
-  HybridTooltip,
-  HybridTooltipTrigger,
-  HybridTooltipContent,
-} from 'ui/hybrid-tooltip';
 
 const schema = yup.object().shape({
   maxUses: yup.number().required(),
@@ -73,6 +64,45 @@ const addLabelValue = (item, labelKey, valueKey) => {
   };
 };
 
+const MyExistingCodes = ({ roles }) => {
+  console.log('roles', roles);
+  const { data: myCodes, isLoading } = useGetMyCodesQuery();
+  const [mappedCodes, setMappedCodes] = React.useState([]);
+
+  React.useEffect(() => {
+    if (myCodes && roles) {
+      const mapped = myCodes.map((c) => {
+        console.log('code:', { c });
+        let name = roles.find((r) => r.id === c.roleId)?.name;
+        return {
+          ...c,
+          roleName: name,
+        };
+      });
+      setMappedCodes((prev) => mapped);
+    }
+  }, [myCodes, roles]);
+
+  if (isLoading) {
+    return <Skeleton className='w-full h-[100px]' />;
+  }
+
+  return (
+    mappedCodes && (
+      <Card>
+        <CardHeader>
+          <CardTitle>My Existing Codes</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {mappedCodes.map((c) => (
+            <CopyUrlField invite={c} key={c.id} />
+          ))}
+        </CardContent>
+      </Card>
+    )
+  );
+};
+
 export const RoleSelector = ({ id, fieldState, ...props }) => {
   const { data: roles, isLoading } = useGetRolesQuery();
   const [filteredRoles, setFilteredRoles] = React.useState([]);
@@ -80,7 +110,7 @@ export const RoleSelector = ({ id, fieldState, ...props }) => {
   const { isCPICAdmin, isCPICMember, isImplementer } = user;
 
   React.useEffect(() => {
-    console.log({ roles, isCPICAdmin, isCPICMember, isImplementer });
+    //console.log({ roles, isCPICAdmin, isCPICMember, isImplementer });
     if (roles) {
       if (isCPICMember || isCPICAdmin) {
         setFilteredRoles(roles.filter((r) => r.name !== 'Admin'));
@@ -127,23 +157,43 @@ export const RoleSelector = ({ id, fieldState, ...props }) => {
   );
 };
 
-const CopyUrlField = ({ code }) => {
+const CopyUrlField = ({ invite }) => {
+  const { code, useCount, maxUses, roleId, roleName } = invite;
   const [copiedText, copyToClipboard] = useCopyToClipboard();
-  const isCopied = Boolean(copiedText);
+  const [isCopied, setIsCopied] = React.useState(false);
 
   const url = `https://cpic.dev/register/${code}`;
 
+  const handleCopyToggle = () => {
+    copyToClipboard(`https://cpic.dev/register/${code}`);
+    setIsCopied(true);
+  };
+
+  React.useEffect(() => {
+    if (copiedText) {
+      const timeout = setTimeout(() => {
+        setIsCopied(false);
+      }, 3000);
+
+      return () => clearTimeout(timeout);
+    }
+  }, [copiedText]);
+
   return (
     <InputGroup>
-      <InputGroupInput placeholder={url} readOnly />
-      <InputGroupAddon align='inline-end'>
+      <InputGroupInput placeholder={url} readOnly id={roleId} />
+
+      <InputGroupAddon align='block-start'>
+        <Label htmlFor={roleId} className='text-foreground'>
+          {`${roleName} (${maxUses - useCount} uses remaining)`}
+        </Label>
+
         <InputGroupButton
           aria-label='Copy'
+          className='ml-auto'
           title='Copy'
           size='icon-xs'
-          onClick={() => {
-            copyToClipboard(url);
-          }}
+          onClick={handleCopyToggle}
         >
           {isCopied ? <IconCheck /> : <IconCopy />}
         </InputGroupButton>
@@ -163,12 +213,7 @@ export const CreateCodeForm = ({}) => {
     handleSubmit,
     formState: { errors, isDirty, isValid },
     control,
-    setValue,
-    reset,
-    resetField,
-    getValues,
     watch,
-    getFieldState,
   } = useForm({
     mode: 'all',
     resolver: yupResolver(schema),
@@ -182,72 +227,90 @@ export const CreateCodeForm = ({}) => {
   const handleCreateCode = async (data, e) => {
     e.preventDefault();
 
-    console.log('data to be sent to server:', {
-      data: recursivelySanitizeObject(data),
-    });
-
     try {
-      const sanitezed = recursivelySanitizeObject(data);
-      const { code } = await createCode(sanitezed).unwrap();
-      if (code) {
-        setCodeGenerated(code);
+      const sanitized = recursivelySanitizeObject(data);
+      const payload = await createCode(sanitized).unwrap();
+      if (payload) {
+        setCodeGenerated({ ...payload, roleName: selectedRoleName });
       }
-      //enqueueSnackbar('Code created', { variant: 'success' });
     } catch (err) {
       console.log(err);
-      //enqueueSnackbar('Failed to create account', { variant: 'error' });
     }
   };
 
+  const selectedRole = watch('roleId');
+  const selectedRoleName =
+    selectedRole !== '' ? roles.find((r) => r.id === selectedRole)?.name : '';
+
   return (
-    <form className='mt-4 space-y-6' onSubmit={handleSubmit(handleCreateCode)}>
-      <RegisteredInput
-        type='number'
-        min='1'
-        label='Max Uses'
-        name='maxUses'
-        register={register}
-        errors={errors}
-      />
+    <div>
+      <MyExistingCodes roles={roles} />
 
-      <RegisteredInput
-        type='number'
-        min='1'
-        label='Expires in (days)'
-        name='expiresInDays'
-        register={register}
-        errors={errors}
-      />
+      <form
+        className='mt-4 space-y-6'
+        onSubmit={handleSubmit(handleCreateCode)}
+      >
+        <RegisteredInput
+          type='number'
+          min='1'
+          label='Max Uses'
+          name='maxUses'
+          register={register}
+          errors={errors}
+        />
 
-      <Controller
-        name='roleId'
-        control={control}
-        render={({ field, fieldState }) => (
-          <Field orientation='responsive' data-invalid={fieldState.invalid}>
-            <FieldContent>
-              <FieldLabel htmlFor='role-id-field-selector'>
-                Select role:
-              </FieldLabel>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </FieldContent>
-            <RoleSelector
-              fieldState={fieldState}
-              id='role-id-field-selector'
-              name={field.name}
-              value={field.value}
-              onValueChange={field.onChange}
-            />
-          </Field>
-        )}
-      />
+        <RegisteredInput
+          type='number'
+          min='1'
+          label='Expires in (days)'
+          name='expiresInDays'
+          register={register}
+          errors={errors}
+        />
 
-      {codeGenerated && <CopyUrlField code={codeGenerated} />}
+        <Controller
+          name='roleId'
+          control={control}
+          render={({ field, fieldState }) => (
+            <Field orientation='responsive' data-invalid={fieldState.invalid}>
+              <FieldContent>
+                <FieldLabel htmlFor='role-id-field-selector'>
+                  Select role:
+                </FieldLabel>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </FieldContent>
+              <RoleSelector
+                fieldState={fieldState}
+                id='role-id-field-selector'
+                name={field.name}
+                value={field.value}
+                onValueChange={field.onChange}
+              />
+            </Field>
+          )}
+        />
 
-      <div className='pt-5 flex justify-end'>
-        <Button type='submit' outline='true' disabled={!isDirty || !isValid}>
-          Generate New Code
-        </Button>
-      </div>
-    </form>
+        {codeGenerated && <CopyUrlField invite={codeGenerated} />}
+
+        <div className='pt-5 flex justify-end'>
+          <Button
+            type='submit'
+            outline='true'
+            disabled={!isDirty || !isValid || isLoadingCode}
+          >
+            {isLoadingCode ? (
+              <>
+                <Spinner />
+                Processing
+              </>
+            ) : (
+              'Generate New Code'
+            )}
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };

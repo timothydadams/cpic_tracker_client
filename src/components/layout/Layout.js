@@ -101,6 +101,7 @@ const SideBarList = ({ header = null, list, ...props }) => {
         if (item.Component) {
           return (
             <ModalNavItem
+              key={item.id}
               title={item.label}
               Icon={item.icon}
               Component={item.Component}

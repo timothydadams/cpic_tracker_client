@@ -17,20 +17,12 @@ export const userApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...user },
       }),
-      /*
-            async onQueryStarted(arg, { dispatch, queryFulfilled}) {
-                try {
-                    const { data } = await queryFulfilled
-                    console.log('from put api call', data);
-                    //const {accessToken} = data;
-                    //dispatch( setCredentials({accessToken}))
-                } catch(e) {
-                    console.log('inside update mutation', e);
-                }
-            } */
     }),
     getAllUsers: builder.query({
       query: () => `/users`,
+      transformResponse: (response, meta, arg) => {
+        return response.data;
+      },
     }),
     getRoles: builder.query({
       query: () => `/roles`,
@@ -54,7 +46,6 @@ export const userApiSlice = api.injectEndpoints({
     }),
     getUserRoles: builder.query({
       query: (id) => `/users/${id}/roles`,
-      //refetchOnMountOrArgChange: true,
       transformResponse: (response, meta, arg) => {
         return response.data.map(({ createdAt, role }) => {
           return {
@@ -93,5 +84,4 @@ export const {
   useGetUserRolesQuery,
   useAddRoleToUserMutation,
   useRemoveRoleFromUserMutation,
-  useValidateCodeQuery,
 } = userApiSlice;

@@ -147,12 +147,11 @@ export const Implementers = ({ implementers }) => {
   //fetch implementers
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Build out List</CardTitle>
-      </CardHeader>
       <CardContent>
         {implementers.map((implementer) => (
-          <p key={implementer.implementer_id}>{implementer.name}</p>
+          <p key={implementer.implementer_id}>
+            {implementer.name} {implementer.is_primary ? ' (Primary)' : null}
+          </p>
         ))}
       </CardContent>
     </Card>

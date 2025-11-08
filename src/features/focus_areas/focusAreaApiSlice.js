@@ -19,7 +19,7 @@ export const focusAreaApiSlice = api.injectEndpoints({
     deleteFocusArea: builder.mutation({
       query: (id) => ({
         url: `/focusareas/${id}`,
-        method: 'PUT',
+        method: 'DELETE',
         body: {},
       }),
       transformResponse: (response, meta, arg) => {

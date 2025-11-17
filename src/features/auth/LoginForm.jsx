@@ -32,10 +32,15 @@ import { Heading, Subheading } from 'catalyst/heading.jsx';
 import GoogleAuth from './google_auth.js';
 import { Separator } from 'ui/separator';
 import { PresentationChartLineIcon } from '@heroicons/react/24/solid';
+import { FingerprintIcon } from 'lucide-react';
+import { sanitizeString } from 'utils/rhf_helpers';
 
 const schema = yup.object().shape({
-  email: yup.string().email().required(),
-  password: yup.string().required(),
+  email: yup
+    .string()
+    .email()
+    .transform((value) => sanitizeString(value.trim().toLowerCase()))
+    .required(),
 });
 
 export const LoginWrapper = ({ children }) => {
@@ -205,7 +210,7 @@ export function LoginForm({ className, ...props }) {
                       />
                     </div>
                   )}
-                  <div className='grid gap-2'>
+                  <div className='hidden gap-2'>
                     <RegisteredInput
                       id='password'
                       label='Password'
@@ -223,14 +228,14 @@ export function LoginForm({ className, ...props }) {
                         type='button'
                         className='w-full'
                         disabled={!isDirty && !isValid}
-                        onClick={() => checkAuthOpts(emailValue)}
+                        onClick={() => checkAuthOpts(emailValue.toLowerCase())}
                       >
                         Login
                       </Button>
                     </div>
                     <div>
                       <Button className='w-full' asChild>
-                        <Link href='/register'>Sign Up</Link>
+                        <Link href='/register'>Register</Link>
                       </Button>
                     </div>
                   </div>

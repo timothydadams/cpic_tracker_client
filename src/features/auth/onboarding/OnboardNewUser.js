@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { FingerprintIcon } from 'lucide-react';
 import { VerifyInvitationCode } from './InvitationCode';
 import { UserInfo } from './UserInfo';
-//import Step3 from './Step3';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from '../authSlice';
 import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useParams } from 'react-router-dom';
@@ -16,6 +17,7 @@ import {
   useVerifyPasskeyRegMutation,
 } from '../authApiSlice';
 import { startRegistration } from '@simplewebauthn/browser';
+import usePersist from 'hooks/usePersist';
 
 //form validation
 const schema = yup.object().shape({
@@ -63,6 +65,8 @@ const defaultFormValues = {
 
 export function OnboardingForm() {
   const { code } = useParams();
+  const [persist] = usePersist();
+  const dispatch = useDispatch();
 
   const [createUserAccount, { data: user, isLoading }] = useRegisterMutation();
   const [getPasskeyRegOpts, { data: pk_reg_opts }] =
@@ -131,14 +135,16 @@ export function OnboardingForm() {
 
         // POST the response to the endpoint that calls
         // @simplewebauthn/server -> verifyRegistrationResponse()
-        const verificationJSON = await verifyPasskeyRegOpts({
+        const { verified, accessToken } = await verifyPasskeyRegOpts({
           userId: user.id,
+          duration: persist,
           webAuth: attResp,
         }).unwrap();
 
         // Show UI appropriate for the `verified` status
-        if (verificationJSON && verificationJSON.verified) {
+        if (verified && accessToken) {
           console.log('SUCCESS!');
+          dispatch(setCredentials(accessToken));
         } else {
           console.error('problem:', verificationJSON);
         }

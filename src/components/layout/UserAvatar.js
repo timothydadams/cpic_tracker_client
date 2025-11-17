@@ -5,12 +5,8 @@ import { useSelector } from 'react-redux';
 import { selectMemoizedUser } from 'features/auth/authSlice';
 
 export const UserAvatar = ({ user, ...props }) => {
-  const {
-    id = null,
-    given_name = '',
-    family_name = '',
-    profile_pic,
-  } = useSelector(selectMemoizedUser);
+  //useSelector(selectMemoizedUser)
+  const { id = null, given_name = '', family_name = '', profile_pic } = user;
 
   if (!id || !(given_name && family_name)) {
     return <UserCircleIcon {...props} />;

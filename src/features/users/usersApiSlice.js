@@ -4,13 +4,6 @@ import { setUserDetails } from './usersSlice';
 
 export const userApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
-    register: builder.mutation({
-      query: (userDetails) => ({
-        url: '/users/register',
-        method: 'POST',
-        body: { ...userDetails },
-      }),
-    }),
     update: builder.mutation({
       query: (user) => ({
         url: `/users/${user.id}`,
@@ -76,7 +69,6 @@ export const userApiSlice = api.injectEndpoints({
 });
 
 export const {
-  useRegisterMutation,
   useUpdateMutation,
   useGetUserQuery,
   useGetAllUsersQuery,

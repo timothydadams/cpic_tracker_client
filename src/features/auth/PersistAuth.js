@@ -14,7 +14,6 @@ import { Loading } from 'components/Spinners';
 import { Error } from 'components/Generic';
 
 export const PersistAuth = () => {
-  //const isAuthenticated = !!Cookies.get('cpic_isAuthenticated');
   const navigate = useNavigate();
   const location = useLocation();
 

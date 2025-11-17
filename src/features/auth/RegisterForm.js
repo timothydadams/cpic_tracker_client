@@ -9,8 +9,8 @@ import {
   useSearchParams,
 } from 'react-router-dom';
 import { FormMessage } from 'ui/form';
-import { useRegisterMutation } from './usersApiSlice';
-import { useValidateCodeQuery } from '../invites/inviteApiSlice';
+import { useLoginMutation, useRegisterMutation } from './authApiSlice';
+import { useValidateCodeMutation } from '../invites/inviteApiSlice';
 import { Skeleton } from 'ui/skeleton';
 import {
   Card,
@@ -29,7 +29,7 @@ import { RegisteredInput } from 'components/forms/Input';
 import { Button } from 'catalyst/button.jsx';
 import { Heading, Subheading } from 'catalyst/heading.jsx';
 import { enqueueSnackbar } from 'notistack';
-import GoogleAuth from '../auth/google_auth';
+import GoogleAuth from './google_auth';
 
 //form validation
 const schema = yup.object().shape({
@@ -50,14 +50,18 @@ const schema = yup.object().shape({
     .oneOf([yup.ref('password'), null], 'Must match "password" field value'),
 });
 
-export default function CreateAccount() {
+export const UserRegistrationForm = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const message = searchParams.get('message');
   const { code } = useParams();
+  /*
   const { data: inviteDetails, isLoading: isLoadingCode } =
     useValidateCodeQuery(code);
 
+    */
+
   const [create, { isLoading, isError, error }] = useRegisterMutation();
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.state?.from || '/';
@@ -79,13 +83,34 @@ export default function CreateAccount() {
     console.log('data to be sent to server:', data);
 
     try {
-      const res = await create({
+      const result = await create({
         user: data,
         inviteCode: code,
         inviteDetails,
       }).unwrap();
+
+      //if the account was created, save the credentials and log the user in
       enqueueSnackbar('Account Created', { variant: 'success' });
-      navigate('/login', { replace: true });
+
+      if (window.PasswordCredential && data.password) {
+        const credentials = new PasswordCredential({
+          id: data.email,
+          password: data.password,
+          name: `${data.given_name} ${data.family_name}`,
+        });
+        try {
+          navigator.credentials.store(credentials);
+        } catch (e) {
+          console.log('unable to save credentials to browser api');
+        }
+      }
+
+      const loginResult = await login({
+        email: data.email,
+        password: data.password,
+      }).unwrap();
+
+      navigate(currentPath, { replace: true });
     } catch (err) {
       console.log(err);
       enqueueSnackbar('Failed to create account', { variant: 'error' });
@@ -147,7 +172,7 @@ export default function CreateAccount() {
                   />
 
                   <RegisteredInput
-                    type='text'
+                    type='email'
                     label='Email'
                     autoComplete='email'
                     name='email'
@@ -189,4 +214,4 @@ export default function CreateAccount() {
       </div>
     )
   );
-}
+};

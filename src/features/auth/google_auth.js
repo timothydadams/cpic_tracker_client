@@ -1,11 +1,5 @@
 import React, { useEffect } from 'react';
-import { useGetGoogleURIQuery } from './authApiSlice';
-import { useNavigate, useLocation } from 'react-router-dom';
-import usePersist from 'hooks/usePersist';
-import { Badge } from 'ui/badge';
-
 import { useGoogleLogin } from '@react-oauth/google';
-import { current } from '@reduxjs/toolkit';
 
 const GoogleIcon = (props) => (
   <div className='mt-6 gap-4'>

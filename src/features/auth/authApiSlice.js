@@ -6,6 +6,41 @@ import { jwtDecode } from 'jwt-decode';
 
 export const authApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
+    register: builder.mutation({
+      query: (userDetails) => ({
+        url: '/auth/register',
+        method: 'POST',
+        body: { ...userDetails },
+      }),
+    }),
+    getPasskeyRegOptions: builder.mutation({
+      query: (userId) => ({
+        url: '/auth/passkey-reg-options',
+        method: 'POST',
+        body: { id: userId },
+      }),
+    }),
+    verifyPasskeyReg: builder.mutation({
+      query: (data) => ({
+        url: '/auth/passkey-reg-verification',
+        method: 'POST',
+        body: { ...data },
+      }),
+    }),
+    getUserLoginOptions: builder.mutation({
+      query: (email) => ({
+        url: '/auth/get-auth-options',
+        method: 'POST',
+        body: { email },
+      }),
+    }),
+    verifyPasskeyAuth: builder.mutation({
+      query: (email) => ({
+        url: '/auth/passkey-auth-verify',
+        method: 'POST',
+        body: { email },
+      }),
+    }),
     login: builder.mutation({
       query: (credentials) => ({
         url: '/auth/self-sign-in',
@@ -115,6 +150,11 @@ export const authApiSlice = api.injectEndpoints({
 });
 
 export const {
+  useGetPasskeyRegOptionsMutation,
+  useVerifyPasskeyRegMutation,
+  useVerifyPasskeyAuthMutation,
+  useGetUserLoginOptionsMutation,
+  useRegisterMutation,
   useLoginMutation,
   useSendLogoutMutation,
   useRefreshMutation,

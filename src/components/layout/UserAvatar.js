@@ -1,10 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from 'ui/avatar';
 import { UserCircleIcon } from '@heroicons/react/20/solid';
-import { ref } from 'process';
+import { useSelector } from 'react-redux';
+import { selectMemoizedUser } from 'features/auth/authSlice';
 
 export const UserAvatar = ({ user, ...props }) => {
-  const { id = null, given_name = '', family_name = '', profile_pic } = user;
+  const {
+    id = null,
+    given_name = '',
+    family_name = '',
+    profile_pic,
+  } = useSelector(selectMemoizedUser);
 
   if (!id || !(given_name && family_name)) {
     return <UserCircleIcon {...props} />;

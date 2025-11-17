@@ -48,6 +48,7 @@ import {
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
+  InputGroupText,
 } from 'ui/input-group';
 
 import {
@@ -187,8 +188,10 @@ const CopyUrlField = ({ invite }) => {
 
       <InputGroupAddon align='block-start'>
         <Label htmlFor={roleId} className='text-foreground'>
-          {`${roleName} (${maxUses - useCount} uses remaining)`}
+          {`Role: ${roleName}`}
         </Label>
+
+        <InputGroupText>{`${maxUses - useCount} use(s) remaining`}</InputGroupText>
 
         <InputGroupButton
           aria-label='Copy'
@@ -271,8 +274,8 @@ export const CreateCodeForm = ({}) => {
     selectedRole !== '' ? roles.find((r) => r.id === selectedRole)?.name : '';
 
   return (
-    <div classname='w-full'>
-      <Subheading>Manage Invite Codes</Subheading>
+    <div className='w-full'>
+      <Subheading>Active Invite Codes</Subheading>
 
       <div>
         <ExistingCodeList

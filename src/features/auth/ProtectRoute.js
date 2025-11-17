@@ -1,10 +1,12 @@
 import React from 'react';
 import { useLocation, Navigate, Outlet } from 'react-router-dom';
 import useAuth from 'hooks/useAuth';
+import { useSelector } from 'react-redux';
+import { selectMemoizedUser } from './authSlice';
 
 export const ProtectRoute = ({ allowedRoles = [], message }) => {
   const location = useLocation();
-  const user = useAuth();
+  const user = useSelector(selectMemoizedUser);
   const { id, roles, isAdmin } = user;
   const userHasRouteRole = roles.some((x) => allowedRoles?.includes(x));
 

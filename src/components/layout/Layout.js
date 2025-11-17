@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { GoalIcon, MapIcon, ChartNoAxesCombinedIcon } from 'lucide-react';
 import {
   Dropdown,
@@ -59,13 +60,15 @@ import {
 
 import { Outlet, useNavigate } from 'react-router-dom';
 import { useSendLogoutMutation } from '../../features/auth/authApiSlice.js';
-import useAuth from 'hooks/useAuth.js';
+//import useAuth from 'hooks/useAuth.js';
 import { userNavItems, adminNavItems } from './navLists.js';
 import { DarkModeToggle } from './DarkModeToggle.js';
 import useTheme from 'hooks/useTheme.js';
 import { ModalFromMarkdown } from './NavItemModelWithMd.js';
 import { UserAvatar } from './UserAvatar.js';
 import { ModalNavItem } from './ModalForm.js';
+import { selectMemoizedUser } from 'features/auth/authSlice.js';
+//import { selectCurrentRoles } from 'features/auth/authSlice.js';
 
 const ProfileSection = ({ user }) => {
   const { display_name, family_name, given_name, status } = user;
@@ -120,21 +123,35 @@ const SideBarList = ({ header = null, list, ...props }) => {
   );
 };
 
-const NavList = ({ list, ...props }) => {
+const NavList = ({ parent, list, ...props }) => {
   const [sendLogout] = useSendLogoutMutation();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     await sendLogout().unwrap();
+    //prevent auto-login if user explicitly logs out
+    if (window.PasswordCredentials) {
+      navigator.credentials.preventSilentAccess();
+    }
     navigate('/');
   };
 
   return (
     <DropdownMenu {...props}>
-      {list.map(({ label, path, icon, id, action = null }) => {
+      {list.map(({ label, Component, path, icon, id, action = null }) => {
         let content;
         if (label === 'divider') {
           content = <DropdownDivider key={id} />;
+        } else if (Component) {
+          content = (
+            <ModalNavItem
+              parent={parent}
+              key={id}
+              title={label}
+              Icon={icon}
+              Component={Component}
+            />
+          );
         } else {
           content = (
             <DropdownItem
@@ -157,28 +174,12 @@ export const Layout = () => {
   const [theme, setTheme] = useTheme();
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
-  const user = useAuth();
-  //console.log('user in layout:', user);
-  const {
-    name,
-    given_name,
-    family_name,
-    display_name,
-    nickname,
-    profile_pic,
-    email,
-    id,
-    roles,
-    status,
-    isAdmin,
-    isGlobalAdmin,
-    isCPICAdmin,
-    isCPICMember,
-    isImplementer,
-  } = user;
+  const user = useSelector(selectMemoizedUser);
+  console.log('user in layout:', user);
+  const { id, roles } = user;
 
   useEffect(() => {
-    if (!roles.includes('Viewer')) {
+    if (roles) {
       let items = adminNavItems.filter((u) =>
         roles.some((x) => u.allowedRoles?.includes(x))
       );
@@ -191,13 +192,13 @@ export const Layout = () => {
   }, [roles]);
 
   useEffect(() => {
-    let activeUser = id === null ? false : true;
+    let isAuthedUser = Boolean(id);
     setUserNav([
       ...userNavItems.filter((n) => {
         if (id) {
-          return n.path === 'login' ? false : true;
+          return n.path === '/login' ? false : true;
         } else {
-          return n.requiresUser === activeUser;
+          return n.requiresUser === isAuthedUser;
         }
       }),
     ]);
@@ -217,6 +218,7 @@ export const Layout = () => {
                 <UserAvatar user={user} className='h-6 w-6' />
               </DropdownButton>
               <NavList
+                parent='dropdown'
                 list={userNav}
                 className='min-w-64'
                 anchor='bottom end'

@@ -15,8 +15,8 @@ module.exports = (env, argv) => {
   return {
     context: __dirname,
     entry: path.resolve(__dirname, 'src', 'index.js'),
-    //devtool: isDev ? 'inline-source-map' : false,
-    devtool: false,
+    devtool: isDev ? 'inline-source-map' : false,
+    //devtool: false,
     output: {
       path: path.resolve(__dirname, 'dist'),
       publicPath: '/',

@@ -4,21 +4,40 @@ import {
   Dialog,
   DialogActions,
   DialogBody,
+  DialogTrigger,
   DialogDescription,
   DialogTitle,
 } from 'catalyst/dialog';
+import { DropdownItem } from 'catalyst/dropdown';
 import { SidebarItem, SidebarLabel } from 'catalyst/sidebar.jsx';
 import { XIcon } from 'lucide-react';
 
-export const ModalNavItem = ({ title, Icon, Component }) => {
+export const ModalNavItem = ({
+  parent = 'sidebar',
+  title,
+  Icon,
+  Component,
+}) => {
   const [isOpen, setIsOpen] = React.useState(false);
+
+  const handleOpen = (e) => {
+    e.preventDefault();
+    setIsOpen(true);
+  };
 
   return (
     <>
-      <SidebarItem aria-label={title} onClick={() => setIsOpen(true)}>
-        {Icon}
-        <SidebarLabel>{title}</SidebarLabel>
-      </SidebarItem>
+      {parent === 'sidebar' ? (
+        <SidebarItem aria-label={title} onClick={handleOpen}>
+          {Icon}
+          <SidebarLabel>{title}</SidebarLabel>
+        </SidebarItem>
+      ) : (
+        <DropdownItem onClick={handleOpen}>
+          {Icon}
+          {title}
+        </DropdownItem>
+      )}
 
       <Dialog open={isOpen} onClose={setIsOpen} size='2xl' className='p-2'>
         <div className='w-full relative'>

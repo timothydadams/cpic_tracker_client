@@ -4,5 +4,6 @@ import useAuth from 'hooks/useAuth';
 
 export const AnonymousOnly = () => {
   const user = useAuth();
-  return user.id !== null ? <Navigate to='home' replace={true} /> : <Outlet />;
+  const { id } = user;
+  return Boolean(id) ? <Navigate to='home' replace={true} /> : <Outlet />;
 };

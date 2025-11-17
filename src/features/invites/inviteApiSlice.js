@@ -2,8 +2,12 @@ import { api } from '../../app/api/apiSlice';
 
 export const inviteApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
-    validateCode: builder.query({
-      query: (code) => `/invites/${code}/validate`,
+    validateCode: builder.mutation({
+      query: (code) => ({
+        url: `/invites/${code}/validate`,
+        method: 'GET',
+      }),
+      //query: (code) => `/invites/${code}/validate`,
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
@@ -70,7 +74,7 @@ export const inviteApiSlice = api.injectEndpoints({
 });
 
 export const {
-  useValidateCodeQuery,
+  useValidateCodeMutation,
   useGetMyCodesQuery,
   useGetMyInvitesQuery,
   useGetCodeStatsQuery,

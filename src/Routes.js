@@ -8,10 +8,11 @@ import { Text } from 'catalyst/text';
 
 //PUBLIC ROUTE COMPONENTS
 import { NotFound, NotAuthorized } from 'components/Generic';
-
-//import Examples from './components/forms/headless/Examples';
-import Login from './features/auth/Login';
-import CreateAccount from './features/users/Register.js';
+import { LoginForm } from './features/auth/LoginForm.jsx';
+import { AddPasswordForm } from './features/auth/AddPasswordForm.jsx';
+import { UserRegistrationForm } from './features/auth/RegisterForm.js';
+import { VerifyInvitationCode } from './features/auth/onboarding/InvitationCode.js';
+import { OnboardingForm } from './features/auth/onboarding/OnboardNewUser.js';
 
 //AUTH REQUIRED COMPONENTS
 import { Profile } from './features/users/Profile';
@@ -43,8 +44,10 @@ const AppRoutes = () => (
     <Route element={<Layout />}>
       <Route element={<PersistAuth />}>
         <Route element={<AnonymousOnly />}>
-          <Route path='register/:code' element={<CreateAccount />} />
-          <Route path='login' element={<Login />} />
+          <Route index element={<Dashboard />} />
+          <Route path='register/:code?' element={<OnboardingForm />} />
+          {/* <Route path='register/:code' element={<UserRegistrationForm />} /> */}
+          <Route path='login' element={<LoginForm />} />
         </Route>
 
         {/* PUBLIC ROUTES ACCESSIBLE TO ALL */}
@@ -65,6 +68,7 @@ const AppRoutes = () => (
 
         {/* AUTH NEEDED */}
         <Route element={<ProtectRoute allowedRoles={[]} />}>
+          <Route path='add-password' element={<AddPasswordForm />} />
           <Route path='profile' element={<Profile />} />
           <Route path='my-strategies' element={<AssignedStrategies />} />
         </Route>

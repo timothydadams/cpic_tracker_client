@@ -41,7 +41,7 @@ export const userNavItems = [
   },
   {
     label: 'Share Feedback',
-    path: 'share-feedback',
+    Component: (props) => <div>Future Form</div>,
     requiresUser: false,
     icon: <LightBulbIcon />,
     id: uuidv4(),
@@ -60,7 +60,7 @@ export const userNavItems = [
   },
   {
     label: 'Sign In',
-    path: 'login',
+    path: '/login',
     requiresUser: false,
     icon: <UserIcon />,
     id: uuidv4(),

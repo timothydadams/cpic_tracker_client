@@ -11,6 +11,7 @@ import { Input } from '../catalyst/input.jsx';
 import { Textarea } from '../catalyst/textarea.jsx';
 
 const sanitizeInput = (input) => DOMPurify.sanitize(input);
+const transformEmail = (email) => email.toLowerCase();
 
 export const RegisteredInput = ({
   name,

@@ -75,7 +75,8 @@ const Step1 = () => {
 */
 
 export function LoginForm({ className, ...props }) {
-  const [verifyPasskey, { isLoading }] = useVerifyPasskeyAuthMutation();
+  const [verifyPasskey, { data: verificationResults, isLoading }] =
+    useVerifyPasskeyAuthMutation();
 
   const [
     getOptions,
@@ -120,13 +121,14 @@ export function LoginForm({ className, ...props }) {
 
   const handleLogin = async (_, e) => {
     e.preventDefault();
-    const { userId } = authOpts;
+    const { userId, passkeys } = authOpts;
     console.log('userId', userId);
+    console.log('optionsJSON for webauthn start:', passkeys);
 
     let asseResp;
     try {
-      asseResp = await startAuthentication({ optionsJSON: authOpts.passkeys });
-      const verificationResults = await verifyPasskey({
+      asseResp = await startAuthentication({ optionsJSON: passkeys });
+      await verifyPasskey({
         userId,
         duration: persist,
         webAuth: asseResp,

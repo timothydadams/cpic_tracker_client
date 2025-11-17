@@ -7,15 +7,15 @@ import {
   CardHeader,
   CardTitle,
 } from 'ui/card';
-import { Link } from '../../components/catalyst/link';
+import { Link } from 'catalyst/link';
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-//import { useDispatch } from 'react-redux';
-//import { setCredentials } from './authSlice';
+import { useDispatch } from 'react-redux';
+import { setCredentials } from './authSlice';
 import {
-  useLoginMutation,
   useGetUserLoginOptionsMutation,
+  useVerifyPasskeyAuthMutation,
 } from './authApiSlice';
 import usePersist from 'hooks/usePersist';
 //form support
@@ -34,13 +34,14 @@ import { Separator } from 'ui/separator';
 import { PresentationChartLineIcon } from '@heroicons/react/24/solid';
 import { FingerprintIcon } from 'lucide-react';
 import { sanitizeString } from 'utils/rhf_helpers';
+import { startAuthentication } from '@simplewebauthn/browser';
 
 const schema = yup.object().shape({
   email: yup
     .string()
     .email()
     .transform((value) => sanitizeString(value.trim().toLowerCase()))
-    .required(),
+    .required('You must provide your email to sign in.'),
 });
 
 export const LoginWrapper = ({ children }) => {
@@ -74,10 +75,12 @@ const Step1 = () => {
 */
 
 export function LoginForm({ className, ...props }) {
-  const [login, { isLoading }] = useLoginMutation();
+  const [verifyPasskey, { isLoading }] = useVerifyPasskeyAuthMutation();
 
-  const [getOptions, { data: authOpts, isLoading: authOptsLoading }] =
-    useGetUserLoginOptionsMutation();
+  const [
+    getOptions,
+    { data: authOpts, isLoading: authOptsLoading, reset: resetAuthOptions },
+  ] = useGetUserLoginOptionsMutation();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -86,10 +89,9 @@ export function LoginForm({ className, ...props }) {
   const [errorMsg, setErrorMsg] = useState(null);
   const [persist, setPersist] = usePersist();
 
-  async function checkAuthOpts(email) {
+  async function setAuthOpts(email) {
     try {
-      const result = await getOptions(email).unwrap();
-      setStep(1);
+      await getOptions(email).unwrap();
     } catch (e) {
       console.log(e);
     }
@@ -102,49 +104,49 @@ export function LoginForm({ className, ...props }) {
     setValue,
     formState: { errors, isDirty, isValid },
   } = useForm({
-    mode: 'onChange',
+    mode: 'onBlur',
     resolver: yupResolver(schema),
   });
 
   const emailValue = watch('email');
 
   useEffect(() => {
-    setErrorMsg(null);
-  }, [errors, isDirty, isValid]);
+    resetAuthOptions();
+  }, [emailValue, watch]);
 
   const togglePersist = () => {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));
   };
 
-  const handleLogin = async ({ email, password }, e) => {
+  const startPasskeyAuth = async () => {
+    console.log(authOpts.passkeys);
+  };
+
+  const handleLogin = async (_, e) => {
     e.preventDefault();
+    const { userId } = authOpts;
+    console.log('userId', userId);
 
+    let asseResp;
     try {
-      const res = await login({
-        email,
-        password,
+      asseResp = await startAuthentication({ optionsJSON: authOpts.passkeys });
+      const { data } = await verifyPasskey({
+        userId,
         duration: persist,
+        webAuth: asseResp,
       }).unwrap();
-
-      if (window.PasswordCredential && data.password) {
-        const credentials = new PasswordCredential({
-          id: data.email,
-          password: data.password,
-          name: `${data.given_name} ${data.family_name}`,
-        });
-        try {
-          navigator.credentials.store(credentials);
-        } catch (e) {
-          console.log('unable to save credentials to browser api');
+      if (data) {
+        const { verified, accessToken } = data;
+        if (verified && accessToken) {
+          dispatch(setCredentials(accessToken));
+          navigate(currentPath, { replace: true });
         }
       }
-
-      navigate(currentPath, { replace: true });
     } catch (err) {
       if (!err?.originalStatus) {
         setErrorMsg('No server response');
       } else if (err?.originalStatus === 400) {
-        setErrorMsg('Missing username or password');
+        setErrorMsg('Missing data');
       } else {
         setErrorMsg('Login failed');
       }
@@ -210,35 +212,34 @@ export function LoginForm({ className, ...props }) {
                       />
                     </div>
                   )}
-                  <div className='hidden gap-2'>
-                    <RegisteredInput
-                      id='password'
-                      label='Password'
-                      name='password'
-                      type='password'
-                      autoComplete='current-password'
-                      wrapperStyle='mt-2'
-                      register={register}
-                      errors={errors}
-                    />
-                  </div>
-                  <div className='grid grid-cols-2 gap-5'>
-                    <div>
-                      <Button
-                        type='button'
-                        className='w-full'
-                        disabled={!isDirty && !isValid}
-                        onClick={() => checkAuthOpts(emailValue.toLowerCase())}
-                      >
-                        Login
+
+                  {authOpts && authOpts?.passkeys && (
+                    <div className='flex flex-col gap-4'>
+                      <Button type='submit'>
+                        <FingerprintIcon /> Use Passkey
                       </Button>
                     </div>
-                    <div>
-                      <Button className='w-full' asChild>
-                        <Link href='/register'>Register</Link>
-                      </Button>
+                  )}
+
+                  {!authOpts && (
+                    <div className='grid grid-cols-2 gap-5'>
+                      <div>
+                        <Button
+                          type='button'
+                          className='w-full'
+                          disabled={!isDirty && !isValid}
+                          onClick={() => setAuthOpts(emailValue.toLowerCase())}
+                        >
+                          Login
+                        </Button>
+                      </div>
+                      <div>
+                        <Button className='w-full' asChild>
+                          <Link href='/register'>Register</Link>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </form>

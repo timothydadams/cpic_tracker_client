@@ -175,7 +175,7 @@ export const Layout = () => {
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
   const user = useSelector(selectMemoizedUser);
-  console.log('user in layout:', user);
+
   const { id, roles } = user;
 
   useEffect(() => {

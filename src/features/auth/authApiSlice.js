@@ -35,10 +35,10 @@ export const authApiSlice = api.injectEndpoints({
       }),
     }),
     verifyPasskeyAuth: builder.mutation({
-      query: (email) => ({
+      query: (data) => ({
         url: '/auth/passkey-auth-verify',
         method: 'POST',
-        body: { email },
+        body: { ...data },
       }),
     }),
     login: builder.mutation({

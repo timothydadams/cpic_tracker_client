@@ -144,7 +144,7 @@ export function OnboardingForm() {
         // Show UI appropriate for the `verified` status
         if (verified && accessToken) {
           console.log('SUCCESS!');
-          dispatch(setCredentials(accessToken));
+          dispatch(setCredentials({ accessToken }));
         } else {
           console.error('problem:', verificationJSON);
         }

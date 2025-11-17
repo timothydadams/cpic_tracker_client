@@ -118,10 +118,6 @@ export function LoginForm({ className, ...props }) {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));
   };
 
-  const startPasskeyAuth = async () => {
-    console.log(authOpts.passkeys);
-  };
-
   const handleLogin = async (_, e) => {
     e.preventDefault();
     const { userId } = authOpts;
@@ -130,15 +126,19 @@ export function LoginForm({ className, ...props }) {
     let asseResp;
     try {
       asseResp = await startAuthentication({ optionsJSON: authOpts.passkeys });
-      const { data } = await verifyPasskey({
+      const verificationResults = await verifyPasskey({
         userId,
         duration: persist,
         webAuth: asseResp,
       }).unwrap();
-      if (data) {
-        const { verified, accessToken } = data;
+      if (verificationResults) {
+        console.log(
+          'verificationResults from verification step:',
+          verificationResults
+        );
+        const { verified, accessToken } = verificationResults;
         if (verified && accessToken) {
-          dispatch(setCredentials(accessToken));
+          dispatch(setCredentials({ accessToken }));
           navigate(currentPath, { replace: true });
         }
       }
@@ -194,6 +194,7 @@ export function LoginForm({ className, ...props }) {
                       type='email'
                       label='Email'
                       name='email'
+                      autoComplete='email webauthn'
                       wrapperStyle='mt-2'
                       register={register}
                       errors={errors}

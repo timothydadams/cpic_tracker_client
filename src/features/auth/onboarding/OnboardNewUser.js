@@ -117,7 +117,7 @@ export function OnboardingForm() {
 
     try {
       //create new user and get user back
-      const user = await createUserAccount(data).unwrap();
+      const { user } = await createUserAccount(data).unwrap();
       console.log(user);
       //start webauthn registration
       if (user && user.id) {

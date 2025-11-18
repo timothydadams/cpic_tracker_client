@@ -75,13 +75,10 @@ const Step1 = () => {
 */
 
 export function LoginForm({ className, ...props }) {
-  const [verifyPasskey, { data: verificationResults, isLoading }] =
-    useVerifyPasskeyAuthMutation();
+  const [verifyPasskey] = useVerifyPasskeyAuthMutation();
 
-  const [
-    getOptions,
-    { data: authOpts, isLoading: authOptsLoading, reset: resetAuthOptions },
-  ] = useGetUserLoginOptionsMutation();
+  const [getOptions, { data: authOpts, reset: resetAuthOptions }] =
+    useGetUserLoginOptionsMutation();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -119,7 +116,7 @@ export function LoginForm({ className, ...props }) {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));
   };
 
-  const handleLogin = async (_, e) => {
+  const handleLogin = async (data, e) => {
     e.preventDefault();
     const { userId, passkeys } = authOpts;
     console.log('userId', userId);
@@ -128,23 +125,24 @@ export function LoginForm({ className, ...props }) {
     let asseResp;
     try {
       asseResp = await startAuthentication({ optionsJSON: passkeys });
-      await verifyPasskey({
+      const verifyResults = await verifyPasskey({
         userId,
         duration: persist,
         webAuth: asseResp,
       }).unwrap();
-      if (verificationResults) {
+      if (verifyResults) {
         console.log(
           'verificationResults from verification step:',
-          verificationResults
+          verifyResults
         );
-        const { verified, accessToken } = verificationResults;
+        const { verified, accessToken } = verifyResults;
         if (verified && accessToken) {
           dispatch(setCredentials({ accessToken }));
           navigate(currentPath, { replace: true });
         }
       }
     } catch (err) {
+      console.log(err);
       if (!err?.originalStatus) {
         setErrorMsg('No server response');
       } else if (err?.originalStatus === 400) {

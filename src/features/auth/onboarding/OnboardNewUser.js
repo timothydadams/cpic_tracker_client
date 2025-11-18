@@ -68,11 +68,9 @@ export function OnboardingForm() {
   const [persist] = usePersist();
   const dispatch = useDispatch();
 
-  const [createUserAccount, { data: user, isLoading }] = useRegisterMutation();
-  const [getPasskeyRegOpts, { data: pk_reg_opts }] =
-    useGetPasskeyRegOptionsMutation();
-  const [verifyPasskeyRegOpts, { data: pk_reg_verification }] =
-    useVerifyPasskeyRegMutation();
+  const [createUserAccount] = useRegisterMutation();
+  const [genPasskeyRegOpts] = useGetPasskeyRegOptionsMutation();
+  const [verifyPasskeyRegOpts] = useVerifyPasskeyRegMutation();
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
@@ -119,15 +117,15 @@ export function OnboardingForm() {
 
     try {
       //create new user and get user back
-      await createUserAccount(data).unwrap();
+      const user = await createUserAccount(data).unwrap();
       console.log(user);
       //start webauthn registration
       if (user && user.id) {
-        await getPasskeyRegOpts(user.id).unwrap();
+        const options = await genPasskeyRegOpts(user.id).unwrap();
         let attResp;
         try {
           // Pass the options to the authenticator and wait for a response
-          attResp = await startRegistration({ optionsJSON: pk_reg_opts });
+          attResp = await startRegistration({ optionsJSON: options });
         } catch (error) {
           console.log(error);
           throw error;
@@ -135,13 +133,13 @@ export function OnboardingForm() {
 
         // POST the response to the endpoint that calls
         // @simplewebauthn/server -> verifyRegistrationResponse()
-        await verifyPasskeyRegOpts({
+        const verifcationResults = await verifyPasskeyRegOpts({
           userId: user.id,
           duration: persist,
           webAuth: attResp,
         }).unwrap();
 
-        const { verified, accessToken } = pk_reg_verification;
+        const { verified, accessToken } = verifcationResults;
 
         // Show UI appropriate for the `verified` status
         if (verified && accessToken) {

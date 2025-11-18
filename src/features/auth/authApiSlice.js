@@ -14,10 +14,10 @@ export const authApiSlice = api.injectEndpoints({
       }),
     }),
     getPasskeyRegOptions: builder.mutation({
-      query: (userId) => ({
-        url: '/auth/passkey-reg-options',
+      query: (data) => ({
+        url: '/auth/generate-passkey-reg-options',
         method: 'POST',
-        body: { id: userId },
+        body: { ...data },
       }),
     }),
     verifyPasskeyReg: builder.mutation({

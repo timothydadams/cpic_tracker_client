@@ -110,18 +110,21 @@ export function OnboardingForm() {
 
   const steps = [<VerifyInvitationCode nextStep={handleNext} />, <UserInfo />];
 
-  const handleFinalSubmit = async (data) => {
+  const handleFinalSubmit = async (data, e) => {
+    e.preventDefault();
     // Send data to server
     console.log('Final Form Data:', data);
     console.log('sanitzed data:', recursivelySanitizeObject(data));
+    const user_email = data.user.email;
 
     try {
       //create new user and get user back
-      const { user } = await createUserAccount(data).unwrap();
+      const { data: user } = await createUserAccount(data).unwrap();
       console.log(user);
       //start webauthn registration
       if (user && user.id) {
-        const options = await genPasskeyRegOpts(user.id).unwrap();
+        const options = await genPasskeyRegOpts({ email: user_email }).unwrap();
+        console.log(`options returned from genRegOpts`, options);
         let attResp;
         try {
           // Pass the options to the authenticator and wait for a response
@@ -134,7 +137,7 @@ export function OnboardingForm() {
         // POST the response to the endpoint that calls
         // @simplewebauthn/server -> verifyRegistrationResponse()
         const verifcationResults = await verifyPasskeyRegOpts({
-          userId: user.id,
+          email: user_email,
           duration: persist,
           webAuth: attResp,
         }).unwrap();
@@ -146,7 +149,7 @@ export function OnboardingForm() {
           console.log('SUCCESS!');
           dispatch(setCredentials({ accessToken }));
         } else {
-          console.error('problem:', pk_reg_verification);
+          console.error('problem:', verifcationResults);
         }
       }
     } catch (e) {

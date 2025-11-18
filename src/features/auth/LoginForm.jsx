@@ -77,6 +77,9 @@ const Step1 = () => {
 export function LoginForm({ className, ...props }) {
   const [verifyPasskey] = useVerifyPasskeyAuthMutation();
 
+  const [passkey, setPasskey] = useState(null);
+  const [socialLogins, setSocialLogins] = useState([]);
+
   const [getOptions, { data: authOpts, reset: resetAuthOptions }] =
     useGetUserLoginOptionsMutation();
 
@@ -89,7 +92,15 @@ export function LoginForm({ className, ...props }) {
 
   async function setAuthOpts(email) {
     try {
-      await getOptions(email).unwrap();
+      const result = await getOptions(email).unwrap();
+      const { passkey, socials } = result;
+      console.log('retrieved auth opts', result);
+      if (passkey && passkey?.allowCredentials.length > 0) {
+        setPasskey((prev) => passkey);
+      }
+      if (socials) {
+        setSocialLogins((prev) => socials);
+      }
     } catch (e) {
       console.log(e);
     }
@@ -102,31 +113,34 @@ export function LoginForm({ className, ...props }) {
     setValue,
     formState: { errors, isDirty, isValid },
   } = useForm({
-    mode: 'onBlur',
+    mode: 'all',
     resolver: yupResolver(schema),
   });
 
   const emailValue = watch('email');
 
   useEffect(() => {
-    resetAuthOptions();
+    setPasskey((prev) => null);
+    setSocialLogins((prev) => []);
   }, [emailValue, watch]);
 
   const togglePersist = () => {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));
   };
 
-  const handleLogin = async (data, e) => {
+  const handleLogin = async ({ email }, e) => {
     e.preventDefault();
-    const { userId, passkeys } = authOpts;
-    console.log('userId', userId);
-    console.log('optionsJSON for webauthn start:', passkeys);
+    const authOpts = await getOptions(email).unwrap();
+
+    const { passkey } = authOpts;
+
+    console.log('optionsJSON for webauthn start:', passkey);
 
     let asseResp;
     try {
-      asseResp = await startAuthentication({ optionsJSON: passkeys });
+      asseResp = await startAuthentication({ optionsJSON: passkey });
       const verifyResults = await verifyPasskey({
-        userId,
+        email,
         duration: persist,
         webAuth: asseResp,
       }).unwrap();
@@ -201,7 +215,7 @@ export function LoginForm({ className, ...props }) {
                     />
                   </div>
 
-                  {authOpts && authOpts?.socials.includes('google') && (
+                  {socialLogins.includes('google') && (
                     <div className='flex flex-col gap-4'>
                       <GoogleAuth
                         className='w-full'
@@ -214,7 +228,7 @@ export function LoginForm({ className, ...props }) {
                     </div>
                   )}
 
-                  {authOpts && authOpts?.passkeys && (
+                  {passkey && (
                     <div className='flex flex-col gap-4'>
                       <Button type='submit'>
                         <FingerprintIcon /> Use Passkey
@@ -222,7 +236,7 @@ export function LoginForm({ className, ...props }) {
                     </div>
                   )}
 
-                  {!authOpts && (
+                  {!passkey && socialLogins.length === 0 && (
                     <div className='grid grid-cols-2 gap-5'>
                       <div>
                         <Button

@@ -119,15 +119,15 @@ export function OnboardingForm() {
 
     try {
       //create new user and get user back
-      const { data: user } = await createUserAccount(data).unwrap();
+      await createUserAccount(data).unwrap();
       console.log(user);
       //start webauthn registration
       if (user && user.id) {
-        const optionsJSON = await getPasskeyRegOpts(user.id).unwrap();
+        await getPasskeyRegOpts(user.id).unwrap();
         let attResp;
         try {
           // Pass the options to the authenticator and wait for a response
-          attResp = await startRegistration({ optionsJSON });
+          attResp = await startRegistration({ optionsJSON: pk_reg_opts });
         } catch (error) {
           console.log(error);
           throw error;
@@ -135,18 +135,20 @@ export function OnboardingForm() {
 
         // POST the response to the endpoint that calls
         // @simplewebauthn/server -> verifyRegistrationResponse()
-        const { verified, accessToken } = await verifyPasskeyRegOpts({
+        await verifyPasskeyRegOpts({
           userId: user.id,
           duration: persist,
           webAuth: attResp,
         }).unwrap();
+
+        const { verified, accessToken } = pk_reg_verification;
 
         // Show UI appropriate for the `verified` status
         if (verified && accessToken) {
           console.log('SUCCESS!');
           dispatch(setCredentials({ accessToken }));
         } else {
-          console.error('problem:', verificationJSON);
+          console.error('problem:', pk_reg_verification);
         }
       }
     } catch (e) {

@@ -44,9 +44,7 @@ const AppRoutes = () => (
     <Route element={<Layout />}>
       <Route element={<PersistAuth />}>
         <Route element={<AnonymousOnly />}>
-          <Route index element={<Dashboard />} />
           <Route path='register/:code?' element={<OnboardingForm />} />
-          {/* <Route path='register/:code' element={<UserRegistrationForm />} /> */}
           <Route path='login' element={<LoginForm />} />
         </Route>
 
@@ -68,9 +66,8 @@ const AppRoutes = () => (
 
         {/* AUTH NEEDED */}
         <Route element={<ProtectRoute allowedRoles={[]} />}>
-          <Route path='add-password' element={<AddPasswordForm />} />
-          <Route path='profile' element={<Profile />} />
           <Route path='my-strategies' element={<AssignedStrategies />} />
+          <Route path='profile' element={<Profile />} />
         </Route>
 
         {/* AUTH - CPIC Members 

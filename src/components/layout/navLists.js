@@ -39,6 +39,7 @@ export const userNavItems = [
     label: 'divider',
     id: uuidv4(),
   },
+  /*
   {
     label: 'Share Feedback',
     Component: (props) => <div>Future Form</div>,
@@ -46,10 +47,12 @@ export const userNavItems = [
     icon: <LightBulbIcon />,
     id: uuidv4(),
   },
+  
   {
     label: 'divider',
     id: uuidv4(),
   },
+  */
   {
     label: 'Sign Out',
     path: null,
@@ -90,7 +93,7 @@ export const adminNavItems = [
     label: 'My Strategies',
     path: 'my-strategies',
     //Component: () => <AssignedStrategies />,
-    allowedRoles: ['CPIC Admin', 'CPIC Member', 'Implementer'],
+    allowedRoles: ['Admin', 'CPIC Admin', 'CPIC Member', 'Implementer'],
     id: uuidv4(),
   },
 ];

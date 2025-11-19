@@ -10,7 +10,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useParams } from 'react-router-dom';
 import { Button } from 'ui/button';
 import * as yup from 'yup';
-import { recursivelySanitizeObject, sanitizeString } from 'utils/rhf_helpers';
+import { sanitizeString } from 'utils/rhf_helpers';
 import {
   useRegisterMutation,
   useGetPasskeyRegOptionsMutation,
@@ -18,6 +18,7 @@ import {
 } from '../authApiSlice';
 import { startRegistration } from '@simplewebauthn/browser';
 import usePersist from 'hooks/usePersist';
+import { Spinner } from 'ui/spinner';
 
 //form validation
 const schema = yup.object().shape({
@@ -72,6 +73,7 @@ export function OnboardingForm() {
   const [genPasskeyRegOpts] = useGetPasskeyRegOptionsMutation();
   const [verifyPasskeyRegOpts] = useVerifyPasskeyRegMutation();
 
+  const [registrationInProgress, setRegistrationInProgress] = useState(false);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const methods = useForm({
@@ -112,25 +114,23 @@ export function OnboardingForm() {
 
   const handleFinalSubmit = async (data, e) => {
     e.preventDefault();
-    // Send data to server
-    console.log('Final Form Data:', data);
-    console.log('sanitzed data:', recursivelySanitizeObject(data));
+    setRegistrationInProgress(true);
     const user_email = data.user.email;
 
     try {
       //create new user and get user back
       const { data: user } = await createUserAccount(data).unwrap();
-      console.log(user);
+      //console.log(user);
       //start webauthn registration
       if (user && user.id) {
         const options = await genPasskeyRegOpts({ email: user_email }).unwrap();
-        console.log(`options returned from genRegOpts`, options);
+        //console.log(`options returned from genRegOpts`, options);
         let attResp;
         try {
           // Pass the options to the authenticator and wait for a response
           attResp = await startRegistration({ optionsJSON: options });
         } catch (error) {
-          console.log(error);
+          //console.log(error);
           throw error;
         }
 
@@ -180,7 +180,15 @@ export function OnboardingForm() {
           )}
 
           {currentStepIndex === steps.length - 1 && (
-            <Button type='submit'>Complete Registration</Button>
+            <Button disabled={registrationInProgress} type='submit'>
+              {registrationInProgress ? (
+                <>
+                  <Spinner /> Creating Passkey
+                </>
+              ) : (
+                'Set Up Passkey'
+              )}
+            </Button>
           )}
         </div>
       </form>

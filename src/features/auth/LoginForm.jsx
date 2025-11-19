@@ -35,6 +35,7 @@ import { PresentationChartLineIcon } from '@heroicons/react/24/solid';
 import { FingerprintIcon } from 'lucide-react';
 import { sanitizeString } from 'utils/rhf_helpers';
 import { startAuthentication } from '@simplewebauthn/browser';
+import { Spinner } from 'ui/spinner';
 
 const schema = yup.object().shape({
   email: yup
@@ -75,7 +76,10 @@ const Step1 = () => {
 */
 
 export function LoginForm({ className, ...props }) {
+  const dispatch = useDispatch();
   const [verifyPasskey] = useVerifyPasskeyAuthMutation();
+
+  const [authInProgress, setAuthInprogress] = useState(false);
 
   const [passkey, setPasskey] = useState(null);
   const [socialLogins, setSocialLogins] = useState([]);
@@ -94,15 +98,19 @@ export function LoginForm({ className, ...props }) {
     try {
       const result = await getOptions(email).unwrap();
       const { passkey, socials } = result;
-      console.log('retrieved auth opts', result);
-      if (passkey && passkey?.allowCredentials.length > 0) {
+      if (passkey?.allowCredentials.length > 0) {
         setPasskey((prev) => passkey);
+      } else {
+        setPasskey((prev) => null);
       }
-      if (socials) {
+
+      if (socials.length > 0) {
         setSocialLogins((prev) => socials);
+      } else {
+        setSocialLogins((prev) => []);
       }
     } catch (e) {
-      console.log(e);
+      //console.log(e);
     }
   }
 
@@ -128,27 +136,25 @@ export function LoginForm({ className, ...props }) {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));
   };
 
-  const handleLogin = async ({ email }, e) => {
+  const handlePasskeyLogin = async ({ email }, e) => {
     e.preventDefault();
+    setAuthInprogress(true);
     const authOpts = await getOptions(email).unwrap();
-
     const { passkey } = authOpts;
 
-    console.log('optionsJSON for webauthn start:', passkey);
+    //console.log('optionsJSON for webauthn start:', passkey);
 
     let asseResp;
     try {
       asseResp = await startAuthentication({ optionsJSON: passkey });
+      //console.log('asse response from auth start:', asseResp);
       const verifyResults = await verifyPasskey({
         email,
         duration: persist,
         webAuth: asseResp,
       }).unwrap();
       if (verifyResults) {
-        console.log(
-          'verificationResults from verification step:',
-          verifyResults
-        );
+        //console.log('verificationResults from verification step:',verifyResults);
         const { verified, accessToken } = verifyResults;
         if (verified && accessToken) {
           dispatch(setCredentials({ accessToken }));
@@ -156,6 +162,7 @@ export function LoginForm({ className, ...props }) {
         }
       }
     } catch (err) {
+      setAuthInprogress(false);
       console.log(err);
       if (!err?.originalStatus) {
         setErrorMsg('No server response');
@@ -195,7 +202,7 @@ export function LoginForm({ className, ...props }) {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit(handleLogin)}>
+            <form onSubmit={handleSubmit(handlePasskeyLogin)}>
               <div className='grid gap-6'>
                 <div className='relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-zinc-200 dark:after:border-zinc-800'>
                   <span className='relative z-10 bg-white px-2 text-zinc-500 dark:bg-zinc-950 dark:text-zinc-400'>
@@ -230,8 +237,16 @@ export function LoginForm({ className, ...props }) {
 
                   {passkey && (
                     <div className='flex flex-col gap-4'>
-                      <Button type='submit'>
-                        <FingerprintIcon /> Use Passkey
+                      <Button type='submit' disabled={authInProgress}>
+                        {authInProgress ? (
+                          <>
+                            <Spinner /> Signing In...
+                          </>
+                        ) : (
+                          <>
+                            <FingerprintIcon /> Sign in with Passkey
+                          </>
+                        )}
                       </Button>
                     </div>
                   )}

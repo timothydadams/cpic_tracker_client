@@ -52,6 +52,6 @@ const GoogleAuth = ({ extraState, displayText = 'Login with Google' }) => {
     onError: (err) => console.log(err),
   });
 
-  return <GoogleIcon onClick={() => login()} displayText={displayText} />;
+  return <GoogleIcon type='button' onClick={login} displayText={displayText} />;
 };
 export default GoogleAuth;

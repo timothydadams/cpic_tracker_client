@@ -17,11 +17,35 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { RegisteredInput } from 'components/forms/Input';
 import { useSelector } from 'react-redux';
-import { selectCurrentUserId } from '../auth/authSlice.js';
+import { selectCurrentUserId, selectCurrentRoles } from '../auth/authSlice.js';
 import { Skeleton } from 'ui/skeleton.jsx';
 import { sanitizeString } from 'utils/rhf_helpers.js';
 
 import GoogleAuth from '../auth/google_auth.js';
+
+import { useGetAllImplementersQuery } from 'features/implementers/implementersApiSlice';
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldError,
+  FieldLegend,
+  FieldSeparator,
+  FieldSet,
+} from 'ui/field';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from 'ui/select';
+
+import { MultiSelect } from 'components/Multiselect';
 
 import {
   Item,
@@ -31,6 +55,11 @@ import {
   ItemTitle,
 } from 'ui/item';
 import { Spinner } from 'ui/spinner.jsx';
+import {
+  recursivelySanitizeObject,
+  getDirtyValues,
+} from 'utils/rhf_helpers.js';
+import z from 'zod';
 
 //form validation
 const schema = yup.object().shape({
@@ -51,6 +80,7 @@ const schema = yup.object().shape({
     .string()
     .transform((value) => sanitizeString(value))
     .optional(),
+  assigned_implementers: yup.array().of(yup.string()).optional(),
 });
 
 const PasskeyManager = ({ passkeys, userData: { email } }) => {
@@ -130,10 +160,13 @@ const PasskeyManager = ({ passkeys, userData: { email } }) => {
 
 export const ProfileContainer = () => {
   const userId = useSelector(selectCurrentUserId);
+  const userRoles = useSelector(selectCurrentRoles);
 
   const params = {
     federated_idps: true,
     passkeys: true,
+    assigned_implementers: true,
+    implementer_org: true,
   };
 
   const { data, isLoading, refetch } = useGetUserQuery(
@@ -143,7 +176,12 @@ export const ProfileContainer = () => {
     }
   );
 
-  if (isLoading) {
+  const { data: implementers, isLoading: implementersLoading } =
+    useGetAllImplementersQuery({
+      applyTransformation: true,
+    });
+
+  if (isLoading || implementersLoading) {
     return <Skeleton className='' />;
   }
 
@@ -153,7 +191,8 @@ export const ProfileContainer = () => {
     data.federated_idps.find((idp) => idp.name == 'google');
 
   return (
-    data && (
+    data &&
+    implementers && (
       <>
         {usesGmail && !googlePreviouslyEnabled && (
           <GoogleAuth
@@ -172,13 +211,27 @@ export const ProfileContainer = () => {
 
         <PasskeyManager passkeys={data.passkeys} userData={data} />
 
-        <ProfileForm userData={data} userId={userId} refetchUser={refetch} />
+        <ProfileForm
+          userData={data}
+          userId={userId}
+          refetchUser={refetch}
+          implementers={implementers}
+          userRoles={userRoles}
+        />
       </>
     )
   );
 };
 
-const ProfileForm = ({ userData, userId, refetchUser }) => {
+const ProfileForm = ({
+  userData,
+  userId,
+  refetchUser,
+  implementers,
+  userRoles,
+}) => {
+  const userType = userRoles.includes('Implementer') ? 'Implementer' : 'CPIC';
+
   const [update, { isLoading }] = useUpdateMutation();
 
   const [errorMsg, setErrorMsg] = useState(null);
@@ -187,13 +240,18 @@ const ProfileForm = ({ userData, userId, refetchUser }) => {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isDirty, isValid },
+    formState: { errors, isDirty, isValid, dirtyFields },
     control,
     reset,
   } = useForm({
     mode: 'all',
     resolver: yupResolver(schema),
-    defaultValues: userData,
+    defaultValues: {
+      ...userData,
+      assigned_implementers: userData.assigned_implementers
+        ? userData.assigned_implementers.map((x) => x.id.toString())
+        : [],
+    },
   });
 
   useEffect(() => {
@@ -203,9 +261,11 @@ const ProfileForm = ({ userData, userId, refetchUser }) => {
   const updateProfile = async (data, e) => {
     e.preventDefault();
     console.log('user updates:', data);
+    const changedFields = getDirtyValues(dirtyFields, data);
+    const sanitzedData = recursivelySanitizeObject(changedFields);
 
     try {
-      const res = await update({ id: userId, ...data }).unwrap();
+      const res = await update({ id: userId, ...sanitzedData }).unwrap();
       console.log('update response', res);
       enqueueSnackbar('Profile saved', { variant: 'success' });
       refetchUser();
@@ -279,6 +339,88 @@ const ProfileForm = ({ userData, userId, refetchUser }) => {
           register={register}
           errors={errors}
         />
+
+        {userType === 'Implementer' ? (
+          <FieldGroup>
+            <Controller
+              name='implementer_org_id'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation='responsive'
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor='form-rhf-select-department'>
+                      Department/Org/Committee
+                    </FieldLabel>
+                    <FieldDescription>
+                      Please select the organization you are a member of.
+                    </FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </FieldContent>
+                  <Select
+                    name={field.name}
+                    value={field.value}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger
+                      id='form-rhf-select-department'
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectValue placeholder='Select' />
+                    </SelectTrigger>
+                    <SelectContent position='item-aligned'>
+                      {implementers.map((imp) => (
+                        <SelectItem key={imp.id} value={imp.id}>
+                          {imp.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        ) : (
+          <FieldGroup>
+            <Controller
+              name='assigned_implementers'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation='responsive'
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldContent>
+                    <FieldLabel htmlFor='form-rhf-select-department'>
+                      Select your assigned implementers
+                    </FieldLabel>
+                    <FieldDescription>
+                      Please select implementers you've been assigned.
+                    </FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </FieldContent>
+                  <MultiSelect
+                    name={field.name}
+                    defaultValue={field.value}
+                    onValueChange={field.onChange}
+                    aria-invalid={fieldState.invalid}
+                    placeholder='Select implementers...'
+                    maxCount={5}
+                    options={implementers}
+                    aria-label='Implementer selection'
+                    variant='inverted'
+                  />
+                </Field>
+              )}
+            />
+          </FieldGroup>
+        )}
 
         <div className='pt-5 flex justify-end'>
           <Button

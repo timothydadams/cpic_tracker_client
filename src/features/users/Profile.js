@@ -240,7 +240,7 @@ const ProfileForm = ({
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isDirty, isValid, dirtyFields },
+    formState: { errors, isDirty, isValid, isSubmitting, dirtyFields },
     control,
     reset,
   } = useForm({
@@ -426,7 +426,7 @@ const ProfileForm = ({
           <Button
             type='submit'
             outline='true'
-            disabled={!isDirty || !isValid || isLoading}
+            disabled={!isDirty || !isValid || isSubmitting || isLoading}
           >
             Save
           </Button>

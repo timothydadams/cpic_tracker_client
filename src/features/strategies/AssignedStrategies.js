@@ -13,6 +13,44 @@ import {
 } from 'ui/accordion';
 import { Separator } from 'ui/separator';
 
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from 'ui/card';
+
+const DescriptionRow = ({ statusTitle, timelineTitle }) => (
+  <div className='flex h-5 items-center space-x-4 text-sm'>
+    <div>{statusTitle}</div>
+    <Separator orientation='vertical' />
+    <div>{timelineTitle}</div>
+  </div>
+);
+
+export const StrategyCard = ({ strategy }) => {
+  const { content, focus_area, policy, timeline, status } = strategy;
+  return (
+    <Card className='w-full max-w-md'>
+      <CardHeader>
+        <CardTitle>{focus_area.name}</CardTitle>
+        <CardDescription>
+          <DescriptionRow
+            statusTitle={status.title}
+            timelineTitle={timeline.title}
+          />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>{content}</CardContent>
+      <CardFooter className='text-sm text-zinc-500 dark:text-zinc-400'>
+        {policy.description}
+      </CardFooter>
+    </Card>
+  );
+};
+
 const ImplementerView = ({ data }) => {
   console.log(data);
 
@@ -52,7 +90,11 @@ const BoardMemberView = ({ data }) => {
                 {`${name} | Total Strategies: ${allStrategies.length}`}
               </AccordionTrigger>
               <AccordionContent>
-                {JSON.stringify(allStrategies)}
+                <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
+                  {allStrategies.map((s) => (
+                    <StrategyCard strategy={s} key={s.id} />
+                  ))}
+                </div>
               </AccordionContent>
             </AccordionItem>
           );

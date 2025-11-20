@@ -5,10 +5,10 @@ import { setUserDetails } from './usersSlice';
 export const userApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
     update: builder.mutation({
-      query: (user) => ({
-        url: `/users/${user.id}`,
+      query: ({ id, ...userData }) => ({
+        url: `/users/${id}`,
         method: 'PUT',
-        body: { ...user },
+        body: { ...userData },
       }),
     }),
     getAllUsers: builder.query({
@@ -49,7 +49,10 @@ export const userApiSlice = api.injectEndpoints({
       },
     }),
     getUser: builder.query({
-      query: (id) => `/users/${id}`,
+      query: ({ id, params }) => ({
+        url: `/users/${id}`,
+        params,
+      }),
       providesTags: ['User'],
       transformResponse: (response, meta, arg) => {
         return response.data;

@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useGoogleLogin } from '@react-oauth/google';
 
-const GoogleIcon = (props) => (
+const GoogleIcon = ({ displayText, ...otherProps }) => (
   <div className='mt-6 gap-4'>
     <button
-      {...props}
+      {...otherProps}
       className='flex w-full items-center cursor-pointer justify-center gap-3 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus-visible:ring-transparent dark:bg-white/10 dark:text-white dark:shadow-none dark:ring-white/5 dark:hover:bg-white/20'
     >
       <svg viewBox='0 0 24 24' aria-hidden='true' className='h-5 w-5'>
@@ -25,12 +25,12 @@ const GoogleIcon = (props) => (
           fill='#34A853'
         />
       </svg>
-      <span className='text-sm/6 font-semibold'>Login with Google</span>
+      <span className='text-sm/6 font-semibold'>{displayText}</span>
     </button>
   </div>
 );
 
-const GoogleAuth = ({ extraState }) => {
+const GoogleAuth = ({ extraState, displayText = 'Login with Google' }) => {
   const scopes = [
     'https://www.googleapis.com/auth/userinfo.profile',
     'https://www.googleapis.com/auth/userinfo.email',
@@ -52,6 +52,6 @@ const GoogleAuth = ({ extraState }) => {
     onError: (err) => console.log(err),
   });
 
-  return <GoogleIcon onClick={() => login()} />;
+  return <GoogleIcon onClick={() => login()} displayText={displayText} />;
 };
 export default GoogleAuth;

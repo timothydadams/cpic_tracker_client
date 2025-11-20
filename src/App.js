@@ -1,7 +1,6 @@
 import React from 'react';
 import AppRoutes from './Routes';
-import { PersistAuth } from './features/auth/PersistAuth';
-import { useScrollToTop } from './Hooks/useScrollToTop';
+import { useScrollToTop } from 'hooks/useScrollToTop';
 
 const App = () => {
   useScrollToTop();

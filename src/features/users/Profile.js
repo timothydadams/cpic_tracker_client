@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { CameraInput } from 'components/forms/PhotoInput';
 import { useUpdateMutation, useGetUserQuery } from './usersApiSlice.js';
-import useAuth from 'hooks/useAuth.js';
-import { Button } from 'catalyst/button.jsx';
+import {
+  useRegisterMutation,
+  useGetPasskeyRegOptionsMutation,
+  useVerifyPasskeyRegMutation,
+} from 'features/auth/authApiSlice';
+import { startRegistration } from '@simplewebauthn/browser';
+import { Button } from 'ui/button.jsx';
 import { Heading, Subheading } from 'catalyst/heading.jsx';
 import { enqueueSnackbar } from 'notistack';
 
@@ -11,36 +15,171 @@ import { enqueueSnackbar } from 'notistack';
 import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { RegisteredInput, RegisteredSelect } from 'components/forms/Input';
+import { RegisteredInput } from 'components/forms/Input';
+import { useSelector } from 'react-redux';
+import { selectCurrentUserId } from '../auth/authSlice.js';
+import { Skeleton } from 'ui/skeleton.jsx';
+import { sanitizeString } from 'utils/rhf_helpers.js';
+
+import GoogleAuth from '../auth/google_auth.js';
+
+import {
+  Item,
+  ItemActions,
+  ItemContent,
+  ItemDescription,
+  ItemTitle,
+} from 'ui/item';
+import { Spinner } from 'ui/spinner.jsx';
 
 //form validation
 const schema = yup.object().shape({
-  display_name: yup.string().optional(),
-  nickname: yup.string().optional(),
-  email: yup.string().email().required('Email is required'),
-  family_name: yup.string().optional(),
-  given_name: yup.string().optional(),
+  display_name: yup
+    .string()
+    .transform((value) => sanitizeString(value))
+    .optional(),
+  username: yup
+    .string()
+    .transform((value) => sanitizeString(value))
+    .optional(),
+  //email: yup.string().email().required('Email is required'),
+  family_name: yup
+    .string()
+    .transform((value) => sanitizeString(value))
+    .optional(),
+  given_name: yup
+    .string()
+    .transform((value) => sanitizeString(value))
+    .optional(),
 });
 
-export const Profile = (props) => {
-  const { id, username, roles, status, isEditor, isAdmin } = useAuth();
+const PasskeyManager = ({ passkeys, userData: { email } }) => {
+  const [genPasskeyRegOpts] = useGetPasskeyRegOptionsMutation();
+  const [verifyPasskeyRegOpts] = useVerifyPasskeyRegMutation();
+  const [registrationInProgress, setRegistrationInProgress] = useState(false);
 
-  console.log('id on login:', id);
+  const registerNewKey = async (e) => {
+    e.preventDefault();
+    setRegistrationInProgress(true);
+    const options = await genPasskeyRegOpts({ email }).unwrap();
+    let attResp;
+    try {
+      // Pass the options to the authenticator and wait for a response
+      attResp = await startRegistration({ optionsJSON: options });
+    } catch (error) {
+      //console.log(error);
+      throw error;
+    }
 
+    // POST the response to the endpoint that calls
+    // @simplewebauthn/server -> verifyRegistrationResponse()
+    const verifcationResults = await verifyPasskeyRegOpts({
+      email,
+      duration: null,
+      webAuth: attResp,
+    }).unwrap();
+
+    const { verified } = verifcationResults;
+
+    // Show UI appropriate for the `verified` status
+    if (verified) {
+      //refetch user
+    } else {
+      console.error('problem:', verifcationResults);
+    }
+  };
+
+  return (
+    <>
+      <Subheading>Passkey Management</Subheading>
+      <div className='flex w-full max-w-md flex-col gap-6'>
+        {passkeys.map((x, i) => {
+          return (
+            <Item variant='outline' key={i}>
+              <ItemContent>
+                <ItemTitle>
+                  {x.deviceType} ({x.transports.join(' / ')})
+                </ItemTitle>
+                <ItemDescription>Created: {x.createdAt}</ItemDescription>
+              </ItemContent>
+              <ItemActions>
+                <Button
+                  variant='destructive'
+                  size='sm'
+                  disabled={passkeys.length === 1}
+                >
+                  Delete
+                </Button>
+              </ItemActions>
+            </Item>
+          );
+        })}
+
+        <Button
+          size='sm'
+          disabled={registrationInProgress}
+          onClick={registerNewKey}
+        >
+          {registrationInProgress && <Spinner />}
+          Add Passkey
+        </Button>
+      </div>
+    </>
+  );
+};
+
+export const ProfileContainer = () => {
+  const userId = useSelector(selectCurrentUserId);
+
+  const params = {
+    federated_idps: true,
+    passkeys: true,
+  };
+
+  const { data, isLoading, refetch } = useGetUserQuery(
+    { id: userId, params },
+    {
+      skip: !userId,
+    }
+  );
+
+  if (isLoading) {
+    return <Skeleton className='' />;
+  }
+
+  const usesGmail = data?.email && data.email.endsWith('gmail.com');
+  const googlePreviouslyEnabled =
+    data?.federated_idps &&
+    data.federated_idps.find((idp) => idp.name == 'google');
+
+  return (
+    data && (
+      <>
+        {usesGmail && !googlePreviouslyEnabled && (
+          <GoogleAuth
+            displayText='Enable Google Login'
+            extraState={{
+              path: { pathname: '/profile' },
+              email: data.email,
+              isAuthed: true,
+            }}
+          />
+        )}
+
+        {usesGmail && googlePreviouslyEnabled && (
+          <Button>Disable Google Authentication</Button>
+        )}
+
+        <PasskeyManager passkeys={data.passkeys} userData={data} />
+
+        <ProfileForm userData={data} userId={userId} refetchUser={refetch} />
+      </>
+    )
+  );
+};
+
+const ProfileForm = ({ userData, userId, refetchUser }) => {
   const [update, { isLoading }] = useUpdateMutation();
-
-  useEffect(() => {
-    console.log('isLoading', isLoading);
-  }, [isLoading]);
-
-  const {
-    data: user,
-    isLoading: isUserLoading,
-    isFetching: isUserFetching,
-    isSuccess,
-    isError,
-    error,
-  } = useGetUserQuery(id);
 
   const [errorMsg, setErrorMsg] = useState(null);
 
@@ -54,23 +193,8 @@ export const Profile = (props) => {
   } = useForm({
     mode: 'all',
     resolver: yupResolver(schema),
+    defaultValues: userData,
   });
-
-  useEffect(() => {
-    const updateFields = () => {
-      setValue('username', user.username, { shouldDirty: false });
-      setValue('email', user.email, { shouldDirty: false });
-      setValue('profile.firstName', user.profile.firstName, {
-        shouldDirty: false,
-      });
-      setValue('profile.lastName', user.profile.lastName, {
-        shouldDirty: false,
-      });
-      setValue('profile.bio', user.profile.bio, { shouldDirty: false });
-    };
-
-    if (isSuccess && user) updateFields();
-  }, [isSuccess, user]);
 
   useEffect(() => {
     setErrorMsg(null);
@@ -78,11 +202,13 @@ export const Profile = (props) => {
 
   const updateProfile = async (data, e) => {
     e.preventDefault();
+    console.log('user updates:', data);
 
     try {
-      const res = await update({ id, ...data }).unwrap();
+      const res = await update({ id: userId, ...data }).unwrap();
       console.log('update response', res);
       enqueueSnackbar('Profile saved', { variant: 'success' });
+      refetchUser();
     } catch (err) {
       if (!err?.originalStatus) {
         enqueueSnackbar('No server response', { variant: 'error' });
@@ -110,9 +236,18 @@ export const Profile = (props) => {
         </p>
       )}
 
-      <Heading>Update your profile information</Heading>
+      <Heading>Update your profile</Heading>
 
       <form className='mt-4 space-y-6' onSubmit={handleSubmit(updateProfile)}>
+        <RegisteredInput
+          disabled
+          type='text'
+          label='Email'
+          name='email'
+          register={register}
+          errors={errors}
+        />
+
         <RegisteredInput
           type='text'
           label='Username'
@@ -123,37 +258,24 @@ export const Profile = (props) => {
 
         <RegisteredInput
           type='text'
-          label='Email'
-          name='email'
+          label='Display Name'
+          name='display_name'
           register={register}
           errors={errors}
         />
-
-        <Subheading>
-          Optional Information - Other users can see this information.
-        </Subheading>
 
         <RegisteredInput
           type='text'
           label='First Name'
-          name='profile.firstName'
+          name='given_name'
           register={register}
           errors={errors}
         />
 
         <RegisteredInput
-          label='Last name'
-          name='profile.lastName'
           type='text'
-          register={register}
-          errors={errors}
-        />
-
-        <RegisteredInput
-          label='Bio'
-          name='profile.bio'
-          element='textarea'
-          rows='3'
+          label='Last Name'
+          name='family_name'
           register={register}
           errors={errors}
         />

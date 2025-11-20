@@ -15,7 +15,7 @@ import { VerifyInvitationCode } from './features/auth/onboarding/InvitationCode.
 import { OnboardingForm } from './features/auth/onboarding/OnboardNewUser.js';
 
 //AUTH REQUIRED COMPONENTS
-import { Profile } from './features/users/Profile';
+import { ProfileContainer } from './features/users/Profile';
 
 //ADMIN ONLY COMPONENTS
 import { UserManager } from './features/users/UserManager.js';
@@ -67,7 +67,7 @@ const AppRoutes = () => (
         {/* AUTH NEEDED */}
         <Route element={<ProtectRoute allowedRoles={[]} />}>
           <Route path='my-strategies' element={<AssignedStrategies />} />
-          <Route path='profile' element={<Profile />} />
+          <Route path='profile' element={<ProfileContainer />} />
         </Route>
 
         {/* AUTH - CPIC Members 

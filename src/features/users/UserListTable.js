@@ -42,11 +42,6 @@ const columns = [
                   refetchUsers={refetchUsers}
                 />
               </Modal>
-              {/*<EditRolesModal
-                      user={{ id: user.id, email: user.email }}
-                      availableRoles={roles}
-                      refetchUsers={refetchUsers}
-                    />*/}
             </div>
           </div>
         </div>

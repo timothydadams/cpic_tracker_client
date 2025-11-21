@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useUpdateMutation, useGetUserQuery } from './usersApiSlice.js';
 import {
-  useRegisterMutation,
+  useUpdateMutation,
+  useGetUserQuery,
+  useRemovePasskeyFromUserMutation,
+} from './usersApiSlice.js';
+import {
   useGetPasskeyRegOptionsMutation,
   useVerifyPasskeyRegMutation,
 } from 'features/auth/authApiSlice';
@@ -83,40 +86,53 @@ const schema = yup.object().shape({
   assigned_implementers: yup.array().of(yup.string()).optional(),
 });
 
-const PasskeyManager = ({ passkeys, userData: { email } }) => {
+const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
+  const [deletePasskey] = useRemovePasskeyFromUserMutation();
   const [genPasskeyRegOpts] = useGetPasskeyRegOptionsMutation();
   const [verifyPasskeyRegOpts] = useVerifyPasskeyRegMutation();
   const [registrationInProgress, setRegistrationInProgress] = useState(false);
 
+  const handleDeletePasskey = async ({ target: { value } }) => {
+    try {
+      await deletePasskey({ userId: id, pk_id: value }).unwrap();
+      refetchUser();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const registerNewKey = async (e) => {
     e.preventDefault();
     setRegistrationInProgress(true);
-    const options = await genPasskeyRegOpts({ email }).unwrap();
-    let attResp;
     try {
-      // Pass the options to the authenticator and wait for a response
-      attResp = await startRegistration({ optionsJSON: options });
+      const options = await genPasskeyRegOpts({ email }).unwrap();
+      const attResp = await startRegistration({ optionsJSON: options });
+      const verifcationResults = await verifyPasskeyRegOpts({
+        email,
+        duration: null,
+        webAuth: attResp,
+      }).unwrap();
+      const { verified } = verifcationResults;
+      // Show UI appropriate for the `verified` status
+      if (verified) {
+        refetchUser();
+      } else {
+        console.error('pk registration error:', verifcationResults);
+        setRegistrationInProgress(false);
+      }
     } catch (error) {
-      //console.log(error);
-      throw error;
+      // Handle the "Authenticated already registered" error
+      if (error.name === 'InvalidStateError') {
+        alert('This authenticator is already registered for your account.');
+        // You might want to offer an option to log in instead, or simply inform the user.
+      } else {
+        // Handle other potential errors during registration
+        console.error('Registration failed:', error);
+        alert('Registration failed: ' + error.message);
+      }
     }
 
-    // POST the response to the endpoint that calls
-    // @simplewebauthn/server -> verifyRegistrationResponse()
-    const verifcationResults = await verifyPasskeyRegOpts({
-      email,
-      duration: null,
-      webAuth: attResp,
-    }).unwrap();
-
-    const { verified } = verifcationResults;
-
-    // Show UI appropriate for the `verified` status
-    if (verified) {
-      //refetch user
-    } else {
-      console.error('problem:', verifcationResults);
-    }
+    setRegistrationInProgress(false);
   };
 
   return (
@@ -124,19 +140,27 @@ const PasskeyManager = ({ passkeys, userData: { email } }) => {
       <Subheading>Passkey Management</Subheading>
       <div className='flex w-full max-w-md flex-col gap-6'>
         {passkeys.map((x, i) => {
+          const { user_agent } = x;
+          const pk_createdAt = new Date(x.createdAt);
+          const title = user_agent
+            ? `${user_agent.platform} - ${user_agent.browser} - ${user_agent.os}`
+            : `${x.deviceType} [${x.transports.join(' / ')}]`;
           return (
             <Item variant='outline' key={i}>
               <ItemContent>
-                <ItemTitle>
-                  {x.deviceType} ({x.transports.join(' / ')})
-                </ItemTitle>
-                <ItemDescription>Created: {x.createdAt}</ItemDescription>
+                <ItemTitle>{title}</ItemTitle>
+                <ItemDescription>
+                  Created:{' '}
+                  {`${pk_createdAt.toLocaleDateString()} ${pk_createdAt.toLocaleTimeString()}`}
+                </ItemDescription>
               </ItemContent>
               <ItemActions>
                 <Button
+                  value={x.id}
                   variant='destructive'
                   size='sm'
                   disabled={passkeys.length === 1}
+                  onClick={handleDeletePasskey}
                 >
                   Delete
                 </Button>
@@ -209,7 +233,11 @@ export const ProfileContainer = () => {
           <Button>Disable Google Authentication</Button>
         )}
 
-        <PasskeyManager passkeys={data.passkeys} userData={data} />
+        <PasskeyManager
+          passkeys={data.passkeys}
+          userData={data}
+          refetchUser={refetch}
+        />
 
         <ProfileForm
           userData={data}

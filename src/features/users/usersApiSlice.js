@@ -37,6 +37,13 @@ export const userApiSlice = api.injectEndpoints({
         body: { roleId },
       }),
     }),
+    removePasskeyFromUser: builder.mutation({
+      query: ({ userId, pk_id }) => ({
+        url: `/users/${userId}/passkey`,
+        method: 'DELETE',
+        body: { pk_id },
+      }),
+    }),
     getUserRoles: builder.query({
       query: (id) => `/users/${id}/roles`,
       transformResponse: (response, meta, arg) => {
@@ -72,6 +79,7 @@ export const userApiSlice = api.injectEndpoints({
 });
 
 export const {
+  useRemovePasskeyFromUserMutation,
   useUpdateMutation,
   useGetUserQuery,
   useGetAllUsersQuery,

@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { selectCurrentToken } from './authSlice';
 import { Loading } from 'components/Spinners';
 import { Error } from 'components/Generic';
+import { Skeleton } from 'ui/skeleton';
 
 export const PersistAuth = () => {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export const PersistAuth = () => {
   if (trueSuccess || (token && isUninitialized)) {
     content = <Outlet />;
   } else if (isLoading) {
-    content = <Loading variant={2} size='lg' hasColors={true} />;
+    content = <Skeleton className='w-full h-[250px]' />;
   } else if (isError) {
     //expired tokens
     console.log('tokens expired and user no longer authenticated');

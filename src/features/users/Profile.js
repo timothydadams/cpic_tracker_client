@@ -62,7 +62,52 @@ import {
   recursivelySanitizeObject,
   getDirtyValues,
 } from 'utils/rhf_helpers.js';
-import z from 'zod';
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from 'ui/alert-dialog';
+
+export function ConfirmDelete({
+  actionCB = () => {},
+  showButtonProps,
+  actionButtonProps,
+}) {
+  return (
+    <AlertDialog>
+      <AlertDialogTrigger asChild>
+        <Button {...showButtonProps}>Delete Passkey</Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This action cannot be undone. Continuing will permanently delete
+            this passkey. If you proceed, it may also be necessary to delete
+            this passkey from your passkey manager / browser.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            variant='destructive'
+            {...actionButtonProps}
+            onClick={actionCB}
+          >
+            Delete Passkey
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
 
 //form validation
 const schema = yup.object().shape({
@@ -99,6 +144,7 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
     } catch (e) {
       console.log(e);
     }
+    return;
   };
 
   const registerNewKey = async (e) => {
@@ -155,7 +201,7 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
                 </ItemDescription>
               </ItemContent>
               <ItemActions>
-                <Button
+                {/* <Button
                   value={x.id}
                   variant='destructive'
                   size='sm'
@@ -163,7 +209,19 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
                   onClick={handleDeletePasskey}
                 >
                   Delete
-                </Button>
+                </Button> */}
+                <ConfirmDelete
+                  variant='destructive'
+                  actionCB={handleDeletePasskey}
+                  showButtonProps={{
+                    variant: 'destructive',
+                    size: 'sm',
+                    disabled: passkeys.length === 1,
+                  }}
+                  actionButtonProps={{
+                    value: x.id,
+                  }}
+                />
               </ItemActions>
             </Item>
           );
@@ -276,6 +334,9 @@ const ProfileForm = ({
     resolver: yupResolver(schema),
     defaultValues: {
       ...userData,
+      implementer_org: userData.implementer_org
+        ? userData.implementer_org.id.toString()
+        : null,
       assigned_implementers: userData.assigned_implementers
         ? userData.assigned_implementers.map((x) => x.id.toString())
         : [],
@@ -288,15 +349,17 @@ const ProfileForm = ({
 
   const updateProfile = async (data, e) => {
     e.preventDefault();
-    console.log('user updates:', data);
+    //console.log('user updates:', data);
     const changedFields = getDirtyValues(dirtyFields, data);
     const sanitzedData = recursivelySanitizeObject(changedFields);
 
     try {
-      const res = await update({ id: userId, ...sanitzedData }).unwrap();
-      console.log('update response', res);
-      enqueueSnackbar('Profile saved', { variant: 'success' });
+      const result = await update({ id: userId, ...sanitzedData }).unwrap();
       refetchUser();
+      //console.log('update response', data);
+      enqueueSnackbar('Profile saved', { variant: 'success' });
+      //reset({...data})
+      //refetchUser();
     } catch (err) {
       if (!err?.originalStatus) {
         enqueueSnackbar('No server response', { variant: 'error' });

@@ -52,18 +52,19 @@ export const StrategyCard = ({ strategy }) => {
 };
 
 const ImplementerView = ({ data }) => {
-  console.log(data);
-
+  const { strategies, implementer } = data;
+  const { primary, support } = strategies;
+  const totalStrategies = primary.length + support.length;
   return (
     <React.Fragment>
-      {data?.org_data && (
-        <Heading className='mb-5'>{`${strategies.org_data.name} Strategy Responsibilities`}</Heading>
+      {implementer && (
+        <Heading className='mb-5'>{`${implementer.name} Strategy Responsibilities`}</Heading>
       )}
       <Subheading>Primary Lead</Subheading>
-      <StrategyTableList strategies={strategies.primary} />
+      <StrategyTableList strategies={primary} />
 
       <Subheading>Supporting Effort</Subheading>
-      <StrategyTableList strategies={strategies.support} />
+      <StrategyTableList strategies={support} />
     </React.Fragment>
   );
 };
@@ -85,7 +86,7 @@ const BoardMemberView = ({ data }) => {
           const { primary, support } = strategies;
           const allStrategies = primary.concat(support);
           return (
-            <AccordionItem value={details.id}>
+            <AccordionItem value={details.id} key={details.id}>
               <AccordionTrigger>
                 {`${name} | Total Strategies: ${allStrategies.length}`}
               </AccordionTrigger>

@@ -10,6 +10,7 @@ export const userApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...userData },
       }),
+      //invalidatesTags: (result, error, { id }) => [{ type: 'User', id }], // Invalidate the tag
     }),
     getAllUsers: builder.query({
       query: () => `/users`,
@@ -47,12 +48,7 @@ export const userApiSlice = api.injectEndpoints({
     getUserRoles: builder.query({
       query: (id) => `/users/${id}/roles`,
       transformResponse: (response, meta, arg) => {
-        return response.data.map(({ createdAt, role }) => {
-          return {
-            ...role,
-            createdAt,
-          };
-        });
+        return response.data;
       },
     }),
     getUser: builder.query({
@@ -60,7 +56,7 @@ export const userApiSlice = api.injectEndpoints({
         url: `/users/${id}`,
         params,
       }),
-      providesTags: ['User'],
+      //providesTags: (result, error, id) => [{ type: 'User', id }],
       transformResponse: (response, meta, arg) => {
         return response.data;
       },

@@ -1,14 +1,10 @@
 import * as React from 'react';
-import { createColumnHelper } from '@tanstack/react-table';
 import {
   HybridTooltipProvider,
   HybridTooltip,
   HybridTooltipTrigger,
   HybridTooltipContent,
 } from 'ui/hybrid-tooltip';
-import { DataTable } from 'components/DataTable.js';
-import { Heading } from 'catalyst/heading';
-import { Link } from 'catalyst/link';
 import {
   MoreHorizontal,
   ArrowUpDown,
@@ -18,22 +14,21 @@ import {
   Timer,
   Circle,
 } from 'lucide-react';
-import { Button } from 'ui/button.jsx';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'ui/dropdown-menu';
-import { Badge } from 'ui/badge';
-import useAuth from 'hooks/useAuth';
 
-import { DataTableColumnHeader } from 'components/datatable-column-header';
-import { DataTableRowActions } from 'components/datatable-row-actions';
-import { Loading } from 'components/Spinners';
-import { Modal } from 'components/Modal';
+import { deadlines } from 'utils/strategy_due_dates';
+
+export const DeadLine = ({ timeline }) => (
+  <HybridTooltipProvider>
+    <HybridTooltip>
+      <HybridTooltipTrigger>{timeline}</HybridTooltipTrigger>
+      <HybridTooltipContent>
+        {deadlines[timeline]
+          ? new Date(deadlines[timeline]).toLocaleDateString()
+          : timeline}
+      </HybridTooltipContent>
+    </HybridTooltip>
+  </HybridTooltipProvider>
+);
 
 export const StatusBadge = ({ status }) => {
   //const status = cell.getValue();
@@ -59,15 +54,6 @@ export const StatusBadge = ({ status }) => {
           </HybridTooltipContent>
         </HybridTooltip>
       </HybridTooltipProvider>
-      {/* <Icon className="text-muted-foreground size-4" /> 
-      <Tooltip>
-        <TooltipTrigger>
-          <Icon className='text-muted-foreground size-4' />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{status}</p>
-        </TooltipContent>
-      </Tooltip>*/}
     </div>
   );
 };

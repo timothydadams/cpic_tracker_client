@@ -4,7 +4,10 @@ import { useGetMyStrategiesQuery } from './strategiesApiSlice';
 import { Heading, Subheading } from 'catalyst/heading';
 import { Skeleton } from 'ui/skeleton';
 import { useSelector } from 'react-redux';
+import { SettingsIcon } from 'lucide-react';
 import { selectCurrentRoles } from '../auth/authSlice';
+import { StatusBadge, DeadLine } from 'components/data-table-util-components';
+//import { deadlines } from 'utils/strategy_due_dates';
 import {
   Accordion,
   AccordionContent,
@@ -24,29 +27,40 @@ import {
 
 const DescriptionRow = ({ statusTitle, timelineTitle }) => (
   <div className='flex h-5 items-center space-x-4 text-sm'>
-    <div>{statusTitle}</div>
+    <StatusBadge status={statusTitle} />
     <Separator orientation='vertical' />
-    <div>{timelineTitle}</div>
+    <DeadLine timeline={timelineTitle} />
   </div>
 );
 
 export const StrategyCard = ({ strategy }) => {
   const { content, focus_area, policy, timeline, status } = strategy;
   return (
-    <Card className='w-full max-w-md'>
-      <CardHeader>
-        <CardTitle>{focus_area.name}</CardTitle>
+    <Card className='w-full max-w-md bg-chart-1'>
+      <CardHeader className='relative'>
+        <SettingsIcon className='size-4 absolute top-2 right-2' />
+        <CardTitle>
+          {focus_area.name}
+          {/*<div className="flex justify-between">
+                <div></div>
+                 <div><SettingsIcon className="size-4 absolute top-0 right-0" /></div> 
+            </div>*/}
+        </CardTitle>
         <CardDescription>
           <DescriptionRow
             statusTitle={status.title}
             timelineTitle={timeline.title}
           />
+          {/* <div className="flex justify-between">
+                <DeadLine timeline={timeline.title} />
+                <StatusBadge status={status.title} />
+            </div> */}
         </CardDescription>
       </CardHeader>
-      <CardContent>{content}</CardContent>
-      <CardFooter className='text-sm text-zinc-500 dark:text-zinc-400'>
+      <CardContent className='text-sm text-zinc-500 dark:text-zinc-400'>
         {policy.description}
-      </CardFooter>
+      </CardContent>
+      <CardFooter>{content}</CardFooter>
     </Card>
   );
 };

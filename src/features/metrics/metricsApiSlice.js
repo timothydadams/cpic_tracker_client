@@ -11,6 +11,15 @@ export const metricsApiSlice = api.injectEndpoints({
         return response.data;
       },
     }),
+    getStrategyStatsByImplementer: builder.query({
+      query: (params) => ({
+        url: `/metrics/strategy-stats-by-implementer`,
+        params,
+      }),
+      transformResponse: (response, meta, arg) => {
+        return response.data;
+      },
+    }),
     getStrategyStatusMetrics: builder.query({
       query: (params) => ({
         url: '/metrics/strategies-by-status',
@@ -34,6 +43,7 @@ export const metricsApiSlice = api.injectEndpoints({
 
 export const {
   useGetImplementerMetricsQuery,
+  useGetStrategyStatsByImplementerQuery,
   useGetStrategyStatusMetricsQuery,
   useGetStrategyTimelineMetricsQuery,
 } = metricsApiSlice;

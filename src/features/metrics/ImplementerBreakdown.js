@@ -1,7 +1,11 @@
 import React from 'react';
-import { useGetImplementerMetricsQuery } from './metricsApiSlice';
+import {
+  useGetImplementerMetricsQuery,
+  useGetStrategyStatsByImplementerQuery,
+} from './metricsApiSlice';
 import { Subheading } from 'catalyst/heading';
 import { Loading } from 'components/Spinners';
+import { ImplementerChartRadialStacked } from './RadialChartStacked';
 
 export const ImplementerBreakdown = () => {
   const { data: fullData, isLoading: isLoadingFullData } =
@@ -9,15 +13,22 @@ export const ImplementerBreakdown = () => {
   const { data: leadData, isLoading: isLoadingLeadData } =
     useGetImplementerMetricsQuery({ primary: 'true' });
 
+  const { data: implementerStats } = useGetStrategyStatsByImplementerQuery();
+
   if (isLoadingFullData || isLoadingLeadData) {
     return <Loading />;
   }
 
-  const ready = fullData && leadData;
+  const ready = fullData && leadData && implementerStats;
 
   return (
     ready && (
-      <>
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
+        {implementerStats.map((x) => (
+          <ImplementerChartRadialStacked implementer={x} key={x.id} />
+        ))}
+
+        {/* 
         <Subheading>Implementer Count:Full Work Breakdown</Subheading>
         {fullData.map((item, i) => (
           <p key={`full_${i}`}>
@@ -31,7 +42,8 @@ export const ImplementerBreakdown = () => {
             {item.implementer_name} - {item.count}
           </p>
         ))}
-      </>
+          */}
+      </div>
     )
   );
 };

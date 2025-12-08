@@ -6,8 +6,7 @@ import {
 } from './strategiesApiSlice';
 import { enqueueSnackbar } from 'notistack';
 import { useGetAllImplementersQuery } from '../implementers/implementersApiSlice';
-import { Loading } from 'components/Spinners';
-import { useForm, Controller, useWatch, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useWatch } from 'react-hook-form';
 import { getDirtyValues, recursivelySanitizeObject } from 'utils/rhf_helpers';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -293,6 +292,8 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
 
     if (Object.keys(changedFields).length === 0) return;
 
+    const id = defaultValues.id;
+
     if (changedFields.implementers !== undefined) {
       const originalList = defaultValues.implementers.map(
         (i) => i.implementer_id
@@ -308,10 +309,14 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
       };
     }
 
+    console.log(changedFields);
+    const sanitizedData = recursivelySanitizeObject(changedFields);
+    console.log('attempting to update:', { id, data: sanitizedData });
+
     try {
       const res = await updateStrategy({
         id,
-        data: recursivelySanitizeObject(changedFields),
+        data: sanitizedData,
       }).unwrap();
       enqueueSnackbar('Strategy updated...', { variant: 'success' });
       refetchStrategy();

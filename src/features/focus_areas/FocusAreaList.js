@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from 'ui/accordion';
-
+import { useMediaQuery } from '@uidotdev/usehooks';
 import {
   MoreHorizontal,
   ArrowUpDown,
@@ -28,6 +28,8 @@ import { Loading } from 'components/Spinners';
 import { Skeleton } from 'ui/skeleton';
 
 import { DataTable } from 'components/DataTable.js';
+
+import { StrategyCard } from '../strategies/AssignedStrategies';
 
 import { api } from '../../app/api/apiSlice';
 
@@ -132,15 +134,9 @@ const allColumns = [
   }),
 ];
 
-const StrategyTableList = ({ policy }) => {
-  const { data: strategies } = useGetAllStrategiesQuery({
-    policy: policy.id,
-    include: 'implementers,implementers.implementer.cpic_smes,timeline,status',
-  });
+/*
 
-  return (
-    strategies && (
-      <DataTable
+<DataTable
         data={strategies}
         columns={allColumns}
         initialState={{
@@ -158,7 +154,50 @@ const StrategyTableList = ({ policy }) => {
           policy,
         }}
       />
-    )
+
+*/
+
+const StrategyTableList = ({ policy }) => {
+  const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
+  const { data: strategies, isLoading } = useGetAllStrategiesQuery({
+    policy: policy.id,
+    include: 'implementers,implementers.implementer.cpic_smes,timeline,status',
+  });
+
+  if (isLoading || !strategies) {
+    return <Skeleton className='w-[200px] h-[200px]' />;
+  }
+
+  return isSmallDevice ? (
+    <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
+      {strategies.map((s) => (
+        <StrategyCard
+          strategy={s}
+          implementerDetails={{}}
+          key={s.id}
+          userType='guest'
+        />
+      ))}
+    </div>
+  ) : (
+    <DataTable
+      data={strategies}
+      columns={allColumns}
+      initialState={{
+        sorting: [
+          {
+            id: 'policy-strategy',
+            desc: false,
+          },
+        ],
+        columnVisibility: {
+          //"strategy_number":false,
+        },
+      }}
+      metaData={{
+        policy,
+      }}
+    />
   );
 };
 

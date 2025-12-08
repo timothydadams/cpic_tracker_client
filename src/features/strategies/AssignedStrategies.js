@@ -1,10 +1,12 @@
 import React from 'react';
+import { cn } from 'utils/cn';
+import { useMediaQuery } from '@uidotdev/usehooks';
 import { StrategyTableList } from './StrategyList';
 import { useGetMyStrategiesQuery } from './strategiesApiSlice';
 import { Heading, Subheading } from 'catalyst/heading';
 import { Skeleton } from 'ui/skeleton';
 import { useSelector } from 'react-redux';
-import { SettingsIcon } from 'lucide-react';
+import { SettingsIcon, MoreVertical, BadgeCheckIcon } from 'lucide-react';
 import { selectCurrentRoles } from '../auth/authSlice';
 import { StatusBadge, DeadLine } from 'components/data-table-util-components';
 //import { deadlines } from 'utils/strategy_due_dates';
@@ -24,6 +26,56 @@ import {
   CardHeader,
   CardTitle,
 } from 'ui/card';
+import { Button } from 'ui/button';
+import { Input } from 'ui/input';
+import { Label } from 'ui/label';
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from 'ui/sheet';
+
+import { Badge } from 'ui/badge';
+
+/**
+ * 
+<Button variant='ghost' className='h-8 w-8 p-0'>
+              <span className='sr-only'>Open menu</span>
+              <MoreHorizontal className='h-4 w-4' />
+            </Button>
+ */
+
+export function StrategyQuickEdit({ strategy }) {
+  const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
+  return (
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button variant='ghost' className='h-8 w-8 p-0'>
+          <span className='sr-only'>Open menu</span>
+          <MoreVertical className='h-4 w-4' />
+        </Button>
+      </SheetTrigger>
+      <SheetContent side={isSmallDevice ? 'bottom' : 'right'}>
+        <SheetHeader>
+          <SheetTitle>Configure Strategy</SheetTitle>
+        </SheetHeader>
+        <SheetDescription>Adjust strategy settings.</SheetDescription>
+        {strategy.content}
+        <SheetFooter>
+          <Button type='submit'>Save changes</Button>
+          <SheetClose asChild>
+            <Button variant='outline'>Close</Button>
+          </SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
 
 const DescriptionRow = ({ statusTitle, timelineTitle }) => (
   <div className='flex h-5 items-center space-x-4 text-sm'>
@@ -33,39 +85,84 @@ const DescriptionRow = ({ statusTitle, timelineTitle }) => (
   </div>
 );
 
-export const StrategyCard = ({ strategy }) => {
-  const { content, focus_area, policy, timeline, status } = strategy;
+export const StrategyCard = ({
+  strategy,
+  implementerDetails,
+  userType = 'guest',
+}) => {
+  const { content, focus_area, policy, timeline, status, implementers } =
+    strategy;
+
+  const implementerId = Number(implementerDetails?.id) || 0;
+  const isPrimaryLead = !!implementers.find(
+    ({ implementer_id, is_primary }) =>
+      is_primary && implementer_id == implementerId
+  );
+
   return (
-    <Card className='w-full max-w-md bg-chart-1'>
-      <CardHeader className='relative'>
-        <SettingsIcon className='size-4 absolute top-2 right-2' />
-        <CardTitle>
-          {focus_area.name}
-          {/*<div className="flex justify-between">
-                <div></div>
-                 <div><SettingsIcon className="size-4 absolute top-0 right-0" /></div> 
-            </div>*/}
-        </CardTitle>
-        <CardDescription>
-          <DescriptionRow
-            statusTitle={status.title}
-            timelineTitle={timeline.title}
-          />
-          {/* <div className="flex justify-between">
-                <DeadLine timeline={timeline.title} />
-                <StatusBadge status={status.title} />
-            </div> */}
-        </CardDescription>
+    <Card
+      className={cn(
+        'w-full max-w-md',
+        isPrimaryLead && 'border-4',
+        status?.title === 'Needs Updating' &&
+          'border-chart-5 dark:border-chart-5',
+        status?.title === 'In Progress' && 'border-chart-2 dark:border-chart-2',
+        status?.title === 'Not Started' && 'border-chart-5 dark:border-chart-5',
+        status?.title === 'Completed' && 'border-chart-4 dark:border-chart-4'
+      )}
+    >
+      <CardHeader className='grid grid-col-2 relative'>
+        {userType !== 'guest' && (
+          <div className='absolute top-2 right-2'>
+            <StrategyQuickEdit strategy={strategy} />
+          </div>
+        )}
+
+        <div className='absolute top-2 left-2 flex gap-4 text-sm text-zinc-500 dark:text-zinc-400'>
+          <div>
+            <StatusBadge status={status.title} />
+          </div>
+          <div>
+            <DeadLine timeline={timeline.title} />
+          </div>
+        </div>
+
+        {userType !== 'guest' && (
+          <>
+            <CardTitle className='pt-4'>{focus_area.name}</CardTitle>
+
+            <CardDescription>{policy.description}</CardDescription>
+          </>
+        )}
       </CardHeader>
-      <CardContent className='text-sm text-zinc-500 dark:text-zinc-400'>
-        {policy.description}
-      </CardContent>
-      <CardFooter>{content}</CardFooter>
+      {/** className='text-sm text-zinc-500 dark:text-zinc-400' */}
+      <CardContent className='font-mono'>{content}</CardContent>
+      <CardFooter className='w-full relative'>
+        <div className='flex flex-col w-full'>
+          <Separator orientation='horizontal' />
+          Implementers:
+          <div className='flex gap-2 w-full flex-wrap py-4'>
+            {implementers
+              //.filter(x => implementerId != Number(x.implementer_id))
+              .map((x) => (
+                <Badge key={x.implementer_id} variant='outline'>
+                  {x.implementer.name}
+                </Badge>
+              ))}
+          </div>
+        </div>
+
+        {userType !== 'guest' && isPrimaryLead && (
+          <div className='absolute bottom-2 right-2'>
+            <Badge variant='secondary'>Primary Lead</Badge>
+          </div>
+        )}
+      </CardFooter>
     </Card>
   );
 };
 
-const ImplementerView = ({ data }) => {
+const ImplementerView = ({ data, userType }) => {
   const { strategies, implementer } = data;
   const { primary, support } = strategies;
   const totalStrategies = primary.length + support.length;
@@ -75,10 +172,30 @@ const ImplementerView = ({ data }) => {
         <Heading className='mb-5'>{`${implementer.name} Strategy Responsibilities`}</Heading>
       )}
       <Subheading>Primary Lead</Subheading>
-      <StrategyTableList strategies={primary} />
+      {/* <StrategyTableList strategies={primary} /> */}
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
+        {primary.map((s) => (
+          <StrategyCard
+            strategy={s}
+            implementerDetails={implementer}
+            key={s.id}
+            userType={userType}
+          />
+        ))}
+      </div>
 
       <Subheading>Supporting Effort</Subheading>
-      <StrategyTableList strategies={support} />
+      {/* <StrategyTableList strategies={support} /> */}
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
+        {support.map((s) => (
+          <StrategyCard
+            strategy={s}
+            implementerDetails={implementer}
+            key={s.id}
+            userType={userType}
+          />
+        ))}
+      </div>
     </React.Fragment>
   );
 };
@@ -90,7 +207,7 @@ const AccTrigHeader = ({ details, strategies }) => {
   return <div>{`Custom Header Component Not Working :(`}</div>;
 };
 
-const BoardMemberView = ({ data }) => {
+const BoardMemberView = ({ data, userType }) => {
   console.log('viewing board member display', data);
   return (
     <React.Fragment>
@@ -98,16 +215,22 @@ const BoardMemberView = ({ data }) => {
         {data.map(({ details, strategies }) => {
           const { name } = details;
           const { primary, support } = strategies;
+
           const allStrategies = primary.concat(support);
           return (
             <AccordionItem value={details.id} key={details.id}>
               <AccordionTrigger>
-                {`${name} | Total Strategies: ${allStrategies.length}`}
+                {`${name} (${allStrategies.length})`}
               </AccordionTrigger>
               <AccordionContent>
                 <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
                   {allStrategies.map((s) => (
-                    <StrategyCard strategy={s} key={s.id} />
+                    <StrategyCard
+                      strategy={s}
+                      implementerDetails={details}
+                      key={s.id}
+                      userType={userType}
+                    />
                   ))}
                 </div>
               </AccordionContent>
@@ -131,9 +254,9 @@ export const AssignedStrategies = () => {
 
   if (data) {
     return userType === 'Implementer' ? (
-      <ImplementerView data={data} />
+      <ImplementerView data={data} userType={userType} />
     ) : (
-      <BoardMemberView data={data} />
+      <BoardMemberView data={data} userType={userType} />
     );
   }
 };

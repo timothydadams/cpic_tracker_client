@@ -139,6 +139,7 @@ export const MultiSelect = React.forwardRef(
       deduplicateOptions = false,
       resetOnDefaultValueChange = true,
       closeOnSelect = false,
+      id = null,
       ...props
     },
     ref
@@ -164,7 +165,7 @@ export const MultiSelect = React.forwardRef(
       }
     }, []);
 
-    const multiSelectId = React.useId();
+    const multiSelectId = id !== null ? id : React.useId();
     const listboxId = `${multiSelectId}-listbox`;
     const triggerDescriptionId = `${multiSelectId}-description`;
     const selectedCountId = `${multiSelectId}-count`;
@@ -555,7 +556,8 @@ export const MultiSelect = React.forwardRef(
 
     return (
       <>
-        <div className='sr-only'>
+        {/* 
+        <div className="sr-only w-0">
           <div aria-live='polite' aria-atomic='true' role='status'>
             {politeMessage}
           </div>
@@ -563,17 +565,19 @@ export const MultiSelect = React.forwardRef(
             {assertiveMessage}
           </div>
         </div>
+        */}
 
         <Popover
           open={isPopoverOpen}
           onOpenChange={setIsPopoverOpen}
           modal={modalPopover}
         >
-          <div id={triggerDescriptionId} className='sr-only'>
+          {/* 
+          <div id={triggerDescriptionId} className="sr-only w-0">
             Multi-select dropdown. Use arrow keys to navigate, Enter to select,
             and Escape to close.
           </div>
-          <div id={selectedCountId} className='sr-only' aria-live='polite'>
+          <div id={selectedCountId} className="sr-only w-0" aria-live='polite'>
             {selectedValues.length === 0
               ? 'No options selected'
               : `${selectedValues.length} option${
@@ -583,6 +587,7 @@ export const MultiSelect = React.forwardRef(
                   .filter(Boolean)
                   .join(', ')}`}
           </div>
+          */}
 
           <PopoverTrigger asChild>
             <Button
@@ -831,11 +836,13 @@ export const MultiSelect = React.forwardRef(
                   aria-describedby={`${multiSelectId}-search-help`}
                 />
               )}
-              {searchable && (
-                <div id={`${multiSelectId}-search-help`} className='sr-only'>
+
+              {/* searchable && (
+                <div id={`${multiSelectId}-search-help`} className="sr-only w-0">
                   Type to filter options. Use arrow keys to navigate results.
                 </div>
-              )}
+              ) */}
+
               <CommandList
                 className={cn(
                   'max-h-[40vh] overflow-y-auto multiselect-scrollbar',

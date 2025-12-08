@@ -170,7 +170,6 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
       // Handle the "Authenticated already registered" error
       if (error.name === 'InvalidStateError') {
         alert('This authenticator is already registered for your account.');
-        // You might want to offer an option to log in instead, or simply inform the user.
       } else {
         // Handle other potential errors during registration
         console.error('Registration failed:', error);
@@ -182,9 +181,9 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
   };
 
   return (
-    <>
+    <div className='space-y-6'>
       <Subheading>Passkey Management</Subheading>
-      <div className='flex w-full max-w-md flex-col gap-6'>
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
         {passkeys.map((x, i) => {
           const { user_agent } = x;
           const pk_createdAt = new Date(x.createdAt);
@@ -226,9 +225,11 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
             </Item>
           );
         })}
-
+      </div>
+      <div className='w-full flex justify-end'>
         <Button
           size='sm'
+          variant='outline'
           disabled={registrationInProgress}
           onClick={registerNewKey}
         >
@@ -236,7 +237,7 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
           Add Passkey
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 
@@ -276,7 +277,8 @@ export const ProfileContainer = () => {
     data &&
     implementers && (
       <>
-        {usesGmail && !googlePreviouslyEnabled && (
+        {/* 
+        usesGmail && !googlePreviouslyEnabled && (
           <GoogleAuth
             displayText='Enable Google Login'
             extraState={{
@@ -285,11 +287,11 @@ export const ProfileContainer = () => {
               isAuthed: true,
             }}
           />
-        )}
+        )*/}
 
-        {usesGmail && googlePreviouslyEnabled && (
+        {/*usesGmail && googlePreviouslyEnabled && (
           <Button>Disable Google Authentication</Button>
-        )}
+        )*/}
 
         <PasskeyManager
           passkeys={data.passkeys}
@@ -378,15 +380,6 @@ const ProfileForm = ({
 
   return (
     <div className='py-8 px-4'>
-      {errorMsg && (
-        <p
-          aria-live='assertive'
-          className='whitespace-pre mt-2 text-center text-sm text-red-600'
-        >
-          {errorMsg}
-        </p>
-      )}
-
       <Heading>Update your profile</Heading>
 
       <form className='mt-4 space-y-6' onSubmit={handleSubmit(updateProfile)}>
@@ -431,8 +424,8 @@ const ProfileForm = ({
           errors={errors}
         />
 
-        {userType === 'Implementer' ? (
-          <FieldGroup>
+        <div className='w-full max-w-md'>
+          {userType === 'Implementer' ? (
             <Controller
               name='implementer_org_id'
               control={control}
@@ -474,19 +467,14 @@ const ProfileForm = ({
                 </Field>
               )}
             />
-          </FieldGroup>
-        ) : (
-          <FieldGroup>
+          ) : (
             <Controller
               name='assigned_implementers'
               control={control}
               render={({ field, fieldState }) => (
-                <Field
-                  orientation='responsive'
-                  data-invalid={fieldState.invalid}
-                >
+                <Field data-invalid={fieldState.invalid}>
                   <FieldContent>
-                    <FieldLabel htmlFor='form-rhf-select-department'>
+                    <FieldLabel htmlFor='form-rhf-select-assigned-implementers'>
                       Select your assigned implementers
                     </FieldLabel>
                     <FieldDescription>
@@ -496,6 +484,7 @@ const ProfileForm = ({
                       <FieldError errors={[fieldState.error]} />
                     )}
                   </FieldContent>
+
                   <MultiSelect
                     name={field.name}
                     defaultValue={field.value}
@@ -506,12 +495,14 @@ const ProfileForm = ({
                     options={implementers}
                     aria-label='Implementer selection'
                     variant='inverted'
+                    autoSize
+                    hideSelectAll
                   />
                 </Field>
               )}
             />
-          </FieldGroup>
-        )}
+          )}
+        </div>
 
         <div className='pt-5 flex justify-end'>
           <Button

@@ -25,6 +25,10 @@ const chartConfig = {
     label: 'Remaining',
     color: 'var(--chart-3)',
   },
+  total: {
+    label: 'Total Assigned',
+    color: 'var(--sidebar-ring)',
+  },
 };
 
 export function ImplementerChartRadialStacked({ implementer }) {
@@ -35,12 +39,17 @@ export function ImplementerChartRadialStacked({ implementer }) {
     return [
       {
         inProgress,
+        inProgressPercent: (inProgress / total) * 100 ?? 0,
         completed,
+        completedPercent: (completed / total) * 100 ?? 0,
+        total,
+        totalPercent: 100,
         remaining: total - (inProgress + completed),
       },
     ];
   });
 
+  console.log({ memoizedData });
   return (
     <Card className='flex flex-col'>
       <CardHeader className='items-center pb-0'>
@@ -50,7 +59,7 @@ export function ImplementerChartRadialStacked({ implementer }) {
       <CardContent className='flex flex-1 items-center pb-0'>
         <ChartContainer
           config={chartConfig}
-          className='mx-auto aspect-square w-full max-w-[250px]'
+          className='mx-auto aspect-square w-full min-h-[100px] align-middle' //max-w-[250px]
         >
           <RadialBarChart
             data={memoizedData}
@@ -62,7 +71,12 @@ export function ImplementerChartRadialStacked({ implementer }) {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+            <PolarRadiusAxis
+              domain={[0, 100]}
+              tick={false}
+              tickLine={false}
+              axisLine={false}
+            >
               <Label
                 content={({ viewBox }) => {
                   if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
@@ -88,20 +102,30 @@ export function ImplementerChartRadialStacked({ implementer }) {
                 }}
               />
             </PolarRadiusAxis>
+
+            {/** 
+            <RadialBar
+                dataKey="total"
+                fill='var(--color-total)'
+                stackId="a"
+                isAnimationActive={false}
+            />
+            */}
             <RadialBar
               dataKey='inProgress'
               stackId='a'
-              cornerRadius={5}
+              background={{ fill: 'var(--sidebar-ring)' }}
               fill='var(--color-inProgress)'
               className='stroke-transparent stroke-2'
             />
+
             <RadialBar
               dataKey='completed'
               fill='var(--color-completed)'
               stackId='a'
-              cornerRadius={5}
               className='stroke-transparent stroke-2'
             />
+
             <RadialBar
               dataKey='remaining'
               fill='var(--color-remaining)'
@@ -115,8 +139,7 @@ export function ImplementerChartRadialStacked({ implementer }) {
       <CardFooter className='flex-col gap-2 text-sm'>
         {total > 0 && (
           <div className='flex items-center gap-2 leading-none font-medium'>
-            {completed} of {total} assigned strategies have been completed.{' '}
-            <TrendingUp className='h-4 w-4' />
+            {completed} of {total} assigned strategies are completed
           </div>
         )}
         {/* 

@@ -17,7 +17,6 @@ import { Skeleton } from 'ui/skeleton';
 export const PersistAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  console.log('window location details persistAuth:', location);
 
   const [persist] = usePersist();
   const token = useSelector(selectCurrentToken);

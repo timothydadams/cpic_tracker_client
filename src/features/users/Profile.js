@@ -129,7 +129,7 @@ const schema = yup.object().shape({
     .transform((value) => sanitizeString(value))
     .optional(),
   assigned_implementers: yup.array().of(yup.string()).optional(),
-  implementer_org_id: yup.number().optional(),
+  implementer_org_id: yup.string().optional(),
 });
 
 const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
@@ -337,7 +337,7 @@ const ProfileForm = ({
     resolver: yupResolver(schema),
     defaultValues: {
       ...userData,
-      implementer_org: userData.implementer_org
+      implementer_org_id: userData.implementer_org
         ? userData.implementer_org.id.toString()
         : null,
       assigned_implementers: userData.assigned_implementers

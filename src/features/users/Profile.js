@@ -245,12 +245,16 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
 export const ProfileContainer = () => {
   const userId = useSelector(selectCurrentUserId);
   const userRoles = useSelector(selectCurrentRoles);
+  const isImplementer = userRoles.includes('Implementer')
+    ? 'Implementer'
+    : 'Board';
+  const isBoardMember = userRoles.some((x) => x.includes('CPIC'));
 
   const params = {
     federated_idps: true,
     passkeys: true,
-    assigned_implementers: true,
-    implementer_org: true,
+    ...(isBoardMember ? { assigned_implementers: true } : {}),
+    ...(isImplementer ? { implementer_details: true } : {}),
   };
 
   const { data, isLoading, refetch } = useGetUserQuery(

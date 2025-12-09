@@ -47,7 +47,6 @@ const AppRoutes = () => (
           <Route path='register/:code?' element={<OnboardingForm />} />
           <Route path='login' element={<LoginForm />} />
         </Route>
-
         {/* PUBLIC ROUTES ACCESSIBLE TO ALL */}
         <Route index element={<Dashboard />} />
         <Route path='strategies' element={<FullStrategyList />} />

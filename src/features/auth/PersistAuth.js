@@ -17,6 +17,7 @@ import { Skeleton } from 'ui/skeleton';
 export const PersistAuth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  console.log('window location details persistAuth:', location);
 
   const [persist] = usePersist();
   const token = useSelector(selectCurrentToken);
@@ -80,9 +81,10 @@ export const PersistAuth = () => {
   } else if (isError) {
     //expired tokens
     console.log('tokens expired and user no longer authenticated');
+    const allowed = location.pathname.includes('/register');
     content = (
       <Navigate
-        to='/login'
+        to={allowed ? location.pathname : '/login'}
         replace={true}
         state={{ from: location.pathname }}
       />

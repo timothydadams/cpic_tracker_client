@@ -7,7 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from 'ui/accordion';
-import { useMediaQuery } from '@uidotdev/usehooks';
+
 import {
   MoreHorizontal,
   ArrowUpDown,
@@ -22,6 +22,8 @@ import { Button } from 'ui/button';
 
 import { ColumnVisibility, createColumnHelper } from '@tanstack/react-table';
 import { DataTableColumnHeader } from 'components/datatable-column-header';
+
+import { useMediaQuery } from '@uidotdev/usehooks';
 
 import { Loading } from 'components/Spinners';
 

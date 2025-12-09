@@ -245,10 +245,10 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
 export const ProfileContainer = () => {
   const userId = useSelector(selectCurrentUserId);
   const userRoles = useSelector(selectCurrentRoles);
-  const isImplementer = userRoles.includes('Implementer')
-    ? 'Implementer'
-    : 'Board';
-  const isBoardMember = userRoles.some((x) => x.includes('CPIC'));
+  const isImplementer = userRoles.includes('Implementer');
+  const isBoardMember = userRoles.some(
+    (x) => x.includes('CPIC') || x.includes('Admin')
+  );
 
   const params = {
     federated_idps: true,
@@ -356,28 +356,28 @@ const ProfileForm = ({
 
   const updateProfile = async (data, e) => {
     e.preventDefault();
-    //console.log('user updates:', data);
+
     const changedFields = getDirtyValues(dirtyFields, data);
     const sanitzedData = recursivelySanitizeObject(changedFields);
 
+    console.log('user updates:', sanitzedData);
+
     try {
-      const result = await update({ id: userId, ...sanitzedData }).unwrap();
-      refetchUser();
-      //console.log('update response', data);
+      const { data } = await update({ id: userId, ...sanitzedData }).unwrap();
       enqueueSnackbar('Profile saved', { variant: 'success' });
-      //reset({...data})
+      reset({
+        ...data,
+        implementer_org_id: data.implementer_org
+          ? data.implementer_org.id.toString()
+          : null,
+        assigned_implementers: data.assigned_implementers
+          ? data.assigned_implementers.map((x) => x.id.toString())
+          : [],
+      });
       //refetchUser();
     } catch (err) {
-      if (!err?.originalStatus) {
-        enqueueSnackbar('No server response', { variant: 'error' });
-        //setErrorMsg('No server response');
-      } else if (err?.originalStatus === 400) {
-        enqueueSnackbar('Missing username or password', { variant: 'error' });
-        //setErrorMsg('Missing username or password');
-      } else {
-        enqueueSnackbar('Update failed', { variant: 'error' });
-        //setErrorMsg('Update failed');
-      }
+      console.log(err);
+      enqueueSnackbar('Update failed', { variant: 'error' });
     }
   };
 

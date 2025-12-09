@@ -129,6 +129,7 @@ const schema = yup.object().shape({
     .transform((value) => sanitizeString(value))
     .optional(),
   assigned_implementers: yup.array().of(yup.string()).optional(),
+  implementer_org_id: yup.number().optional(),
 });
 
 const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {

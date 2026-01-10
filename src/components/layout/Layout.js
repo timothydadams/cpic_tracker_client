@@ -214,7 +214,7 @@ export const Layout = () => {
           <NavbarSection>
             <DarkModeToggle theme={theme} setTheme={setTheme} type='navbar' />
             <Dropdown>
-              <DropdownButton as={NavbarItem}>
+              <DropdownButton as={NavbarItem} aria-label='User Menu'>
                 <UserAvatar user={user} className='h-6 w-6' />
               </DropdownButton>
               <NavList

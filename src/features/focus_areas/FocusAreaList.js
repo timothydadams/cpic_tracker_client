@@ -174,7 +174,7 @@ const StrategyTableList = ({ policy }) => {
     <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
       {strategies.map((s) => (
         <StrategyCard
-          strategy={s}
+          strategy={{ ...s, policy }}
           implementerDetails={{}}
           key={s.id}
           userType='guest'

@@ -180,8 +180,10 @@ export const PrimaryImplementerOptions = ({ control }) => {
   );
 };
 
-export const StrategyForm = () => {
+export const StrategyForm = ({ strategyId }) => {
   const { id } = useParams();
+
+  const strategyRefId = strategyId ? strategyId : id ? id : null;
 
   const { data: implementerList, isLoading: isLoading_imps } =
     useGetAllImplementersQuery({
@@ -203,11 +205,11 @@ export const StrategyForm = () => {
     refetch: refetchStrategy,
   } = useGetStrategyQuery(
     {
-      id,
+      id: strategyRefId,
       params: strategyParams,
     },
     {
-      skip: !id,
+      skip: !strategyRefId,
     }
   );
 
@@ -233,7 +235,7 @@ export const StrategyForm = () => {
   const loading = isLoading == true || isLoading_imps == true || !formVals;
 
   return loading ? (
-    <Skeleton />
+    <Skeleton className='max-w-[300px] max-h-[300px]' />
   ) : (
     <>
       <FormComponent
@@ -321,18 +323,7 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
       enqueueSnackbar('Strategy updated...', { variant: 'success' });
       refetchStrategy();
     } catch (err) {
-      /*
-          if (!err?.originalStatus) {
-            enqueueSnackbar('No server response', { variant: 'error' });
-            //setErrorMsg('No server response');
-          } else if (err?.originalStatus === 400) {
-            enqueueSnackbar('Missing username or password', { variant: 'error' });
-            //setErrorMsg('Missing username or password');
-          } else {
-            enqueueSnackbar('Update failed', { variant: 'error' });
-            //setErrorMsg('Update failed');
-          }
-        */
+      enqueueSnackbar(`Update failed: ${err}`, { variant: 'error' });
     }
   };
 

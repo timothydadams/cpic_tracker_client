@@ -40,6 +40,8 @@ import {
   SheetTrigger,
 } from 'ui/sheet';
 
+import { StrategyForm } from './EditStrategyForm';
+
 import { Badge } from 'ui/badge';
 
 /**
@@ -51,21 +53,33 @@ import { Badge } from 'ui/badge';
  */
 
 export function StrategyQuickEdit({ strategy }) {
+  const [open, setIsOpen] = React.useState(false);
+  const handleOpenChange = () => {
+    setIsOpen(!open);
+    // Apply or remove body styles based on 'open' state
+    //document.body.addClass("hidden")
+    document.body.style.overflow = open ? 'hidden' : '';
+  };
+
   const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={handleOpenChange} modal={false}>
       <SheetTrigger asChild>
         <Button variant='ghost' className='h-8 w-8 p-0'>
           <span className='sr-only'>Open menu</span>
           <MoreVertical className='h-4 w-4' />
         </Button>
       </SheetTrigger>
-      <SheetContent side={isSmallDevice ? 'bottom' : 'right'}>
+      <SheetContent
+        side={isSmallDevice ? 'bottom' : 'right'}
+        className={!isSmallDevice ? 'sm:max-w-lg' : ''}
+        onWheel={(e) => e.stopPropagation()}
+      >
         <SheetHeader>
           <SheetTitle>Configure Strategy</SheetTitle>
         </SheetHeader>
-        <SheetDescription>Adjust strategy settings.</SheetDescription>
-        {strategy.content}
+        <SheetDescription></SheetDescription>
+        <StrategyForm strategyId={strategy.id} />
         <SheetFooter>
           <Button type='submit'>Save changes</Button>
           <SheetClose asChild>
@@ -90,8 +104,17 @@ export const StrategyCard = ({
   implementerDetails,
   userType = 'guest',
 }) => {
-  const { content, focus_area, policy, timeline, status, implementers } =
-    strategy;
+  const {
+    content,
+    focus_area,
+    policy,
+    timeline,
+    status,
+    implementers,
+    strategy_number,
+  } = strategy;
+  console.log('policy data:', policy);
+  const refNumber = `${policy.policy_number}.${strategy_number}`;
 
   const implementerId = Number(implementerDetails?.id) || 0;
   const isPrimaryLead = !!implementers.find(
@@ -102,7 +125,7 @@ export const StrategyCard = ({
   return (
     <Card
       className={cn(
-        'w-full max-w-md',
+        'w-full max-w-md relative',
         isPrimaryLead && 'border-4',
         status?.title === 'Needs Updating' &&
           'border-chart-5 dark:border-chart-5',
@@ -127,12 +150,16 @@ export const StrategyCard = ({
           </div>
         </div>
 
-        {userType !== 'guest' && (
+        {userType !== 'guest' ? (
           <>
-            <CardTitle className='pt-4'>{focus_area.name}</CardTitle>
+            <CardTitle className='pt-4'>
+              {focus_area.name} {`[${refNumber}]`}
+            </CardTitle>
 
             <CardDescription>{policy.description}</CardDescription>
           </>
+        ) : (
+          <CardTitle className='pt-4'>{refNumber}</CardTitle>
         )}
       </CardHeader>
       {/** className='text-sm text-zinc-500 dark:text-zinc-400' */}
@@ -151,13 +178,12 @@ export const StrategyCard = ({
               ))}
           </div>
         </div>
-
-        {userType !== 'guest' && isPrimaryLead && (
-          <div className='absolute bottom-2 right-2'>
-            <Badge variant='secondary'>Primary Lead</Badge>
-          </div>
-        )}
       </CardFooter>
+      {userType !== 'guest' && isPrimaryLead && (
+        <div className='absolute bottom-2 right-2'>
+          <Badge variant='secondary'>Primary Lead</Badge>
+        </div>
+      )}
     </Card>
   );
 };

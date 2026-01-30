@@ -15,6 +15,7 @@ import YupPassword from 'yup-password';
 YupPassword(yup);
 import { RegisteredInput } from 'components/forms/Input';
 import { Button } from 'catalyst/button';
+import { Skeleton } from 'ui/skeleton';
 
 const schema = yup.object().shape({
   maxUses: yup.number().required(),
@@ -32,6 +33,10 @@ const addLabelValue = (item, labelKey, valueKey) => {
 
 export const RoleSelector = ({ id, fieldState, ...props }) => {
   const { data: roles, isLoading } = useGetRolesQuery();
+
+  if (isLoading || !roles) {
+    return <Skeleton className='w-full h-[50px]' />;
+  }
 
   return (
     roles && (
@@ -79,17 +84,16 @@ export const InviteUsers = ({}) => {
   const createCode = async (data, e) => {
     e.preventDefault();
 
-    console.log('data to be sent to server:', data);
+    //console.log('data to be sent to server:', data);
 
     try {
       const res = await create({
         user: data,
         inviteCode: code,
       }).unwrap();
-      enqueueSnackbar('Account Created', { variant: 'success' });
-      navigate(redirectPath, { replace: true });
+      enqueueSnackbar('Invite code created', { variant: 'success' });
     } catch (err) {
-      enqueueSnackbar('Failed to create account', { variant: 'error' });
+      enqueueSnackbar('Failed to generate code', { variant: 'error' });
     }
   };
 

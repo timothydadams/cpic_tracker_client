@@ -31,7 +31,7 @@ import { Skeleton } from 'ui/skeleton';
 
 import { DataTable } from 'components/DataTable.js';
 
-import { StrategyCard } from '../strategies/AssignedStrategies';
+import { StrategyCard } from '../strategies/StrategyCard';
 
 import { api } from '../../app/api/apiSlice';
 
@@ -164,6 +164,9 @@ const StrategyTableList = ({ policy }) => {
   const { data: strategies, isLoading } = useGetAllStrategiesQuery({
     policy: policy.id,
     include: 'implementers,implementers.implementer.cpic_smes,timeline,status',
+    orderBy: JSON.stringify({
+      strategy_number: 'asc',
+    }),
   });
 
   if (isLoading || !strategies) {
@@ -212,6 +215,9 @@ export const FocusAreaList = () => {
       policy: policy_id,
       include:
         'implementers,implementers.implementer.cpic_smes,timeline,status',
+      orderBy: JSON.stringify({
+        strategy_number: 'asc',
+      }),
     });
   };
 

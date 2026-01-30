@@ -45,6 +45,7 @@ import { DataTableRowActions } from 'components/datatable-row-actions';
 import { Loading } from 'components/Spinners';
 import { Modal } from 'components/Modal';
 import { useSelector } from 'react-redux';
+import { selectMemoizedUser } from '../auth/authSlice';
 import { selectStatuses } from './strategiesSlice';
 //import { StrategyForm } from './EditStrategyForm';
 
@@ -356,8 +357,9 @@ const allColumns = [
 ];
 
 export const StrategyTableList = ({ strategies, title }) => {
-  const user = useAuth();
-  const { roles } = user;
+  const user = useSelector(selectMemoizedUser);
+  const { id, roles } = user;
+  console.log('user roles:', roles);
   // Conditionally generate the columns based on the user's role
   const columns = React.useMemo(() => {
     return allColumns.filter(

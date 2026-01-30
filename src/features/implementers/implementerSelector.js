@@ -1,14 +1,18 @@
 import React from 'react';
 import { useGetAllImplementersQuery } from './implementersApiSlice';
 import { MultiSelect } from 'components/Multiselect';
+import { Skeleton } from 'ui/skeleton';
 
 export const ImplementerSelector = ({ fieldState, ...props }) => {
   const { data: implementers, isLoading } = useGetAllImplementersQuery({
     applyTransformation: true,
   });
 
-  return;
-  implementers && (
+  if (isLoading || !implementers || !Array.isArray(implementers)) {
+    return <Skeleton className='w-[100px] h-[30px]' />;
+  }
+
+  return (
     <>
       <MultiSelect
         {...props}

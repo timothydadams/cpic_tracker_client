@@ -58,7 +58,7 @@ export const FormWrapper = ({
       <CardContent>{children}</CardContent>
       {form && formId && (
         <CardFooter>
-          <Field orientation='horizontal'>
+          <Field orientation='horizontal' className='flex justify-between'>
             <Button
               type='button'
               variant='outline'

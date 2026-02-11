@@ -297,10 +297,13 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
     const id = defaultValues.id;
 
     if (changedFields.implementers !== undefined) {
-      const originalList = defaultValues.implementers.map(
+      const originalList = defaultValues.implementers;
+      /*
+      .map(
         (i) => i.implementer_id
-      );
-      const newList = data.implementers;
+      );*/
+      const newList = changedFields.implementers;
+      //console.log({originalList, newList});
       const itemsToRemove = originalList.filter(
         (item) => !newList.includes(item)
       );
@@ -311,9 +314,9 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
       };
     }
 
-    console.log(changedFields);
+    //console.log(changedFields);
     const sanitizedData = recursivelySanitizeObject(changedFields);
-    console.log('attempting to update:', { id, data: sanitizedData });
+    //console.log('attempting to update:', { id, data: sanitizedData });
 
     try {
       const res = await updateStrategy({

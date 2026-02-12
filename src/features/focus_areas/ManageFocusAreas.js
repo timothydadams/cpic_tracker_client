@@ -5,79 +5,52 @@ import { enqueueSnackbar } from 'notistack';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import useAuth from 'hooks/useAuth';
 import {
-  useGetAllImplementersQuery,
-  useDeleteImplementerMutation,
-} from './implementersApiSlice';
+  useGetAllFocusAreasQuery,
+  useDeleteFocusAreaMutation,
+} from './focusAreaApiSlice';
 import { DataTable } from 'components/DataTable';
-import { ImplementerForm } from './ImplementerForm';
-import { ImplementerCard } from './ImplementerCard';
+import { FocusAreaForm } from './FocusAreaForm';
+import { FocusAreaCard } from './FocusAreaCard';
 import { ConfirmDeleteDialog } from 'components/ConfirmDeleteDialog';
 import { ResponsiveFormModal } from 'components/ResponsiveFormModal';
 import { Button } from 'ui/button';
-import { Badge } from 'ui/badge';
 import { Skeleton } from 'ui/skeleton';
 
 const columnHelper = createColumnHelper();
 
-const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
+const getColumns = ({ onEdit, onDelete, isAdmin }) => [
   columnHelper.accessor('name', {
     header: () => 'Name',
     cell: ({ getValue }) => <span className='font-medium'>{getValue()}</span>,
   }),
-  columnHelper.display({
-    id: 'emails',
-    header: () => 'Emails',
-    cell: ({ row }) => {
-      const emails = row.original.emails;
-      if (!emails?.length) return '-';
-      return (
-        <span className='max-w-[200px] truncate block'>
-          {emails.join(', ')}
-        </span>
-      );
-    },
+  columnHelper.accessor('description', {
+    header: () => 'Description',
+    cell: ({ getValue }) => (
+      <span className='line-clamp-2 max-w-[300px]'>{getValue() || '-'}</span>
+    ),
+  }),
+  columnHelper.accessor('state_goal', {
+    header: () => 'State Goal',
+    cell: ({ getValue }) => (
+      <span className='line-clamp-2 max-w-[250px]'>{getValue() || '-'}</span>
+    ),
   }),
   columnHelper.display({
-    id: 'phone_numbers',
-    header: () => 'Phone',
-    cell: ({ row }) => {
-      const phones = row.original.phone_numbers;
-      if (!phones?.length) return '-';
-      return (
-        <span className='max-w-[150px] truncate block'>
-          {phones.join(', ')}
-        </span>
-      );
-    },
-  }),
-  columnHelper.display({
-    id: 'type',
-    header: () => 'Type',
-    cell: ({ row }) => {
-      const { is_board, is_department, is_school } = row.original;
-      return (
-        <div className='flex flex-wrap gap-1'>
-          {is_board && <Badge variant='secondary'>Board</Badge>}
-          {is_department && <Badge variant='secondary'>Dept</Badge>}
-          {is_school && <Badge variant='secondary'>School</Badge>}
-          {!is_board && !is_department && !is_school && (
-            <Badge variant='outline'>Other</Badge>
-          )}
-        </div>
-      );
-    },
+    id: 'policy_count',
+    header: () => 'Policies',
+    cell: ({ row }) => row.original.policies?.length ?? 0,
   }),
   columnHelper.display({
     id: 'actions',
     header: () => '',
     cell: ({ row }) => (
       <div className='flex gap-1 justify-end'>
-        {(isAdmin || isCPICAdmin) && (
+        {isAdmin && (
           <Button
             variant='ghost'
             size='icon'
             onClick={() => onEdit(row.original)}
-            aria-label='Edit implementer'
+            aria-label='Edit focus area'
           >
             <Pencil className='h-4 w-4' />
           </Button>
@@ -87,7 +60,7 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
             variant='ghost'
             size='icon'
             onClick={() => onDelete(row.original)}
-            aria-label='Delete implementer'
+            aria-label='Delete focus area'
             className='text-red-600 hover:text-red-700'
           >
             <Trash2 className='h-4 w-4' />
@@ -98,17 +71,16 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
   }),
 ];
 
-export const ManageImplementers = () => {
+export const ManageFocusAreas = () => {
   const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
   const user = useAuth();
-  const { isAdmin, isCPICAdmin } = user;
-  const canEdit = isAdmin || isCPICAdmin;
+  const { isAdmin } = user;
 
-  const { data, isLoading, isSuccess } = useGetAllImplementersQuery({
-    params: {},
+  const { data, isLoading, isSuccess } = useGetAllFocusAreasQuery({
+    policies: 'true',
   });
-  const [deleteImplementer, { isLoading: isDeleting }] =
-    useDeleteImplementerMutation();
+  const [deleteFocusArea, { isLoading: isDeleting }] =
+    useDeleteFocusAreaMutation();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -131,8 +103,8 @@ export const ManageImplementers = () => {
 
   const handleDelete = async () => {
     try {
-      await deleteImplementer(deleteTarget.id).unwrap();
-      enqueueSnackbar('Implementer deleted', { variant: 'success' });
+      await deleteFocusArea(deleteTarget.id).unwrap();
+      enqueueSnackbar('Focus area deleted', { variant: 'success' });
       setDeleteTarget(null);
     } catch (err) {
       enqueueSnackbar(`Failed to delete: ${err?.data?.message || err}`, {
@@ -145,7 +117,6 @@ export const ManageImplementers = () => {
     onEdit: handleEdit,
     onDelete: setDeleteTarget,
     isAdmin,
-    isCPICAdmin,
   });
 
   if (isLoading) {
@@ -156,12 +127,12 @@ export const ManageImplementers = () => {
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
         <h1 className='text-2xl font-semibold tracking-tight'>
-          Manage Implementers
+          Manage Focus Areas
         </h1>
-        {canEdit && (
+        {isAdmin && (
           <Button onClick={handleCreate}>
             <Plus className='h-4 w-4 mr-2' />
-            Create Implementer
+            Create Focus Area
           </Button>
         )}
       </div>
@@ -170,13 +141,13 @@ export const ManageImplementers = () => {
         <>
           {isSmallDevice ? (
             <div className='grid grid-cols-1 gap-4'>
-              {data.map((impl) => (
-                <ImplementerCard
-                  key={impl.id}
-                  implementer={impl}
+              {data.map((fa) => (
+                <FocusAreaCard
+                  key={fa.id}
+                  focusArea={fa}
                   onEdit={handleEdit}
                   onDelete={setDeleteTarget}
-                  canEdit={canEdit}
+                  canEdit={isAdmin}
                   canDelete={isAdmin}
                 />
               ))}
@@ -187,7 +158,7 @@ export const ManageImplementers = () => {
               columns={columns}
               columnSearch={{
                 id: 'name',
-                placeholder: 'Search implementers...',
+                placeholder: 'Search focus areas...',
               }}
             />
           )}
@@ -199,15 +170,13 @@ export const ManageImplementers = () => {
         onOpenChange={(open) => {
           if (!open) handleFormClose();
         }}
-        title={editingItem ? 'Edit Implementer' : 'Create Implementer'}
+        title={editingItem ? 'Edit Focus Area' : 'Create Focus Area'}
         description={
-          editingItem
-            ? `Editing "${editingItem.name}"`
-            : 'Add a new implementer organization'
+          editingItem ? `Editing "${editingItem.name}"` : 'Add a new focus area'
         }
       >
-        <ImplementerForm
-          implementer={editingItem}
+        <FocusAreaForm
+          focusArea={editingItem}
           onSuccess={handleFormClose}
           onCancel={handleFormClose}
         />
@@ -218,8 +187,8 @@ export const ManageImplementers = () => {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title='Delete Implementer'
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This may affect strategies assigned to this implementer.`}
+        title='Delete Focus Area'
+        description={`Are you sure you want to delete "${deleteTarget?.name}"? This may affect associated policies and strategies.`}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
       />

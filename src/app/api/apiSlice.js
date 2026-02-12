@@ -62,6 +62,6 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const api = createApi({
   baseQuery: baseQueryWithReauth,
   //refetchOnFocus: true,
-  tagTypes: ['User'],
+  tagTypes: ['User', 'FocusArea', 'Policy', 'Implementer'],
   endpoints: (builder) => ({}),
 });

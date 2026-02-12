@@ -10,6 +10,7 @@ export const implementersApiSlice = api.injectEndpoints({
         method: 'POST',
         body: { ...details },
       }),
+      invalidatesTags: [{ type: 'Implementer', id: 'LIST' }],
     }),
     updateImplementer: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -17,6 +18,10 @@ export const implementersApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...data },
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Implementer', id: arg.id },
+        { type: 'Implementer', id: 'LIST' },
+      ],
     }),
     deleteImplementer: builder.mutation({
       query: (id) => ({
@@ -27,20 +32,27 @@ export const implementersApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Implementer', id: arg },
+        { type: 'Implementer', id: 'LIST' },
+      ],
     }),
     getImplementer: builder.query({
       query: ({ id, params }) => ({
         url: `/implementers/${id}`,
-        params, // RTK Query will automatically serialize this object into a query string
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result, error, arg) => [
+        { type: 'Implementer', id: arg.id },
+      ],
     }),
     getAllImplementers: builder.query({
       query: ({ params }) => ({
         url: '/implementers',
-        params, // RTK Query will automatically serialize this object into a query string
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         const converted = response.data.map(
@@ -55,6 +67,13 @@ export const implementersApiSlice = api.injectEndpoints({
         }
         return converted;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Implementer', id })),
+              { type: 'Implementer', id: 'LIST' },
+            ]
+          : [{ type: 'Implementer', id: 'LIST' }],
       async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;

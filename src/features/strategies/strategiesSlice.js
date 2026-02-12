@@ -5,6 +5,7 @@ const strategySlice = createSlice({
   name: 'strategy',
   initialState: {
     strategies: [],
+    assignedStrategies: [],
     statuses: [],
     timelineOptions: [],
   },
@@ -20,6 +21,10 @@ const strategySlice = createSlice({
       const { options } = action.payload;
       state.timelineOptions = options;
     },
+    setAssignedStrategies: (state, action) => {
+      const { payload } = action;
+      state.assignedStrategies = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -34,13 +39,26 @@ const strategySlice = createSlice({
         (state, action) => {
           state.timelineOptions = action.payload;
         }
+      )
+      .addMatcher(
+        strategyApiSlice.endpoints.getMyStrategies.matchFulfilled,
+        (state, action) => {
+          state.assignedStrategies = action.payload;
+        }
       );
   },
 });
 
-export const { setStatuses, setTimelineOptions } = strategySlice.actions;
+export const {
+  setStatuses,
+  setTimelineOptions,
+  setStrategies,
+  setAssignedStrategies,
+} = strategySlice.actions;
 
 export default strategySlice.reducer;
 
 export const selectStatuses = (state) => state.strategy.statuses;
 export const selectTimelineOpts = (state) => state.strategy.timelineOptions;
+export const selectAssignedStrategies = (state) =>
+  state.strategy.assignedStrategies;

@@ -16,7 +16,14 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat([api.middleware]),
-  devTools: true,
+  devTools: process.env.NODE_ENV !== 'production' && {
+    maxAge: 25,
+    autoPause: true,
+    stateSanitizer: (state) => ({
+      ...state,
+      [api.reducerPath]: '<<RTK_QUERY_CACHE>>',
+    }),
+  },
 });
 
 setupListeners(store.dispatch);

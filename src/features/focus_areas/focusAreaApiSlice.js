@@ -8,6 +8,7 @@ export const focusAreaApiSlice = api.injectEndpoints({
         method: 'POST',
         body: { ...details },
       }),
+      invalidatesTags: [{ type: 'FocusArea', id: 'LIST' }],
     }),
     updateFocusArea: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -15,6 +16,10 @@ export const focusAreaApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...data },
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'FocusArea', id: arg.id },
+        { type: 'FocusArea', id: 'LIST' },
+      ],
     }),
     deleteFocusArea: builder.mutation({
       query: (id) => ({
@@ -25,24 +30,36 @@ export const focusAreaApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'FocusArea', id: arg },
+        { type: 'FocusArea', id: 'LIST' },
+      ],
     }),
     getFocusArea: builder.query({
       query: ({ id, params }) => ({
         url: `/focusareas/${id}`,
-        params, // RTK Query will automatically serialize this object into a query string
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result, error, arg) => [{ type: 'FocusArea', id: arg.id }],
     }),
     getAllFocusAreas: builder.query({
       query: (params) => ({
         url: '/focusareas',
-        params, // RTK Query will automatically serialize this object into a query string
+        params,
       }),
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'FocusArea', id })),
+              { type: 'FocusArea', id: 'LIST' },
+            ]
+          : [{ type: 'FocusArea', id: 'LIST' }],
     }),
   }),
 });

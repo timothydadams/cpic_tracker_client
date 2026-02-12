@@ -78,6 +78,24 @@ export const adminNavItems = [
     id: uuidv4(),
   },
   {
+    label: 'Manage Focus Areas',
+    path: 'admin/focus-areas',
+    allowedRoles: ['Admin', 'CPIC Admin'],
+    id: uuidv4(),
+  },
+  {
+    label: 'Manage Policies',
+    path: 'admin/policies',
+    allowedRoles: ['Admin', 'CPIC Admin'],
+    id: uuidv4(),
+  },
+  {
+    label: 'Manage Implementers',
+    path: 'admin/implementers',
+    allowedRoles: ['Admin', 'CPIC Admin'],
+    id: uuidv4(),
+  },
+  {
     label: 'Manage Strategies',
     path: 'strategies',
     allowedRoles: ['Admin', 'CPIC Admin'],

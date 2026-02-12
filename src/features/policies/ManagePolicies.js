@@ -5,67 +5,37 @@ import { enqueueSnackbar } from 'notistack';
 import { Pencil, Trash2, Plus } from 'lucide-react';
 import useAuth from 'hooks/useAuth';
 import {
-  useGetAllImplementersQuery,
-  useDeleteImplementerMutation,
-} from './implementersApiSlice';
+  useGetAllPoliciesQuery,
+  useDeletePolicyMutation,
+} from './policiesApiSlice';
 import { DataTable } from 'components/DataTable';
-import { ImplementerForm } from './ImplementerForm';
-import { ImplementerCard } from './ImplementerCard';
+import { PolicyForm } from './PolicyForm';
+import { PolicyCard } from './PolicyCard';
 import { ConfirmDeleteDialog } from 'components/ConfirmDeleteDialog';
 import { ResponsiveFormModal } from 'components/ResponsiveFormModal';
 import { Button } from 'ui/button';
-import { Badge } from 'ui/badge';
 import { Skeleton } from 'ui/skeleton';
 
 const columnHelper = createColumnHelper();
 
 const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
-  columnHelper.accessor('name', {
-    header: () => 'Name',
-    cell: ({ getValue }) => <span className='font-medium'>{getValue()}</span>,
+  columnHelper.accessor('policy_number', {
+    header: () => '#',
+    cell: ({ getValue }) => (
+      <span className='font-mono font-medium'>{getValue()}</span>
+    ),
+  }),
+  columnHelper.accessor('description', {
+    header: () => 'Description',
+    cell: ({ getValue }) => (
+      <span className='line-clamp-2 max-w-[400px]'>{getValue()}</span>
+    ),
   }),
   columnHelper.display({
-    id: 'emails',
-    header: () => 'Emails',
-    cell: ({ row }) => {
-      const emails = row.original.emails;
-      if (!emails?.length) return '-';
-      return (
-        <span className='max-w-[200px] truncate block'>
-          {emails.join(', ')}
-        </span>
-      );
-    },
-  }),
-  columnHelper.display({
-    id: 'phone_numbers',
-    header: () => 'Phone',
-    cell: ({ row }) => {
-      const phones = row.original.phone_numbers;
-      if (!phones?.length) return '-';
-      return (
-        <span className='max-w-[150px] truncate block'>
-          {phones.join(', ')}
-        </span>
-      );
-    },
-  }),
-  columnHelper.display({
-    id: 'type',
-    header: () => 'Type',
-    cell: ({ row }) => {
-      const { is_board, is_department, is_school } = row.original;
-      return (
-        <div className='flex flex-wrap gap-1'>
-          {is_board && <Badge variant='secondary'>Board</Badge>}
-          {is_department && <Badge variant='secondary'>Dept</Badge>}
-          {is_school && <Badge variant='secondary'>School</Badge>}
-          {!is_board && !is_department && !is_school && (
-            <Badge variant='outline'>Other</Badge>
-          )}
-        </div>
-      );
-    },
+    id: 'focus_area',
+    header: () => 'Focus Area',
+    cell: ({ row }) => row.original.area?.name ?? '-',
+    accessorFn: (row) => row.area?.name ?? '',
   }),
   columnHelper.display({
     id: 'actions',
@@ -77,7 +47,7 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
             variant='ghost'
             size='icon'
             onClick={() => onEdit(row.original)}
-            aria-label='Edit implementer'
+            aria-label='Edit policy'
           >
             <Pencil className='h-4 w-4' />
           </Button>
@@ -87,7 +57,7 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
             variant='ghost'
             size='icon'
             onClick={() => onDelete(row.original)}
-            aria-label='Delete implementer'
+            aria-label='Delete policy'
             className='text-red-600 hover:text-red-700'
           >
             <Trash2 className='h-4 w-4' />
@@ -98,17 +68,16 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
   }),
 ];
 
-export const ManageImplementers = () => {
+export const ManagePolicies = () => {
   const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
   const user = useAuth();
   const { isAdmin, isCPICAdmin } = user;
   const canEdit = isAdmin || isCPICAdmin;
 
-  const { data, isLoading, isSuccess } = useGetAllImplementersQuery({
-    params: {},
+  const { data, isLoading, isSuccess } = useGetAllPoliciesQuery({
+    area: 'true',
   });
-  const [deleteImplementer, { isLoading: isDeleting }] =
-    useDeleteImplementerMutation();
+  const [deletePolicy, { isLoading: isDeleting }] = useDeletePolicyMutation();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -131,8 +100,8 @@ export const ManageImplementers = () => {
 
   const handleDelete = async () => {
     try {
-      await deleteImplementer(deleteTarget.id).unwrap();
-      enqueueSnackbar('Implementer deleted', { variant: 'success' });
+      await deletePolicy(deleteTarget.id).unwrap();
+      enqueueSnackbar('Policy deleted', { variant: 'success' });
       setDeleteTarget(null);
     } catch (err) {
       enqueueSnackbar(`Failed to delete: ${err?.data?.message || err}`, {
@@ -156,12 +125,12 @@ export const ManageImplementers = () => {
     <div className='space-y-4'>
       <div className='flex items-center justify-between'>
         <h1 className='text-2xl font-semibold tracking-tight'>
-          Manage Implementers
+          Manage Policies
         </h1>
         {canEdit && (
           <Button onClick={handleCreate}>
             <Plus className='h-4 w-4 mr-2' />
-            Create Implementer
+            Create Policy
           </Button>
         )}
       </div>
@@ -170,10 +139,10 @@ export const ManageImplementers = () => {
         <>
           {isSmallDevice ? (
             <div className='grid grid-cols-1 gap-4'>
-              {data.map((impl) => (
-                <ImplementerCard
-                  key={impl.id}
-                  implementer={impl}
+              {data.map((policy) => (
+                <PolicyCard
+                  key={policy.id}
+                  policy={policy}
                   onEdit={handleEdit}
                   onDelete={setDeleteTarget}
                   canEdit={canEdit}
@@ -186,8 +155,11 @@ export const ManageImplementers = () => {
               data={data}
               columns={columns}
               columnSearch={{
-                id: 'name',
-                placeholder: 'Search implementers...',
+                id: 'description',
+                placeholder: 'Search policies...',
+              }}
+              initialState={{
+                sorting: [{ id: 'policy_number', desc: false }],
               }}
             />
           )}
@@ -199,15 +171,15 @@ export const ManageImplementers = () => {
         onOpenChange={(open) => {
           if (!open) handleFormClose();
         }}
-        title={editingItem ? 'Edit Implementer' : 'Create Implementer'}
+        title={editingItem ? 'Edit Policy' : 'Create Policy'}
         description={
           editingItem
-            ? `Editing "${editingItem.name}"`
-            : 'Add a new implementer organization'
+            ? `Editing policy #${editingItem.policy_number}`
+            : 'Add a new policy'
         }
       >
-        <ImplementerForm
-          implementer={editingItem}
+        <PolicyForm
+          policy={editingItem}
           onSuccess={handleFormClose}
           onCancel={handleFormClose}
         />
@@ -218,8 +190,8 @@ export const ManageImplementers = () => {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title='Delete Implementer'
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This may affect strategies assigned to this implementer.`}
+        title='Delete Policy'
+        description={`Are you sure you want to delete policy #${deleteTarget?.policy_number}? This may affect associated strategies.`}
         onConfirm={handleDelete}
         isDeleting={isDeleting}
       />

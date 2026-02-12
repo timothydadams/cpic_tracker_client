@@ -20,6 +20,11 @@ import { ProfileContainer } from './features/users/Profile';
 //ADMIN ONLY COMPONENTS
 import { UserManager } from './features/users/UserManager.js';
 
+//ADMIN + CPIC ADMIN COMPONENTS
+import { ManageFocusAreas } from './features/focus_areas/ManageFocusAreas.js';
+import { ManagePolicies } from './features/policies/ManagePolicies.js';
+import { ManageImplementers } from './features/implementers/ManageImplementers.js';
+
 import { Dashboard } from './Pages/Dashboard.js';
 import { FullStrategyList } from './features/strategies/StrategyList.js';
 import { AssignedStrategies } from './features/strategies/AssignedStrategies.js';
@@ -83,6 +88,20 @@ const AppRoutes = () => (
           }
         >
           <Route path='strategies/:id/edit' element={<StrategyForm />} />
+        </Route>
+
+        {/* AUTH - Admin + CPIC Admin management pages */}
+        <Route
+          element={
+            <ProtectRoute
+              allowedRoles={['Admin', 'CPIC Admin']}
+              message='Only Admins and CPIC Admins can manage these resources.'
+            />
+          }
+        >
+          <Route path='admin/focus-areas' element={<ManageFocusAreas />} />
+          <Route path='admin/policies' element={<ManagePolicies />} />
+          <Route path='admin/implementers' element={<ManageImplementers />} />
         </Route>
 
         {/* AUTH - CPIC Implementers */}

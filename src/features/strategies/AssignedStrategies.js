@@ -14,22 +14,14 @@ import {
 
 import { StrategyCard } from './StrategyCard';
 
-/**
- * 
-<Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
- */
-
-const ImplementerView = ({ data, userType }) => {
-  const { strategies, implementer } = data;
+const ImplementerView = ({ data }) => {
+  const { strategies, implementer_org } = data[0];
   const { primary, support } = strategies;
   const totalStrategies = primary.length + support.length;
   return (
-    <React.Fragment>
-      {implementer && (
-        <Heading className='mb-5'>{`${implementer.name} Strategy Responsibilities`}</Heading>
+    <div>
+      {implementer_org && (
+        <Heading className='mb-5'>{`${implementer_org.name} Strategy Execution Responsibilities`}</Heading>
       )}
       <Subheading>Primary Lead</Subheading>
       {/* <StrategyTableList strategies={primary} /> */}
@@ -37,9 +29,9 @@ const ImplementerView = ({ data, userType }) => {
         {primary.map((s) => (
           <StrategyCard
             strategy={s}
-            implementerDetails={implementer}
+            implementerDetails={implementer_org}
             key={s.id}
-            userType={userType}
+            mockRole='Implementer'
           />
         ))}
       </div>
@@ -50,13 +42,13 @@ const ImplementerView = ({ data, userType }) => {
         {support.map((s) => (
           <StrategyCard
             strategy={s}
-            implementerDetails={implementer}
+            implementerDetails={implementer_org}
             key={s.id}
-            userType={userType}
+            mockRole='Implementer'
           />
         ))}
       </div>
-    </React.Fragment>
+    </div>
   );
 };
 
@@ -67,17 +59,18 @@ const AccTrigHeader = ({ details, strategies }) => {
   return <div>{`Custom Header Component Not Working :(`}</div>;
 };
 
-const BoardMemberView = ({ data, userType }) => {
+const BoardMemberView = ({ data }) => {
   return (
     <React.Fragment>
+      <Heading className='mb-5'>{`Assigned Implementers & Associated Strategies`}</Heading>
       <Accordion type='single' collapsible>
-        {data.map(({ details, strategies }) => {
-          const { name } = details;
+        {data.map(({ implementer_org, strategies }) => {
+          const { name } = implementer_org;
           const { primary, support } = strategies;
 
           const allStrategies = primary.concat(support);
           return (
-            <AccordionItem value={details.id} key={details.id}>
+            <AccordionItem value={implementer_org.id} key={implementer_org.id}>
               <AccordionTrigger>
                 {`${name} (${allStrategies.length})`}
               </AccordionTrigger>
@@ -86,9 +79,8 @@ const BoardMemberView = ({ data, userType }) => {
                   {allStrategies.map((s) => (
                     <StrategyCard
                       strategy={s}
-                      implementerDetails={details}
+                      implementerDetails={implementer_org}
                       key={s.id}
-                      userType={userType}
                     />
                   ))}
                 </div>
@@ -102,20 +94,17 @@ const BoardMemberView = ({ data, userType }) => {
 };
 
 export const AssignedStrategies = () => {
-  const userRoles = useSelector(selectCurrentRoles);
-  const userType = userRoles.includes('Implementer') ? 'Implementer' : 'CPIC';
+  const { data: { execute, monitor } = {}, isLoading } =
+    useGetMyStrategiesQuery();
 
-  const { data, isLoading } = useGetMyStrategiesQuery();
-
-  if (isLoading) {
+  if (isLoading || !execute || !monitor) {
     return <Skeleton className='w-full h-[100px]' />;
   }
 
-  if (data) {
-    return userType === 'Implementer' ? (
-      <ImplementerView data={data} userType={userType} />
-    ) : (
-      <BoardMemberView data={data} userType={userType} />
-    );
-  }
+  return (
+    <>
+      {execute.length > 0 && <ImplementerView data={execute} />}
+      {monitor.length > 0 && <BoardMemberView data={monitor} />}
+    </>
+  );
 };

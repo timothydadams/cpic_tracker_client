@@ -27,6 +27,13 @@ export const strategyApiSlice = api.injectEndpoints({
         return response.data;
       },
     }),
+    getStrategyActivities: builder.query({
+      query: ({ id, params }) => ({
+        url: `/strategies/${id}/activities`,
+        params,
+      }),
+      transformResponse: (response) => response.data,
+    }),
     getStrategy: builder.query({
       query: ({ id, params }) => ({
         url: `/strategies/${id}`,
@@ -59,13 +66,24 @@ export const strategyApiSlice = api.injectEndpoints({
     }),
     getMyStrategies: builder.query({
       query: () => `/strategies/my-strategies`,
-      transformResponse: (response, meta, arg) => {
-        if (Array.isArray(response.data)) {
-          return response.data.map(convertNumericValuesToStringRecursive);
-        } else {
-          return convertNumericValuesToStringRecursive(response.data);
-        }
-        //return response.data.map(convertNumericValuesToStringRecursive);
+      transformResponse: (response) => {
+        const { execute, monitor } = response.data;
+        const convertStrategies = (arr) =>
+          arr.map((item) => ({
+            ...item,
+            strategies: {
+              primary: item.strategies.primary.map(
+                convertNumericValuesToStringRecursive
+              ),
+              support: item.strategies.support.map(
+                convertNumericValuesToStringRecursive
+              ),
+            },
+          }));
+        return {
+          execute: convertStrategies(execute),
+          monitor: convertStrategies(monitor),
+        };
       },
     }),
     getAllStatuses: builder.query({
@@ -134,6 +152,7 @@ export const {
   useGetAllStatusesQuery,
   useGetAllTimelineOptionsQuery,
   useGetStrategyCommentsQuery,
+  useGetStrategyActivitiesQuery,
   //useGetAllFocusAreasQuery,
   useGetMyStrategiesQuery,
 } = strategyApiSlice;

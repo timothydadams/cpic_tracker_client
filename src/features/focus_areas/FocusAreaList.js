@@ -180,7 +180,7 @@ const StrategyTableList = ({ policy }) => {
           strategy={{ ...s, policy }}
           implementerDetails={{}}
           key={s.id}
-          userType='guest'
+          showFocusAreaAndPolicyDetails={false}
         />
       ))}
     </div>

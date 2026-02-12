@@ -7,6 +7,9 @@ import {
   MessageSquarePlus,
   SendHorizonalIcon,
   X,
+  MessageCircle,
+  History,
+  Reply,
 } from 'lucide-react';
 import { StatusBadge, DeadLine } from 'components/data-table-util-components';
 import { Separator } from 'ui/separator';
@@ -42,16 +45,31 @@ import {
   InputGroupTextarea,
 } from 'ui/input-group';
 import { ScrollArea, ScrollBar } from 'ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from 'ui/dialog';
+import { Avatar, AvatarImage, AvatarFallback } from 'ui/avatar';
 import { StrategyForm } from './EditStrategyForm';
 import { Badge } from 'ui/badge';
+import { EmptyContainer } from 'components/EmptyContainer';
+import { Dots } from 'components/Spinners';
 import useAuth from 'hooks/useAuth';
-import { useCreateCommentMutation } from '../comments/commentsApiSlice';
+import {
+  useCreateCommentMutation,
+  useUpdateCommentMutation,
+} from '../comments/commentsApiSlice';
+import {
+  useGetStrategyCommentsQuery,
+  useGetStrategyActivitiesQuery,
+} from './strategiesApiSlice';
 import { sanitizeString } from 'utils/rhf_helpers';
 
-function StrategyCardMenu({ onEditClick, onAddNoteClick }) {
-  const user = useAuth();
-  const canEdit = user?.isAdmin || user?.isCPICAdmin;
-
+function StrategyCardMenu({ onEditClick, onAddNoteClick, canEdit }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -114,31 +132,55 @@ function StrategyEditSheet({ strategy, open, onOpenChange }) {
   );
 }
 
-function InlineNoteInput({ strategyId, onClose }) {
+function InlineNoteInput({ strategyId, parentId, onClose, onSuccess }) {
   const { id: userId } = useAuth();
   const [contents, setContents] = React.useState('');
+  const [message, setMessage] = React.useState(null);
   const [addComment, { isLoading }] = useCreateCommentMutation();
+
+  useEffect(() => {
+    if (!message) return;
+    const timer = setTimeout(() => {
+      setMessage(null);
+      if (message.type === 'success') onClose();
+    }, 2500);
+    return () => clearTimeout(timer);
+  }, [message, onClose]);
 
   const handleChange = (e) => setContents(e.target.value);
 
+  const trimmedEmpty = !sanitizeString(contents);
+
   const handleSubmit = async () => {
-    const userInput = sanitizeString(contents);
-    if (!userInput) return;
+    if (trimmedEmpty) return;
     try {
       await addComment({
         user_id: userId,
         strategy_id: strategyId,
-        content: userInput,
+        content: sanitizeString(contents),
+        ...(parentId && { parent_id: parentId }),
       }).unwrap();
       setContents('');
-      onClose();
+      setMessage({ type: 'success', text: 'Note added' });
+      onSuccess?.();
     } catch (e) {
-      // note submission error
+      setMessage({ type: 'error', text: 'Failed to add note' });
     }
   };
 
   return (
     <div className='px-4 pb-4'>
+      {message && (
+        <p
+          className={cn(
+            'text-sm mb-2 font-medium',
+            message.type === 'success' && 'text-green-600 dark:text-green-400',
+            message.type === 'error' && 'text-red-600 dark:text-red-400'
+          )}
+        >
+          {message.text}
+        </p>
+      )}
       <InputGroup className='w-full'>
         <InputGroupTextarea
           placeholder='Add a note...'
@@ -155,7 +197,7 @@ function InlineNoteInput({ strategyId, onClose }) {
             className='rounded-full'
             size='icon-xs'
             onClick={handleSubmit}
-            disabled={isLoading || contents.length === 0}
+            disabled={isLoading || trimmedEmpty}
           >
             <SendHorizonalIcon />
             <span className='sr-only'>Add Note</span>
@@ -170,11 +212,362 @@ function InlineNoteInput({ strategyId, onClose }) {
   );
 }
 
+function CommentEntry({
+  comment,
+  strategyId,
+  currentUser,
+  replyingTo,
+  setReplyingTo,
+  editingId,
+  setEditingId,
+  onReplySuccess,
+  onEditSuccess,
+  depth = 0,
+}) {
+  const isAuthenticated = currentUser?.status !== 'Guest';
+  const canEdit =
+    currentUser?.isAdmin ||
+    currentUser?.isCPICAdmin ||
+    currentUser?.id === comment.user_id;
+
+  const isEditing = editingId === comment.id;
+  const [editContent, setEditContent] = React.useState(comment.content);
+  const [updateComment, { isLoading: isSaving }] = useUpdateCommentMutation();
+  const [editError, setEditError] = React.useState(null);
+
+  const handleSave = async () => {
+    const sanitized = sanitizeString(editContent);
+    if (!sanitized) return;
+    try {
+      await updateComment({ id: comment.id, content: sanitized }).unwrap();
+      setEditingId(null);
+      setEditError(null);
+      onEditSuccess?.();
+    } catch {
+      setEditError('Failed to update');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditContent(comment.content);
+    setEditError(null);
+  };
+
+  return (
+    <div
+      className={cn(
+        depth > 0 &&
+          'ml-4 border-l-2 border-zinc-200 pl-2 dark:border-zinc-700',
+        'min-w-0'
+      )}
+    >
+      <div className='flex gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800 min-w-0'>
+        <Avatar className='h-8 w-8 shrink-0'>
+          {comment.user?.profile_pic && (
+            <AvatarImage
+              src={comment.user.profile_pic}
+              alt={comment.user.display_name || 'User'}
+            />
+          )}
+          <AvatarFallback className='text-xs'>
+            {(comment.user?.display_name || '?').charAt(0).toUpperCase()}
+          </AvatarFallback>
+        </Avatar>
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center justify-between mb-1'>
+            <span className='text-sm font-medium truncate'>
+              {comment.user?.display_name || comment.user_id?.split('-')[0]}
+            </span>
+            <time
+              dateTime={comment.createdAt}
+              className='text-xs text-zinc-500 dark:text-zinc-400'
+            >
+              {new Date(comment.createdAt).toLocaleDateString()}
+            </time>
+          </div>
+          {isEditing ? (
+            <div className='flex flex-col gap-2'>
+              <InputGroupTextarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className='text-sm'
+              />
+              {editError && (
+                <p className='text-xs text-red-600 dark:text-red-400'>
+                  {editError}
+                </p>
+              )}
+              <div className='flex gap-1'>
+                <Button
+                  variant='default'
+                  size='sm'
+                  className='h-6 text-xs'
+                  onClick={handleSave}
+                  disabled={isSaving || !sanitizeString(editContent)}
+                >
+                  Save
+                </Button>
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='h-6 text-xs'
+                  onClick={handleCancelEdit}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className='text-sm text-zinc-600 dark:text-zinc-400'>
+              {comment.content}
+            </p>
+          )}
+          {!isEditing && isAuthenticated && (
+            <div className='flex gap-1 mt-1'>
+              <Button
+                variant='ghost'
+                size='sm'
+                className='gap-1 h-6 px-1.5 text-xs text-zinc-500'
+                onClick={() =>
+                  setReplyingTo(replyingTo === comment.id ? null : comment.id)
+                }
+              >
+                <Reply className='h-3 w-3' />
+                Reply
+              </Button>
+              {canEdit && (
+                <Button
+                  variant='ghost'
+                  size='sm'
+                  className='gap-1 h-6 px-1.5 text-xs text-zinc-500'
+                  onClick={() => {
+                    setEditContent(comment.content);
+                    setEditingId(comment.id);
+                  }}
+                >
+                  <Pencil className='h-3 w-3' />
+                  Edit
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+      {replyingTo === comment.id && (
+        <div className='ml-4 mt-2'>
+          <InlineNoteInput
+            strategyId={strategyId}
+            parentId={comment.id}
+            onClose={() => setReplyingTo(null)}
+            onSuccess={onReplySuccess}
+          />
+        </div>
+      )}
+      {comment.children?.length > 0 && (
+        <div className='flex flex-col gap-2 mt-2'>
+          {comment.children.map((child) => (
+            <CommentEntry
+              key={child.id}
+              comment={child}
+              strategyId={strategyId}
+              currentUser={currentUser}
+              replyingTo={replyingTo}
+              setReplyingTo={setReplyingTo}
+              editingId={editingId}
+              setEditingId={setEditingId}
+              onReplySuccess={onReplySuccess}
+              onEditSuccess={onEditSuccess}
+              depth={depth + 1}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CommentsDialog({ strategyId, triggerButton }) {
+  const user = useAuth();
+  const [open, setOpen] = React.useState(false);
+  const [replyingTo, setReplyingTo] = React.useState(null);
+  const [editingId, setEditingId] = React.useState(null);
+
+  const {
+    data: comments,
+    isLoading,
+    isError,
+    refetch,
+  } = useGetStrategyCommentsQuery(
+    { id: strategyId, params: { replies: 'true', user: 'true' } },
+    { skip: !open }
+  );
+
+  const handleReplySuccess = () => {
+    setReplyingTo(null);
+    refetch();
+  };
+
+  const handleEditSuccess = () => {
+    setEditingId(null);
+    refetch();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
+      <DialogContent className='sm:max-w-lg overflow-hidden'>
+        <DialogHeader>
+          <DialogTitle>Comments</DialogTitle>
+          <DialogDescription>
+            Notes and comments for this strategy
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className='max-h-[60dvh]'>
+          {isLoading ? (
+            <Dots />
+          ) : isError ? (
+            <EmptyContainer
+              title='Unable to load comments'
+              description='Something went wrong. Please try again later.'
+            />
+          ) : !comments || comments.length === 0 ? (
+            <EmptyContainer
+              title='No comments yet'
+              description='Comments and notes will appear here.'
+            />
+          ) : (
+            <div className='flex flex-col gap-3 pr-4'>
+              {comments.map((comment) => (
+                <CommentEntry
+                  key={comment.id}
+                  comment={comment}
+                  strategyId={strategyId}
+                  currentUser={user}
+                  replyingTo={replyingTo}
+                  setReplyingTo={setReplyingTo}
+                  editingId={editingId}
+                  setEditingId={setEditingId}
+                  onReplySuccess={handleReplySuccess}
+                  onEditSuccess={handleEditSuccess}
+                />
+              ))}
+            </div>
+          )}
+          <ScrollBar orientation='vertical' />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ActivityDialog({ strategyId, triggerButton }) {
+  const user = useAuth();
+  const isGuest = user?.status === 'Guest';
+  const [open, setOpen] = React.useState(false);
+
+  const {
+    data: activities,
+    isLoading,
+    isError,
+    error,
+  } = useGetStrategyActivitiesQuery(
+    { id: strategyId, params: { take: 50 } },
+    { skip: !open || isGuest }
+  );
+
+  const isUnauthorized =
+    isGuest || error?.status === 401 || error?.status === 403;
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
+      <DialogContent className='sm:max-w-lg'>
+        <DialogHeader>
+          <DialogTitle>Activity</DialogTitle>
+          <DialogDescription>
+            Audit log of changes to this strategy
+          </DialogDescription>
+        </DialogHeader>
+        <ScrollArea className='max-h-[60dvh]'>
+          {isUnauthorized ? (
+            <EmptyContainer
+              title='Sign in to view activity'
+              description='The activity log is available to registered users.'
+            />
+          ) : isLoading ? (
+            <Dots />
+          ) : isError ? (
+            <EmptyContainer
+              title='Unable to load activity'
+              description='Something went wrong. Please try again later.'
+            />
+          ) : !activities || activities.length === 0 ? (
+            <EmptyContainer
+              title='No activity yet'
+              description='Changes to this strategy will appear here.'
+            />
+          ) : (
+            <div className='flex flex-col gap-3 pr-4'>
+              {activities.map((activity) => (
+                <div
+                  key={activity.id}
+                  className='flex gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800'
+                >
+                  <Avatar className='h-8 w-8 shrink-0'>
+                    {activity.user?.profile_pic && (
+                      <AvatarImage
+                        src={activity.user.profile_pic}
+                        alt={activity.user.display_name || 'User'}
+                      />
+                    )}
+                    <AvatarFallback className='text-xs'>
+                      {(activity.user?.display_name || '?')
+                        .charAt(0)
+                        .toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='flex-1 min-w-0'>
+                    <div className='flex items-center justify-between gap-2'>
+                      <span className='text-sm font-medium truncate'>
+                        {activity.user?.display_name || 'Unknown user'}
+                      </span>
+                      <Badge variant='outline' className='shrink-0 text-xs'>
+                        {activity.action}
+                      </Badge>
+                    </div>
+                    <pre className='text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 whitespace-pre-wrap font-sans'>
+                      {activity.summary}
+                    </pre>
+                    <time
+                      dateTime={activity.createdAt}
+                      className='text-xs text-zinc-500 dark:text-zinc-400 mt-1 block'
+                    >
+                      {new Date(activity.createdAt).toLocaleDateString()}
+                    </time>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <ScrollBar orientation='vertical' />
+        </ScrollArea>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export const StrategyCard = ({
   strategy,
-  implementerDetails,
-  userType = 'guest',
+  implementerDetails = {},
+  mockRole = null,
+  showFocusAreaAndPolicyDetails = true,
 }) => {
+  const user = useAuth();
+  const showMenu = user?.status !== 'Guest';
+  const canEdit =
+    (user?.isAdmin || user?.isCPICAdmin || user?.isCPICMember) &&
+    mockRole == null;
   const [showEditSheet, setShowEditSheet] = React.useState(false);
   const [showNoteInput, setShowNoteInput] = React.useState(false);
 
@@ -187,6 +580,7 @@ export const StrategyCard = ({
     implementers,
     strategy_number,
   } = strategy;
+
   const refNumber = `${policy.policy_number}.${strategy_number}`;
 
   const implementerId = Number(implementerDetails?.id) || 0;
@@ -209,11 +603,12 @@ export const StrategyCard = ({
       )}
     >
       <CardHeader className='grid grid-col-2 relative'>
-        {userType !== 'guest' && (
+        {showMenu && (
           <div className='absolute top-2 right-2'>
             <StrategyCardMenu
               onEditClick={() => setShowEditSheet(true)}
               onAddNoteClick={() => setShowNoteInput(true)}
+              canEdit={canEdit}
             />
           </div>
         )}
@@ -227,7 +622,7 @@ export const StrategyCard = ({
           </div>
         </div>
 
-        {userType !== 'guest' ? (
+        {showFocusAreaAndPolicyDetails ? (
           <>
             <CardTitle className='pt-4'>
               {focus_area.name} {`[${refNumber}]`}
@@ -259,9 +654,31 @@ export const StrategyCard = ({
               </Badge>
             ))}
           </div>
+          <Separator orientation='horizontal' />
+          <div className='flex gap-2 pt-3 justify-between'>
+            <CommentsDialog
+              strategyId={strategy.id}
+              triggerButton={
+                <Button variant='ghost' size='sm' className='gap-1.5'>
+                  <MessageCircle className='h-4 w-4' />
+                  <span className='text-xs'>Comments</span>
+                </Button>
+              }
+            />
+            <ActivityDialog
+              strategyId={strategy.id}
+              triggerButton={
+                <Button variant='ghost' size='sm' className='gap-1.5'>
+                  <History className='h-4 w-4' />
+                  <span className='text-xs'>Activity</span>
+                </Button>
+              }
+            />
+          </div>
         </div>
       </CardFooter>
-      {userType !== 'guest' && isPrimaryLead && (
+
+      {isPrimaryLead && (
         <div className='absolute bottom-2 right-2'>
           <Badge variant='secondary'>Primary Lead</Badge>
         </div>

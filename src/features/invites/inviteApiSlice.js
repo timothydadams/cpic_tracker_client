@@ -23,7 +23,7 @@ export const inviteApiSlice = api.injectEndpoints({
       },
     }),
     updateCode: builder.mutation({
-      query: (data) => ({
+      query: ({ id, ...data }) => ({
         url: `/invites/${id}`,
         method: 'PUT',
         body: { ...data },

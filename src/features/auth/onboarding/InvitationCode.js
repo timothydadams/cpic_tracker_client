@@ -47,10 +47,8 @@ export function VerifyInvitationCode({ nextStep }) {
         result.roleName === 'Implementer' ? 'Implementer' : 'CPIC';
       setValue('inviteDetails.roleId', result.roleId);
       setValue('inviteDetails.roleType', roleType);
-      console.log('form values after code validation:', getValues());
       nextStep();
     } catch (e) {
-      console.log('invite code validation response:', e);
       setValue('inviteDetails.roleId', '');
       setValue('inviteDetails.roleType', '');
       setError('inviteCode', { type: 'server', message: e.data.message });

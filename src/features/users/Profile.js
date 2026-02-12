@@ -143,7 +143,7 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
       await deletePasskey({ userId: id, pk_id: value }).unwrap();
       refetchUser();
     } catch (e) {
-      console.log(e);
+      enqueueSnackbar('Failed to delete passkey', { variant: 'error' });
     }
     return;
   };
@@ -164,7 +164,6 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
       if (verified) {
         refetchUser();
       } else {
-        console.error('pk registration error:', verifcationResults);
         setRegistrationInProgress(false);
       }
     } catch (error) {
@@ -172,8 +171,6 @@ const PasskeyManager = ({ passkeys, userData: { id, email }, refetchUser }) => {
       if (error.name === 'InvalidStateError') {
         alert('This authenticator is already registered for your account.');
       } else {
-        // Handle other potential errors during registration
-        console.error('Registration failed:', error);
         alert('Registration failed: ' + error.message);
       }
     }
@@ -360,8 +357,6 @@ const ProfileForm = ({
     const changedFields = getDirtyValues(dirtyFields, data);
     const sanitzedData = recursivelySanitizeObject(changedFields);
 
-    console.log('user updates:', sanitzedData);
-
     try {
       const { data } = await update({ id: userId, ...sanitzedData }).unwrap();
       enqueueSnackbar('Profile saved', { variant: 'success' });
@@ -376,7 +371,6 @@ const ProfileForm = ({
       });
       //refetchUser();
     } catch (err) {
-      console.log(err);
       enqueueSnackbar('Update failed', { variant: 'error' });
     }
   };

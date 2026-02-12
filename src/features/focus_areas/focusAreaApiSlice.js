@@ -10,7 +10,7 @@ export const focusAreaApiSlice = api.injectEndpoints({
       }),
     }),
     updateFocusArea: builder.mutation({
-      query: (data) => ({
+      query: ({ id, ...data }) => ({
         url: `/focusareas/${id}`,
         method: 'PUT',
         body: { ...data },

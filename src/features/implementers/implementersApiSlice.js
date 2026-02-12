@@ -12,7 +12,7 @@ export const implementersApiSlice = api.injectEndpoints({
       }),
     }),
     updateImplementer: builder.mutation({
-      query: (data) => ({
+      query: ({ id, ...data }) => ({
         url: `/implementers/${id}`,
         method: 'PUT',
         body: { ...data },

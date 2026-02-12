@@ -10,7 +10,7 @@ export const policyApiSlice = api.injectEndpoints({
       }),
     }),
     updatePolicy: builder.mutation({
-      query: (data) => ({
+      query: ({ id, ...data }) => ({
         url: `/policies/${id}`,
         method: 'PUT',
         body: { ...data },

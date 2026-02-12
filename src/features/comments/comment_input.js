@@ -53,13 +53,12 @@ export const AddCommentForm = ({ refetchComments }) => {
         strategy_id,
         content: userInput,
       };
-      console.log('comment data', commentData);
       try {
         const res = await addComment(commentData).unwrap();
         setContents('');
         refetchComments();
       } catch (e) {
-        console.log(e);
+        // comment submission error
       }
     }
   };

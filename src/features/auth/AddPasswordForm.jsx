@@ -19,6 +19,8 @@ import usePersist from 'hooks/usePersist';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import YupPassword from 'yup-password';
+YupPassword(yup);
 import useAuth from 'hooks/useAuth.js';
 import { RegisteredInput } from 'components/forms/Input';
 import { Checkbox, CheckboxField, CheckboxGroup } from 'catalyst/checkbox.jsx';
@@ -33,7 +35,21 @@ import { PresentationChartLineIcon } from '@heroicons/react/24/solid';
 const schema = yup
   .object({
     email: yup.string().email().required(),
-    password: yup.string().required(),
+    password: yup
+      .string()
+      .min(8, 'Password must be 8 characters long')
+      .minUppercase(2, 'Password requires at least 2 uppercase letter')
+      .minLowercase(2, 'Password requires at least 2 lowercase letters')
+      .maxRepeating(
+        2,
+        'Password cannot contain more than 2 repeating characters'
+      )
+      .minNumbers(2, 'Password requires at least 2 numbers')
+      .minSymbols(2, 'Password requires at least 2 symbols')
+      .required(),
+    verifyPassword: yup
+      .string()
+      .oneOf([yup.ref('password'), null], 'Must match "password" field value'),
   })
   .required();
 
@@ -78,7 +94,6 @@ export function AddPasswordForm({ className, ...props }) {
 
   const onUpdateUser = async (data, e) => {
     e.preventDefault();
-    console.log('update data', data);
 
     /*
     try {

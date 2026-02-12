@@ -136,7 +136,6 @@ export const Implementers = ({ implementers }) => {
 };
 
 export const PolicyOverview = ({ policy }) => {
-  console.log('policy data:', policy);
   const { id, description, policy_number, area } = policy;
   const { data: focus_area, isLoading } = useGetFocusAreaQuery(
     {

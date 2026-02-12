@@ -24,24 +24,29 @@ export const convertNumericValuesToStringRecursive = (obj) => {
 export const getPayloadFromToken = (token) => {
   if (!token || token === '') return {};
 
-  const encodedPayload = token.split('.')[1];
-  const parsed = JSON.parse(Buffer.from(encodedPayload, 'base64'));
+  try {
+    const encodedPayload = token.split('.')[1];
+    if (!encodedPayload) return {};
 
-  for (const key in parsed) {
-    try {
-      let val = parsed[key];
-      parsed[key] = JSON.parse(val);
-      if (key === 'Roles') {
-        let rolesArray = parsed[key];
-        parsed['roles'] = rolesArray.map((x) => x.RoleID);
+    const parsed = JSON.parse(Buffer.from(encodedPayload, 'base64'));
+
+    for (const key in parsed) {
+      try {
+        let val = parsed[key];
+        parsed[key] = JSON.parse(val);
+        if (key === 'Roles') {
+          let rolesArray = parsed[key];
+          parsed['roles'] = rolesArray.map((x) => x.RoleID);
+        }
+      } catch (e) {
+        continue;
       }
-    } catch (e) {
-      continue;
     }
+    parsed['token'] = token;
+    return parsed;
+  } catch (e) {
+    return {};
   }
-  console.log('my parsed user info:', parsed);
-  parsed['token'] = token;
-  return parsed;
 };
 
 export const convertDateFull = (timeObj) => {

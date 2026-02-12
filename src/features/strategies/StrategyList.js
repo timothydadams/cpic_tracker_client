@@ -359,7 +359,6 @@ const allColumns = [
 export const StrategyTableList = ({ strategies, title }) => {
   const user = useSelector(selectMemoizedUser);
   const { id, roles } = user;
-  console.log('user roles:', roles);
   // Conditionally generate the columns based on the user's role
   const columns = React.useMemo(() => {
     return allColumns.filter(

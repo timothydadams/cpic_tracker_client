@@ -53,7 +53,7 @@ export const authApiSlice = api.injectEndpoints({
           const { accessToken } = data;
           dispatch(setCredentials({ accessToken }));
         } catch (e) {
-          console.log(e);
+          // login error handled by UI
         }
       },
     }),
@@ -77,7 +77,7 @@ export const authApiSlice = api.injectEndpoints({
             dispatch(api.util.resetApiState());
           }, 1000);
         } catch (e) {
-          console.log(e);
+          // logout error handled by UI
         }
       },
     }),
@@ -142,7 +142,7 @@ export const authApiSlice = api.injectEndpoints({
           );
           */
         } catch (e) {
-          console.log('tried to refresh', e);
+          // refresh error handled by baseQueryWithReauth
         }
       },
     }),

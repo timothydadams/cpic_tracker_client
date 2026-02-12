@@ -36,10 +36,8 @@ export const PersistAuth = () => {
           await refresh(persist);
           setTrueSuccess(true);
         } catch (e) {
-          //maybe add logout call
-          console.log('persist component error', e);
+          // refresh failed — handled by error state below
         }
-        setTrueSuccess(true);
       };
       //if (!token && isAuthenticated) {
       if (!token) {
@@ -79,7 +77,6 @@ export const PersistAuth = () => {
     content = <Skeleton className='w-full h-[250px]' />;
   } else if (isError) {
     //expired tokens
-    console.log('tokens expired and user no longer authenticated');
     const allowed = location.pathname.includes('/register');
     content = (
       <Navigate

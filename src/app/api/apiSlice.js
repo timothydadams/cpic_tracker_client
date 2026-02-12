@@ -18,31 +18,42 @@ const baseQuery = fetchBaseQuery({
   },
 });
 
+let refreshPromise = null;
+
 const baseQueryWithReauth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
 
   if (result?.error?.status === 401) {
-    const duration = localStorage.getItem('persist') || `SHORT`;
+    if (!refreshPromise) {
+      refreshPromise = (async () => {
+        const duration = localStorage.getItem('persist') || 'SHORT';
+        const refreshResult = await baseQuery(
+          { url: '/auth/refresh', method: 'POST', body: { duration } },
+          api,
+          extraOptions
+        );
 
-    const refreshResult = await baseQuery(
-      {
-        url: '/auth/refresh',
-        method: 'POST',
-        body: { duration },
-      },
-      api,
-      extraOptions
-    );
+        if (refreshResult?.data) {
+          api.dispatch(setCredentials({ ...refreshResult.data }));
+          return { success: true };
+        } else {
+          if (refreshResult?.error?.status === 401) {
+            refreshResult.error.data.message = 'Expired login';
+          }
+          api.dispatch(logout());
+          return { success: false, result: refreshResult };
+        }
+      })().finally(() => {
+        refreshPromise = null;
+      });
+    }
 
-    if (refreshResult?.data) {
-      api.dispatch(setCredentials({ ...refreshResult.data }));
+    const refreshOutcome = await refreshPromise;
+
+    if (refreshOutcome.success) {
       result = await baseQuery(args, api, extraOptions);
     } else {
-      if (refreshResult?.error?.status === 401) {
-        refreshResult.error.data.message = 'Expired login';
-      }
-      api.dispatch(logout());
-      return refreshResult;
+      return refreshOutcome.result;
     }
   }
   return result;

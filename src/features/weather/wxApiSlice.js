@@ -12,9 +12,7 @@ export const awcApiSlice = apiSlice.injectEndpoints({
 
         if (data) {
           let [timestamp, kp, ...rest] = data[0];
-          console.log('original ts:', timestamp);
           timestamp = `${timestamp.replace(/\s/, 'T')}Z`;
-          console.log('updated ts:', timestamp);
           return { timestamp, kp: Number(kp).toFixed(1) };
         }
       },
@@ -29,14 +27,12 @@ export const awcApiSlice = apiSlice.injectEndpoints({
         body: { longitude, latitude },
       }),
       transformResponse: (response, meta, arg) => {
-        console.log('in transform:', response);
         const { data, error } = response;
         if (data) {
           return data.slice(0, 3);
         }
       },
       transformErrorResponse: (error) => {
-        console.log('in error transform', error);
         return error.data.error;
       },
     }),

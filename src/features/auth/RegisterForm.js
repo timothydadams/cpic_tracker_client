@@ -80,8 +80,6 @@ export const UserRegistrationForm = () => {
   const onCreateAccount = async (data, e) => {
     e.preventDefault();
 
-    console.log('data to be sent to server:', data);
-
     try {
       const result = await create({
         user: data,
@@ -101,7 +99,7 @@ export const UserRegistrationForm = () => {
         try {
           navigator.credentials.store(credentials);
         } catch (e) {
-          console.log('unable to save credentials to browser api');
+          // credential store not available
         }
       }
 
@@ -112,7 +110,6 @@ export const UserRegistrationForm = () => {
 
       navigate(currentPath, { replace: true });
     } catch (err) {
-      console.log(err);
       enqueueSnackbar('Failed to create account', { variant: 'error' });
     }
   };

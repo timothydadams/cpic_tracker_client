@@ -10,7 +10,7 @@ export const commentApiSlice = api.injectEndpoints({
       }),
     }),
     updateComment: builder.mutation({
-      query: (data) => ({
+      query: ({ id, ...data }) => ({
         url: `/comments/${id}`,
         method: 'PUT',
         body: { ...data },

@@ -68,7 +68,6 @@ const AccTrigHeader = ({ details, strategies }) => {
 };
 
 const BoardMemberView = ({ data, userType }) => {
-  console.log('viewing board member display', data);
   return (
     <React.Fragment>
       <Accordion type='single' collapsible>

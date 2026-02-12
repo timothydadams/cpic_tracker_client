@@ -163,7 +163,6 @@ export function LoginForm({ className, ...props }) {
       }
     } catch (err) {
       setAuthInprogress(false);
-      console.log(err);
       if (!err?.originalStatus) {
         setErrorMsg('No server response');
       } else if (err?.originalStatus === 400) {

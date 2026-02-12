@@ -20,10 +20,8 @@ export const userLogin = createAsyncThunk(
         { email, password },
         config
       );
-      console.log('login thunk res:', data);
       return data;
     } catch (error) {
-      console.log('login thunk err:', error);
       if (error.response && error.response.data.message) {
         return rejectWithValue(error.response.data.message);
       } else {

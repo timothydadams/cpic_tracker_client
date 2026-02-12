@@ -146,14 +146,11 @@ export function OnboardingForm() {
 
         // Show UI appropriate for the `verified` status
         if (verified && accessToken) {
-          console.log('SUCCESS!');
           dispatch(setCredentials({ accessToken }));
-        } else {
-          console.error('problem:', verifcationResults);
         }
       }
     } catch (e) {
-      console.log(e);
+      // registration error — UI should handle
     }
   };
 

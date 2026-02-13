@@ -287,3 +287,79 @@
 19. [ ] CPIC Admin cannot see delete buttons on any page
 20. [ ] CPIC Admin CAN see edit buttons on Policies and Implementers pages
 21. [ ] `npm run build-prod` completes without errors
+
+---
+
+## 11. Unit Tests: UserIdentity Component (`src/components/UserIdentity.js`)
+
+- [ ] Renders avatar with profile_pic when provided
+- [ ] Renders fallback initial from given_name when profile_pic is missing
+- [ ] Renders fallback initial from username when given_name is missing
+- [ ] Shows username as display name for unauthenticated users
+- [ ] Shows "first last" as display name for authenticated users
+- [ ] Falls back to display_name when given_name/family_name are missing (authenticated)
+- [ ] Falls back to username when all name fields are missing (authenticated)
+- [ ] Shows HybridTooltip on hover/tap for authenticated users
+- [ ] Tooltip contains full name, @username, and email
+- [ ] Does NOT show tooltip for unauthenticated users
+- [ ] Renders timestamp when provided
+- [ ] Does not render timestamp element when not provided
+
+---
+
+## 12. Unit Tests: Strategy Card Improvements
+
+### 12.1 StrategyCard Implementer List
+
+- [ ] Implementers are rendered in alphabetical order
+- [ ] Implementers are displayed in a vertical list (not wrapped row)
+- [ ] Implementer badges have high-contrast styling (dark on light, light on dark)
+- [ ] In assigned view: "Primary Lead" badge appears next to the primary implementer
+- [ ] In assigned view: non-primary implementers do NOT show "Primary Lead" badge
+- [ ] In non-assigned view: primary implementer badge shows "(Primary)" suffix
+- [ ] In non-assigned view: non-primary implementers do NOT show "(Primary)" suffix
+- [ ] In non-assigned view: no "Primary Lead" badge is rendered
+
+### 12.2 StrategyCard Layout
+
+- [ ] Card uses flex-col layout so footer pushes to bottom
+- [ ] Comments and Activity buttons are at the bottom of the card
+- [ ] Comments and Activity buttons use justify-between layout
+- [ ] Card border color matches status (Needs Updating, In Progress, Not Started, Completed)
+- [ ] Card has thicker border (border-4) when current implementer is primary lead in assigned view
+
+### 12.3 CommentsDialog with UserIdentity
+
+- [ ] Comment entries use UserIdentity component for user display
+- [ ] Guest user sees username (no tooltip)
+- [ ] Authenticated user sees full name with tooltip on hover
+- [ ] Reply and Edit buttons only appear for authenticated users
+- [ ] Edit button only appears for comment author or admin
+- [ ] Inline reply input works and refreshes comments on success
+- [ ] Inline edit saves and refreshes comments on success
+
+### 12.4 ActivityDialog with UserIdentity
+
+- [ ] Activity entries use UserIdentity component for user display
+- [ ] Activity action badge is displayed below the user identity row
+- [ ] Activity summary is displayed below the action badge
+- [ ] Action badge and summary are indented (pl-11) to align under user name
+- [ ] Guest users see "Sign in to view activity" message
+- [ ] Unauthorized errors show the sign-in prompt
+
+---
+
+## 13. Manual Verification: Strategy Card Improvements
+
+1. [ ] Open a strategy card — implementers listed vertically in alphabetical order
+2. [ ] Implementer badges are clearly visible against card background in light mode
+3. [ ] Implementer badges are clearly visible against card background in dark mode
+4. [ ] View card in assigned strategies — "Primary Lead" amber badge next to correct implementer
+5. [ ] View card outside assigned strategies — "(Primary)" text after primary implementer name
+6. [ ] Open Comments dialog — user avatar, name, and date displayed correctly
+7. [ ] Hover over commenter name (authenticated) — tooltip shows username and email
+8. [ ] Open Activity dialog — user row, then action badge, then summary on separate lines
+9. [ ] Activity timestamp appears next to user name (not next to action badge)
+10. [ ] Comments and Activity buttons are at the very bottom of the card
+11. [ ] Cards with fewer implementers still have buttons at bottom (flex layout working)
+12. [ ] Toggle dark mode — all badges, text, and backgrounds maintain readable contrast

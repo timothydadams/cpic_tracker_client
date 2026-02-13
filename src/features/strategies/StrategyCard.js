@@ -53,9 +53,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from 'ui/dialog';
-import { Avatar, AvatarImage, AvatarFallback } from 'ui/avatar';
 import { StrategyForm } from './EditStrategyForm';
 import { Badge } from 'ui/badge';
+import { UserIdentity } from 'components/UserIdentity';
 import { EmptyContainer } from 'components/EmptyContainer';
 import { Dots } from 'components/Spinners';
 import useAuth from 'hooks/useAuth';
@@ -262,30 +262,13 @@ function CommentEntry({
         'min-w-0'
       )}
     >
-      <div className='flex gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800 min-w-0'>
-        <Avatar className='h-8 w-8 shrink-0'>
-          {comment.user?.profile_pic && (
-            <AvatarImage
-              src={comment.user.profile_pic}
-              alt={comment.user.display_name || 'User'}
-            />
-          )}
-          <AvatarFallback className='text-xs'>
-            {(comment.user?.display_name || '?').charAt(0).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
-        <div className='flex-1 min-w-0'>
-          <div className='flex items-center justify-between mb-1'>
-            <span className='text-sm font-medium truncate'>
-              {comment.user?.display_name || comment.user_id?.split('-')[0]}
-            </span>
-            <time
-              dateTime={comment.createdAt}
-              className='text-xs text-zinc-500 dark:text-zinc-400'
-            >
-              {new Date(comment.createdAt).toLocaleDateString()}
-            </time>
-          </div>
+      <div className='flex flex-col gap-1 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800 min-w-0'>
+        <UserIdentity
+          user={comment.user}
+          isAuthenticated={isAuthenticated}
+          timestamp={comment.createdAt}
+        />
+        <div className='min-w-0 pl-11'>
           {isEditing ? (
             <div className='flex flex-col gap-2'>
               <InputGroupTextarea
@@ -512,39 +495,20 @@ function ActivityDialog({ strategyId, triggerButton }) {
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className='flex gap-3 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800'
+                  className='flex flex-col gap-1 rounded-lg border border-zinc-200 p-3 dark:border-zinc-800'
                 >
-                  <Avatar className='h-8 w-8 shrink-0'>
-                    {activity.user?.profile_pic && (
-                      <AvatarImage
-                        src={activity.user.profile_pic}
-                        alt={activity.user.display_name || 'User'}
-                      />
-                    )}
-                    <AvatarFallback className='text-xs'>
-                      {(activity.user?.display_name || '?')
-                        .charAt(0)
-                        .toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className='flex-1 min-w-0'>
-                    <div className='flex items-center justify-between gap-2'>
-                      <span className='text-sm font-medium truncate'>
-                        {activity.user?.display_name || 'Unknown user'}
-                      </span>
-                      <Badge variant='outline' className='shrink-0 text-xs'>
-                        {activity.action}
-                      </Badge>
-                    </div>
-                    <pre className='text-sm text-zinc-600 dark:text-zinc-400 mt-0.5 whitespace-pre-wrap font-sans'>
+                  <UserIdentity
+                    user={activity.user}
+                    isAuthenticated={!isGuest}
+                    timestamp={activity.createdAt}
+                  />
+                  <div className='pl-11 flex flex-col gap-1'>
+                    <Badge variant='outline' className='text-xs w-fit'>
+                      {activity.action}
+                    </Badge>
+                    <pre className='text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-wrap font-sans'>
                       {activity.summary}
                     </pre>
-                    <time
-                      dateTime={activity.createdAt}
-                      className='text-xs text-zinc-500 dark:text-zinc-400 mt-1 block'
-                    >
-                      {new Date(activity.createdAt).toLocaleDateString()}
-                    </time>
                   </div>
                 </div>
               ))}
@@ -583,16 +547,19 @@ export const StrategyCard = ({
 
   const refNumber = `${policy.policy_number}.${strategy_number}`;
 
+  const isAssignedView = !!implementerDetails?.id;
   const implementerId = Number(implementerDetails?.id) || 0;
-  const isPrimaryLead = !!implementers.find(
-    ({ implementer_id, is_primary }) =>
-      is_primary && implementer_id == implementerId
-  );
+  const isPrimaryLead =
+    isAssignedView &&
+    !!implementers.find(
+      ({ implementer_id, is_primary }) =>
+        is_primary && implementer_id == implementerId
+    );
 
   return (
     <Card
       className={cn(
-        'w-full max-w-md relative',
+        'w-full max-w-md relative flex flex-col',
         'bg-gradient-to-b from-gray-100 to-gray-200 dark:from-black dark:to-gray-800',
         isPrimaryLead && 'border-4',
         status?.title === 'Needs Updating' &&
@@ -643,18 +610,34 @@ export const StrategyCard = ({
         />
       )}
 
-      <CardFooter className='w-full relative'>
-        <div className='flex flex-col w-full'>
-          <Separator orientation='horizontal' />
+      <CardFooter className='w-full relative flex-1'>
+        <div className='flex flex-col w-full h-full'>
+          <Separator orientation='horizontal' className='my-2' />
           Implementers:
-          <div className='flex gap-2 w-full flex-wrap py-4'>
-            {implementers.map((x) => (
-              <Badge key={x.implementer_id} variant='outline'>
-                {x.implementer.name}
-              </Badge>
-            ))}
+          <div className='flex flex-col gap-1.5 w-full py-3'>
+            {[...implementers]
+              .sort((a, b) =>
+                a.implementer.name.localeCompare(b.implementer.name)
+              )
+              .map((x) => (
+                <div key={x.implementer_id} className='flex items-center gap-2'>
+                  <Badge className='bg-zinc-800 text-zinc-100 hover:bg-zinc-800 dark:bg-zinc-200 dark:text-zinc-900 dark:hover:bg-zinc-200'>
+                    {x.implementer.name}
+                    {!isAssignedView && x.is_primary && ' (Primary)'}
+                  </Badge>
+                  {isAssignedView &&
+                    x.is_primary &&
+                    x.implementer_id == implementerId && (
+                      <Badge className='bg-amber-500 text-white hover:bg-amber-500 dark:bg-amber-600 dark:text-white dark:hover:bg-amber-600 font-semibold'>
+                        Primary Lead
+                      </Badge>
+                    )}
+                </div>
+              ))}
           </div>
-          <Separator orientation='horizontal' />
+          <div className='mt-auto'>
+            <Separator orientation='horizontal' />
+          </div>
           <div className='flex gap-2 pt-3 justify-between'>
             <CommentsDialog
               strategyId={strategy.id}
@@ -677,12 +660,6 @@ export const StrategyCard = ({
           </div>
         </div>
       </CardFooter>
-
-      {isPrimaryLead && (
-        <div className='absolute bottom-2 right-2'>
-          <Badge variant='secondary'>Primary Lead</Badge>
-        </div>
-      )}
 
       <StrategyEditSheet
         strategy={strategy}

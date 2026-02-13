@@ -79,6 +79,8 @@ Register a new user with an invite code.
 }
 ```
 
+If `username` is not provided, one is auto-generated in the format `user_<hex>`.
+
 **Response (200):**
 
 ```json
@@ -511,6 +513,30 @@ List focus areas. **Public.** Alias for focus area listing.
 
 ---
 
+### POST `/api/strategies/`
+
+Create a strategy. **Auth required** (Admin or CPIC Admin).
+
+**Request:**
+
+```json
+{
+  "content": "string",
+  "policy_id": "string",
+  "strategy_number": "int",
+  "timeline_id": "int",
+  "status_id": "int",
+  "focus_area_id": "int",
+  "last_comms_date": "ISO8601?"
+}
+```
+
+**Behavior:** Automatically creates a `StrategyActivity` audit record with action `CREATE`.
+
+**Response (200):** New strategy object.
+
+---
+
 ### PUT `/api/strategies/:id`
 
 Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
@@ -538,6 +564,14 @@ Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
 
 ---
 
+### DELETE `/api/strategies/:id`
+
+Delete a strategy. **Auth required** (Admin only).
+
+**Behavior:** Automatically creates a `StrategyActivity` audit record with action `DELETE` before removing the resource.
+
+---
+
 ### POST `/api/strategies/:id/comments`
 
 Create a comment on a strategy. **Auth required.**
@@ -558,12 +592,40 @@ Create a comment on a strategy. **Auth required.**
 
 ### GET `/api/strategies/:id/comments`
 
-Get comments for a strategy. **Public.**
+Get comments for a strategy. **Public.** Returns a nested tree — all replies are recursively nested under their parent via `children` arrays.
 
-**Query params:**
-| Param | Type | Description |
-|-------|------|-------------|
-| `replies` | `"true"/"false"` | Include nested reply threads |
+**Auth-aware user fields:**
+
+- **Unauthenticated:** `user: { id, username, profile_pic }`
+- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }`
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "content": "string",
+      "strategy_id": 1,
+      "user_id": "uuid",
+      "parent_id": null,
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601",
+      "user": { "id": "uuid", "username": "string", "profile_pic": "string?" },
+      "children": [
+        {
+          "id": 2,
+          "content": "string",
+          "parent_id": 1,
+          "user": { "..." },
+          "children": []
+        }
+      ]
+    }
+  ]
+}
+```
 
 ---
 
@@ -576,6 +638,11 @@ Get audit log for a strategy. **Auth required.**
 |-------|------|---------|-------------|
 | `skip` | `int` | `0` | Offset |
 | `take` | `int` | `50` | Limit (max 100) |
+
+**Auth-aware user fields:**
+
+- **Unauthenticated:** `user: { id, username, profile_pic }`
+- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }`
 
 **Response (200):**
 
@@ -590,11 +657,7 @@ Get audit log for a strategy. **Auth required.**
       "strategy_id": 1,
       "user_id": "uuid",
       "createdAt": "ISO8601",
-      "user": {
-        "id": "uuid",
-        "display_name": "string",
-        "profile_pic": "string?"
-      }
+      "user": { "id": "uuid", "username": "string", "profile_pic": "string?" }
     }
   ]
 }

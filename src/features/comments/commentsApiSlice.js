@@ -8,6 +8,7 @@ export const commentApiSlice = api.injectEndpoints({
         method: 'POST',
         body: { ...details },
       }),
+      invalidatesTags: [{ type: 'Comment', id: 'LIST' }],
     }),
     updateComment: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -15,6 +16,10 @@ export const commentApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...data },
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Comment', id: arg.id },
+        { type: 'Comment', id: 'LIST' },
+      ],
     }),
     deleteComment: builder.mutation({
       query: (id) => ({
@@ -25,6 +30,10 @@ export const commentApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Comment', id: arg },
+        { type: 'Comment', id: 'LIST' },
+      ],
     }),
     getComment: builder.query({
       query: ({ id, params }) => ({
@@ -34,6 +43,7 @@ export const commentApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result, error, arg) => [{ type: 'Comment', id: arg.id }],
     }),
     getAllComments: builder.query({
       query: (params) => ({
@@ -43,6 +53,13 @@ export const commentApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Comment', id })),
+              { type: 'Comment', id: 'LIST' },
+            ]
+          : [{ type: 'Comment', id: 'LIST' }],
     }),
   }),
 });

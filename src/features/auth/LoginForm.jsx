@@ -191,11 +191,9 @@ export function LoginForm({ className, ...props }) {
                     checked={persist === 'LONG'}
                     onChange={togglePersist}
                   />
-                  <Label>Trust this device</Label>
+                  <Label>Keep me signed in</Label>
                   <Description>
-                    {persist === 'LONG'
-                      ? `We'll keep you logged in for a week`
-                      : `Must login again after 30 minutes of inactivity`}
+                    {persist === 'LONG' ? `I own or trust this device.` : ``}
                   </Description>
                 </CheckboxField>
               </div>

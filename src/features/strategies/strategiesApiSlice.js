@@ -10,6 +10,7 @@ export const strategyApiSlice = api.injectEndpoints({
         method: 'POST',
         body: { ...details },
       }),
+      invalidatesTags: [{ type: 'Strategy', id: 'LIST' }],
     }),
     updateStrategy: builder.mutation({
       query: ({ id, data }) => ({
@@ -17,6 +18,10 @@ export const strategyApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...data },
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: 'Strategy', id: arg.id },
+        { type: 'Strategy', id: 'LIST' },
+      ],
     }),
     getStrategyComments: builder.query({
       query: ({ id, params }) => ({
@@ -26,6 +31,13 @@ export const strategyApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Comment', id })),
+              { type: 'Comment', id: 'LIST' },
+            ]
+          : [{ type: 'Comment', id: 'LIST' }],
     }),
     getStrategyActivities: builder.query({
       query: ({ id, params }) => ({
@@ -54,6 +66,7 @@ export const strategyApiSlice = api.injectEndpoints({
 
         return convertNumericValuesToStringRecursive(response.data);
       },
+      providesTags: (result, error, arg) => [{ type: 'Strategy', id: arg.id }],
     }),
     getAllStrategies: builder.query({
       query: (params) => ({
@@ -63,6 +76,13 @@ export const strategyApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Strategy', id })),
+              { type: 'Strategy', id: 'LIST' },
+            ]
+          : [{ type: 'Strategy', id: 'LIST' }],
     }),
     getMyStrategies: builder.query({
       query: () => `/strategies/my-strategies`,
@@ -85,6 +105,7 @@ export const strategyApiSlice = api.injectEndpoints({
           monitor: convertStrategies(monitor),
         };
       },
+      providesTags: [{ type: 'Strategy', id: 'LIST' }],
     }),
     getAllStatuses: builder.query({
       query: () => `/strategies/statuses`,

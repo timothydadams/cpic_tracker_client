@@ -1,6 +1,4 @@
 import { api } from '../../app/api/apiSlice';
-//import { logout, setCredentials } from "../auth/authSlice";
-import { setUserDetails } from './usersSlice';
 
 export const userApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -10,7 +8,6 @@ export const userApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...userData },
       }),
-      //invalidatesTags: (result, error, { id }) => [{ type: 'User', id }], // Invalidate the tag
     }),
     getAllUsers: builder.query({
       query: () => `/users`,
@@ -56,20 +53,9 @@ export const userApiSlice = api.injectEndpoints({
         url: `/users/${id}`,
         params,
       }),
-      //providesTags: (result, error, id) => [{ type: 'User', id }],
       transformResponse: (response, meta, arg) => {
         return response.data;
       },
-      /*
-      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
-          try {
-            const { data } = await queryFulfilled;
-            dispatch(setUserDetails(data));
-          } catch (e) {
-            console.log('could not load user info',e);
-          }
-        },
-      */
     }),
   }),
 });

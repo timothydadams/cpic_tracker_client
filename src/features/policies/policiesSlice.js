@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 const policySlice = createSlice({
   name: 'policies',
@@ -19,4 +19,7 @@ export const { setPolicies, resetPolicies } = policySlice.actions;
 
 export default policySlice.reducer;
 
-export const selectPolicies = (state) => state.policies.policies;
+export const selectPolicies = createSelector(
+  [(state) => state.policies],
+  (policies) => policies.policies
+);

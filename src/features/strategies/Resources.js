@@ -18,7 +18,7 @@ import { Label } from 'ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'ui/tabs';
 import { Separator } from 'ui/separator';
 import { useGetFocusAreaQuery } from '../focus_areas/focusAreaApiSlice';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { CustomOl, CustomLi } from 'components/custom-ol';
 import { useGetImplementerQuery } from '../implementers/implementersApiSlice';
 import useAuth from 'hooks/useAuth';
@@ -29,10 +29,10 @@ const Comments = ({ strategyId }) => {
   const params = {
     replies: 'true',
   };
-  const { data } = useGetStrategyCommentsQuery({
-    id: strategyId,
-    params,
-  });
+  const { data } = useGetStrategyCommentsQuery(
+    { id: strategyId, params },
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
   return (
     <>
       <p>Comments list...</p>

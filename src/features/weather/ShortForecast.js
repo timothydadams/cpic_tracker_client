@@ -19,10 +19,17 @@ import { useGetForecastByCoordsQuery } from './wxApiSlice.js';
 import { Dots } from 'components/Spinners.js';
 
 export const Forecast = ({ latitude, longitude, actions }, ...props) => {
-  const { data, isFetching, isLoading, error } = useGetForecastByCoordsQuery({
-    latitude,
-    longitude,
-  });
+  const { data, isFetching, isLoading, error } = useGetForecastByCoordsQuery(
+    { latitude, longitude },
+    {
+      selectFromResult: ({ data, isFetching, isLoading, error }) => ({
+        data,
+        isFetching,
+        isLoading,
+        error,
+      }),
+    }
+  );
 
   const [start, setStart] = useState(null);
   const [end, setEnd] = useState(null);

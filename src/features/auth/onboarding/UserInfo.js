@@ -35,9 +35,10 @@ export function UserInfo() {
 
   const userType = getValues('inviteDetails.roleType');
 
-  const { data: implementers, isLoading } = useGetAllImplementersQuery({
-    applyTransformation: true,
-  });
+  const { data: implementers, isLoading } = useGetAllImplementersQuery(
+    { applyTransformation: true },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
 
   return (
     implementers && (

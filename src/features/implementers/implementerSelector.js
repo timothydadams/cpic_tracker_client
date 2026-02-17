@@ -4,9 +4,10 @@ import { MultiSelect } from 'components/Multiselect';
 import { Skeleton } from 'ui/skeleton';
 
 export const ImplementerSelector = ({ fieldState, ...props }) => {
-  const { data: implementers, isLoading } = useGetAllImplementersQuery({
-    applyTransformation: true,
-  });
+  const { data: implementers, isLoading } = useGetAllImplementersQuery(
+    { applyTransformation: true },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
 
   if (isLoading || !implementers || !Array.isArray(implementers)) {
     return <Skeleton className='w-[100px] h-[30px]' />;

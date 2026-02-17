@@ -1,6 +1,5 @@
 import { api } from '../../app/api/apiSlice';
 import { convertNumericValuesToStringRecursive } from 'utils/helpers';
-import { setImplementers } from './implementersSlice';
 
 export const implementersApiSlice = api.injectEndpoints({
   endpoints: (builder) => ({
@@ -74,14 +73,7 @@ export const implementersApiSlice = api.injectEndpoints({
               { type: 'Implementer', id: 'LIST' },
             ]
           : [{ type: 'Implementer', id: 'LIST' }],
-      async onQueryStarted(arg, { dispatch, getState, queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          dispatch(setImplementers({ data }));
-        } catch (e) {
-          console.log(e);
-        }
-      },
+      keepUnusedDataFor: 600,
     }),
   }),
 });

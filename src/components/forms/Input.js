@@ -1,5 +1,6 @@
 import React, { Fragment, forwardRef } from 'react';
-import { get, has } from 'lodash';
+import get from 'lodash/get';
+import has from 'lodash/has';
 import { ErrorMessage } from '@hookform/error-message';
 import DOMPurify from 'dompurify';
 import {

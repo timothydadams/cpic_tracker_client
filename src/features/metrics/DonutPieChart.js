@@ -49,10 +49,12 @@ export function ChartPieDonutText({ title, data }) {
   const now = new Date();
 
   const totalStrategies = React.useMemo(() => {
+    if (!data) return 0;
     return data.reduce((acc, curr) => acc + curr.count, 0);
-  }, []);
+  }, [data]);
 
   const charData = React.useMemo(() => {
+    if (!data) return [];
     return data.map((item) => {
       const key = item.timeline.replace('-', '_').toLowerCase();
       return {
@@ -61,7 +63,7 @@ export function ChartPieDonutText({ title, data }) {
         fill: `var(--color-${key})`,
       };
     });
-  });
+  }, [data]);
 
   return (
     <Card className='flex flex-col'>

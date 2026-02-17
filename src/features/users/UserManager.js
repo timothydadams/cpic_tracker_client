@@ -1,14 +1,23 @@
 import React, { useReducer, useEffect, useState } from 'react';
 import { Text } from 'catalyst/text';
 import { Heading, Subheading } from 'catalyst/heading';
-import { Loading } from 'components/Spinners.js';
+import { Dots } from 'components/Spinners.js';
 import useAuth from 'hooks/useAuth.js';
 import { useGetAllUsersQuery } from './usersApiSlice.js';
 import { UserList } from './UserListTable.js';
 
 export const UserManager = () => {
   const { data, isLoading, isFetching, isSuccess, isError, error, refetch } =
-    useGetAllUsersQuery();
+    useGetAllUsersQuery(undefined, {
+      selectFromResult: ({
+        data,
+        isLoading,
+        isFetching,
+        isSuccess,
+        isError,
+        error,
+      }) => ({ data, isLoading, isFetching, isSuccess, isError, error }),
+    });
 
   return (
     <>
@@ -20,7 +29,7 @@ export const UserManager = () => {
       {isSuccess && data ? (
         <UserList users={data} refetchUsers={refetch} />
       ) : (
-        <Loading />
+        <Dots />
       )}
     </>
   );

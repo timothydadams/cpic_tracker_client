@@ -80,9 +80,16 @@ export const ManagePolicies = () => {
   const { isAdmin, isCPICAdmin } = user;
   const canEdit = isAdmin || isCPICAdmin;
 
-  const { data, isLoading, isSuccess } = useGetAllPoliciesQuery({
-    area: 'true',
-  });
+  const { data, isLoading, isSuccess } = useGetAllPoliciesQuery(
+    { area: 'true' },
+    {
+      selectFromResult: ({ data, isLoading, isSuccess }) => ({
+        data,
+        isLoading,
+        isSuccess,
+      }),
+    }
+  );
   const [deletePolicy, { isLoading: isDeleting }] = useDeletePolicyMutation();
 
   const [formOpen, setFormOpen] = useState(false);

@@ -25,7 +25,7 @@ import { DataTableColumnHeader } from 'components/datatable-column-header';
 
 import { useMediaQuery } from '@uidotdev/usehooks';
 
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 
 import { Skeleton } from 'ui/skeleton';
 
@@ -161,13 +161,17 @@ const allColumns = [
 
 const StrategyTableList = ({ policy }) => {
   const isSmallDevice = useMediaQuery('only screen and (max-width : 768px)');
-  const { data: strategies, isLoading } = useGetAllStrategiesQuery({
-    policy: policy.id,
-    include: 'implementers,implementers.implementer.cpic_smes,timeline,status',
-    orderBy: JSON.stringify({
-      strategy_number: 'asc',
-    }),
-  });
+  const { data: strategies, isLoading } = useGetAllStrategiesQuery(
+    {
+      policy: policy.id,
+      include:
+        'implementers,implementers.implementer.cpic_smes,timeline,status',
+      orderBy: JSON.stringify({
+        strategy_number: 'asc',
+      }),
+    },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
 
   if (isLoading || !strategies) {
     return <Skeleton className='w-[200px] h-[200px]' />;
@@ -207,7 +211,10 @@ const StrategyTableList = ({ policy }) => {
 };
 
 export const FocusAreaList = () => {
-  const { data, isLoading } = useGetAllFocusAreasQuery({ policies: 'true' });
+  const { data, isLoading } = useGetAllFocusAreasQuery(
+    { policies: 'true' },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
   const prefetch = api.usePrefetch('getAllStrategies');
 
   const handleMouseEnter = (policy_id) => {
@@ -222,7 +229,7 @@ export const FocusAreaList = () => {
   };
 
   if (isLoading) {
-    return <Loading />;
+    return <Dots />;
   }
 
   return (

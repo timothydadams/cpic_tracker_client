@@ -9,7 +9,7 @@ import {
 
 import { Checkbox, CheckboxField, CheckboxGroup } from 'catalyst/checkbox';
 import { enqueueSnackbar } from 'notistack';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 
 export const EditRolesForm = ({ user, availableRoles, refetchUsers }) => {
   const { id, email } = user;
@@ -21,6 +21,7 @@ export const EditRolesForm = ({ user, availableRoles, refetchUsers }) => {
     refetch,
   } = useGetUserRolesQuery(id, {
     skip: !id,
+    selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
   });
 
   const [addRole, { isSuccess: addSuccess }] = useAddRoleToUserMutation();
@@ -57,7 +58,7 @@ export const EditRolesForm = ({ user, availableRoles, refetchUsers }) => {
   };
 
   return rolesLoading ? (
-    <Loading />
+    <Dots />
   ) : (
     <>
       <Fieldset>

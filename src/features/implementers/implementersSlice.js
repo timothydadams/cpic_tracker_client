@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 const implementerSlice = createSlice({
   name: 'implementer',
@@ -20,4 +20,7 @@ export const { setImplementers, resetImplementers } = implementerSlice.actions;
 
 export default implementerSlice.reducer;
 
-export const selectImplementers = (state) => state.implementers.implementers;
+export const selectImplementers = createSelector(
+  [(state) => state.implementers],
+  (implementers) => implementers.implementers
+);

@@ -60,6 +60,7 @@ export const focusAreaApiSlice = api.injectEndpoints({
               { type: 'FocusArea', id: 'LIST' },
             ]
           : [{ type: 'FocusArea', id: 'LIST' }],
+      keepUnusedDataFor: 600,
     }),
   }),
 });

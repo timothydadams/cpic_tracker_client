@@ -17,7 +17,7 @@ import { Text } from 'catalyst/text.jsx';
 import { useGetMetarByCoordsQuery } from './wxApiSlice.js';
 
 import DetailsCard from './DetailsCard.js';
-import { Loading } from '../../components/Spinners.js';
+import { Dots } from '../../components/Spinners.js';
 
 const ConditionsDL = ({ listArray, isWarning = false, ...props }) => {
   return isWarning ? (
@@ -59,10 +59,16 @@ export const Airports = ({ coords, ...props }) => {
     { latitude, longitude },
     {
       pollingInterval: 1000 * 60 * 10,
+      selectFromResult: ({ data, isFetching, isLoading, isError }) => ({
+        data,
+        isFetching,
+        isLoading,
+        isError,
+      }),
     }
   );
 
-  if (APLoading) return <Loading />;
+  if (APLoading) return <Dots />;
 
   return airports && airports.length > 0 ? (
     <div className='w-full grid lg:grid-cols-3 max-md:grid-cols-1 lg:gap-x-2  gap-y-2 my-2'>

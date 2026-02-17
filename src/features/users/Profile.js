@@ -258,13 +258,15 @@ export const ProfileContainer = () => {
     { id: userId, params },
     {
       skip: !userId,
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
     }
   );
 
   const { data: implementers, isLoading: implementersLoading } =
-    useGetAllImplementersQuery({
-      applyTransformation: true,
-    });
+    useGetAllImplementersQuery(
+      { applyTransformation: true },
+      { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+    );
 
   if (isLoading || implementersLoading) {
     return <Skeleton className='' />;

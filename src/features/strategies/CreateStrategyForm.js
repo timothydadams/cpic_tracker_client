@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { enqueueSnackbar } from 'notistack';
@@ -57,11 +57,13 @@ export const CreateStrategyForm = ({ onSuccess, onCancel }) => {
     applyTransformation: true,
   });
 
-  const { data: focusAreas } = useGetAllFocusAreasQuery();
-  const { data: policies } = useGetAllPoliciesQuery({
-    area: 'true',
-    strategies: 'false',
+  const { data: focusAreas } = useGetAllFocusAreasQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
   });
+  const { data: policies } = useGetAllPoliciesQuery(
+    { area: 'true', strategies: 'false' },
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
 
   const form = useForm({
     mode: 'onBlur',
@@ -79,12 +81,11 @@ export const CreateStrategyForm = ({ onSuccess, onCancel }) => {
   const {
     control,
     handleSubmit,
-    watch,
     setValue,
     formState: { isValid, isDirty },
   } = form;
 
-  const selectedFocusAreaId = watch('focus_area_id');
+  const selectedFocusAreaId = useWatch({ control, name: 'focus_area_id' });
 
   const filteredPolicies = React.useMemo(() => {
     if (!policies || !selectedFocusAreaId) return [];

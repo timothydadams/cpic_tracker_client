@@ -28,7 +28,7 @@ import {
 } from 'ui/select';
 import { recursivelySanitizeObject } from 'utils/rhf_helpers';
 import { Separator } from 'ui/separator';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, useWatch, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import YupPassword from 'yup-password';
@@ -107,7 +107,9 @@ const ExistingCodeList = ({ codes }) => {
 };
 
 export const RoleSelector = ({ id, fieldState, ...props }) => {
-  const { data: roles, isLoading } = useGetRolesQuery();
+  const { data: roles, isLoading } = useGetRolesQuery(undefined, {
+    selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+  });
   const [filteredRoles, setFilteredRoles] = React.useState([]);
   const user = useAuth();
   const { isCPICAdmin, isCPICMember, isImplementer } = user;
@@ -208,7 +210,9 @@ const CopyUrlField = ({ invite }) => {
 };
 
 export const CreateCodeForm = ({}) => {
-  const { data: roles, isLoading } = useGetRolesQuery();
+  const { data: roles, isLoading } = useGetRolesQuery(undefined, {
+    selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+  });
   const [createCode, { isLoading: isLoadingCode }] = useCreateCodeMutation();
 
   const params = {
@@ -219,7 +223,10 @@ export const CreateCodeForm = ({}) => {
     data: myCodes,
     isLoading: codesLoading,
     refetch,
-  } = useGetMyCodesQuery({ params });
+  } = useGetMyCodesQuery(
+    { params },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
 
   const [mappedInviteCodes, setMappedCodes] = React.useState([]);
 
@@ -243,7 +250,6 @@ export const CreateCodeForm = ({}) => {
     handleSubmit,
     formState: { errors, isDirty, isValid },
     control,
-    watch,
   } = useForm({
     mode: 'all',
     resolver: yupResolver(schema),
@@ -269,7 +275,7 @@ export const CreateCodeForm = ({}) => {
     }
   };
 
-  const selectedRole = watch('roleId');
+  const selectedRole = useWatch({ control, name: 'roleId' });
   const selectedRoleName =
     selectedRole !== '' ? roles.find((r) => r.id === selectedRole)?.name : '';
 

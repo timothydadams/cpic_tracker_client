@@ -4,7 +4,7 @@ import {
   useGetStrategyTimelineMetricsQuery,
 } from './metricsApiSlice';
 import { Subheading } from 'catalyst/heading';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { ChartPieLabel } from './PieChartWithLabel';
 import { ChartPieDonutText } from './DonutPieChart';
 
@@ -29,19 +29,23 @@ const ResponsiveChartContainer = ({ children }) => (
 );
 
 export const StrategyBreakdown = () => {
-  const { data, isLoading } = useGetStrategyStatusMetricsQuery();
+  const { data, isLoading } = useGetStrategyStatusMetricsQuery(undefined, {
+    selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+  });
   const { data: tData, isLoading: tIsLoading } =
-    useGetStrategyTimelineMetricsQuery();
+    useGetStrategyTimelineMetricsQuery(undefined, {
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+    });
 
   return (
     <>
       <div className='grid gap-4 md:grid-cols-2'>
-        {isLoading ? (
+        {isLoading || !data ? (
           <SkeletonCard />
         ) : (
           <ChartPieLabel title='Strategies By Status' data={data} />
         )}
-        {tIsLoading ? (
+        {tIsLoading || !tData ? (
           <SkeletonCard />
         ) : (
           <ChartPieDonutText title='Strategies By Timeline' data={tData} />

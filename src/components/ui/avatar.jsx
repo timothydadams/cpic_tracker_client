@@ -18,6 +18,7 @@ Avatar.displayName = AvatarPrimitive.Root.displayName;
 const AvatarImage = React.forwardRef(({ className, ...props }, ref) => (
   <AvatarPrimitive.Image
     ref={ref}
+    loading='lazy'
     className={cn('aspect-square h-full w-full', className)}
     {...props}
   />

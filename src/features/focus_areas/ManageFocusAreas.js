@@ -76,9 +76,16 @@ export const ManageFocusAreas = () => {
   const user = useAuth();
   const { isAdmin } = user;
 
-  const { data, isLoading, isSuccess } = useGetAllFocusAreasQuery({
-    policies: 'true',
-  });
+  const { data, isLoading, isSuccess } = useGetAllFocusAreasQuery(
+    { policies: 'true' },
+    {
+      selectFromResult: ({ data, isLoading, isSuccess }) => ({
+        data,
+        isLoading,
+        isSuccess,
+      }),
+    }
+  );
   const [deleteFocusArea, { isLoading: isDeleting }] =
     useDeleteFocusAreaMutation();
 

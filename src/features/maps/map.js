@@ -1,5 +1,12 @@
-import React, { useRef, useEffect, useState, useReducer } from 'react';
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  useReducer,
+  useCallback,
+} from 'react';
 import mapboxgl from '!mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+import debounce from 'lodash.debounce';
 import { Text } from 'catalyst/text.jsx';
 import { Button } from 'catalyst/button.jsx';
 import { stateReducer } from 'utils/helpers.js';
@@ -42,40 +49,40 @@ export const Map = ({
       })
     );
 
-    const marker = new mapboxgl.Marker({
+    const mapMarker = new mapboxgl.Marker({
       draggable: true,
     })
       .setLngLat([lng, lat])
       .addTo(map.current);
 
-    marker.on('dragend', onDragEnd);
-
-    map.current.on('move', () => {
-      setLng(map.current.getCenter().lng.toFixed(4));
-      setLat(map.current.getCenter().lat.toFixed(4));
-      setZoom(map.current.getZoom().toFixed(2));
-    });
-
     function onDragEnd() {
-      const { lng, lat } = marker.getLngLat();
+      const { lng, lat } = mapMarker.getLngLat();
       updateMarker({ latitude: lat, longitude: lng });
-      // move map to where the marker is dragged
       map.current.flyTo({
         center: [lng, lat],
-        essential: false, // this animation is considered essential with respect to prefers-reduced-motion
+        essential: false,
       });
     }
 
+    mapMarker.on('dragend', onDragEnd);
+
+    const handleMove = debounce(() => {
+      if (!map.current) return;
+      setLng(map.current.getCenter().lng.toFixed(4));
+      setLat(map.current.getCenter().lat.toFixed(4));
+      setZoom(map.current.getZoom().toFixed(2));
+    }, 100);
+
+    map.current.on('move', handleMove);
+
     map.current.on('load', () => {
-      // Add a data source containing GeoJSON data.
       if (sourceLocations) {
         map.current.addSource('points', sourceLocations);
 
-        // Add a new layer to visualize the polygon.
         map.current.addLayer({
           id: 'points',
           type: 'circle',
-          source: 'points', // reference the data source
+          source: 'points',
           paint: {
             'circle-radius': 4,
             'circle-stroke-width': 2,
@@ -85,7 +92,16 @@ export const Map = ({
         });
       }
     });
-  });
+
+    return () => {
+      handleMove.cancel();
+      map.current.off('move', handleMove);
+      mapMarker.off('dragend', onDragEnd);
+      mapMarker.remove();
+      map.current.remove();
+      map.current = null;
+    };
+  }, []);
 
   useEffect(() => {
     if (map.current && latitude && longitude) {

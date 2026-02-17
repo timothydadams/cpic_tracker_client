@@ -69,7 +69,11 @@ import {
 } from './strategiesApiSlice';
 import { sanitizeString } from 'utils/rhf_helpers';
 
-function StrategyCardMenu({ onEditClick, onAddNoteClick, canEdit }) {
+const StrategyCardMenu = React.memo(function StrategyCardMenu({
+  onEditClick,
+  onAddNoteClick,
+  canEdit,
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -96,7 +100,7 @@ function StrategyCardMenu({ onEditClick, onAddNoteClick, canEdit }) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
 
 function StrategyEditSheet({ strategy, open, onOpenChange }) {
   useEffect(() => {
@@ -132,7 +136,12 @@ function StrategyEditSheet({ strategy, open, onOpenChange }) {
   );
 }
 
-function InlineNoteInput({ strategyId, parentId, onClose, onSuccess }) {
+const InlineNoteInput = React.memo(function InlineNoteInput({
+  strategyId,
+  parentId,
+  onClose,
+  onSuccess,
+}) {
   const { id: userId } = useAuth();
   const [contents, setContents] = React.useState('');
   const [message, setMessage] = React.useState(null);
@@ -210,9 +219,9 @@ function InlineNoteInput({ strategyId, parentId, onClose, onSuccess }) {
       </InputGroup>
     </div>
   );
-}
+});
 
-function CommentEntry({
+const CommentEntry = React.memo(function CommentEntry({
   comment,
   strategyId,
   currentUser,
@@ -368,7 +377,7 @@ function CommentEntry({
       )}
     </div>
   );
-}
+});
 
 function CommentsDialog({ strategyId, triggerButton }) {
   const user = useAuth();
@@ -383,7 +392,14 @@ function CommentsDialog({ strategyId, triggerButton }) {
     refetch,
   } = useGetStrategyCommentsQuery(
     { id: strategyId, params: { replies: 'true', user: 'true' } },
-    { skip: !open }
+    {
+      skip: !open,
+      selectFromResult: ({ data, isLoading, isError }) => ({
+        data,
+        isLoading,
+        isError,
+      }),
+    }
   );
 
   const handleReplySuccess = () => {
@@ -456,7 +472,15 @@ function ActivityDialog({ strategyId, triggerButton }) {
     error,
   } = useGetStrategyActivitiesQuery(
     { id: strategyId, params: { take: 50 } },
-    { skip: !open || isGuest }
+    {
+      skip: !open || isGuest,
+      selectFromResult: ({ data, isLoading, isError, error }) => ({
+        data,
+        isLoading,
+        isError,
+        error,
+      }),
+    }
   );
 
   const isUnauthorized =
@@ -521,12 +545,12 @@ function ActivityDialog({ strategyId, triggerButton }) {
   );
 }
 
-export const StrategyCard = ({
+export const StrategyCard = React.memo(function StrategyCard({
   strategy,
   implementerDetails = {},
   mockRole = null,
   showFocusAreaAndPolicyDetails = true,
-}) => {
+}) {
   const user = useAuth();
   const showMenu = user?.status !== 'Guest';
   const canEdit =
@@ -668,4 +692,4 @@ export const StrategyCard = ({
       />
     </Card>
   );
-};
+});

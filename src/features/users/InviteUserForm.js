@@ -32,7 +32,9 @@ const addLabelValue = (item, labelKey, valueKey) => {
 };
 
 export const RoleSelector = ({ id, fieldState, ...props }) => {
-  const { data: roles, isLoading } = useGetRolesQuery();
+  const { data: roles, isLoading } = useGetRolesQuery(undefined, {
+    selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+  });
 
   if (isLoading || !roles) {
     return <Skeleton className='w-full h-[50px]' />;

@@ -13,6 +13,14 @@ React frontend client for CPIC Tracker — an MVP for tracking a town's comprehe
 - `npm run build-prod` — Production build (minified, tree-shaken)
 - No test framework is configured yet
 
+**Important: NODE_ENV** — The shell environment has `NODE_ENV=production` set globally. This causes `npm install` and `npm uninstall` to skip devDependencies (which includes webpack, babel, etc.). Always prefix npm commands with `NODE_ENV=development`:
+
+```bash
+NODE_ENV=development npm install <package> --save-dev
+NODE_ENV=development npm uninstall <package>
+NODE_ENV=development npm install   # restore all deps
+```
+
 ## Commit Conventions
 
 Husky pre-commit runs Prettier via lint-staged on all staged files. Commits are validated by commitlint with conventional commit format (`feat:`, `fix:`, `refactor:`, `chore:`, etc.).
@@ -21,11 +29,11 @@ Husky pre-commit runs Prettier via lint-staged on all staged files. Commits are 
 
 **Stack:** React 18 (JSX, no TypeScript) + Webpack 5 + Babel + Tailwind CSS 4
 
-**State management:** Redux Toolkit with RTK Query. The store (`src/app/store.js`) has slices for `auth`, `strategy`, `user`, `implementers`, plus the RTK Query `api` reducer.
+**State management:** Redux Toolkit with RTK Query. The store (`src/app/store.js`) has slices for `auth`, `strategy`, `user`, `implementers`, plus the RTK Query `api` reducer. Selectors use `createSelector` for memoization. RTK Query endpoints use `keepUnusedDataFor` to retain cached data (3600s for static lookups like statuses/timeline options, 600s for entity lists).
 
 **Feature module pattern:** Each feature in `src/features/` has:
 
-- `*Slice.js` — Redux state slice (local state, selectors, actions)
+- `*Slice.js` — Redux state slice (local state, memoized selectors via `createSelector`, actions)
 - `*ApiSlice.js` — RTK Query endpoint definitions injected into the base API (`src/app/api/apiSlice.js`)
 - Component files — UI for that feature
 
@@ -33,7 +41,7 @@ Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `
 
 **API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`.
 
-**Routing:** React Router v6 with nested routes in `src/Routes.js`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages).
+**Routing:** React Router v6 with nested routes in `src/Routes.js`. All route components are lazy-loaded via `React.lazy()` with a shared `PageLoader` Suspense fallback. Since components use named exports, the lazy imports use `.then(m => ({ default: m.NamedExport }))`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages).
 
 **Roles:** Guest, Viewer, Implementer, CPIC Member, CPIC Admin, Admin. Role checks happen in `ProtectRoute` with an `allowedRoles` prop.
 
@@ -46,6 +54,20 @@ Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `
 - `src/components/ui/` — Radix UI primitives (shadcn-style)
 - `src/components/catalyst/` — Higher-level design system components
 - `src/components/` — App-specific shared components (DataTable, Multiselect, layout)
+
+**Loading indicators** (`src/components/Spinners.js`):
+
+- `Dots` — Pulsing dots animation, used for data-loading states (API fetches, list loading)
+- `Spinner` — Loader2Icon spinner, used inside buttons for form submission states
+- `PageLoader` — Defined in `Routes.js`, used as the `Suspense` fallback for lazy-loaded routes
+
+**Performance patterns:**
+
+- Route-level code splitting via `React.lazy()` + `Suspense` in `Routes.js`
+- Webpack `splitChunks` separates vendor and common chunks in production builds
+- `React.memo` on list-rendered components (e.g., `StrategyCard`, `StrategyCardMenu`, `CommentEntry`)
+- `HybridTooltipProvider` wraps at the table level, not per-cell, to avoid provider proliferation
+- `selectFromResult` on all RTK Query hooks to limit re-renders to only the destructured fields (prevents re-renders from internal metadata changes)
 
 ## Path Aliases
 

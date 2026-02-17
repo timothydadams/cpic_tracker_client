@@ -107,7 +107,16 @@ export function UserList({ users, refetchUsers }) {
     isSuccess,
     isError,
     error,
-  } = useGetRolesQuery();
+  } = useGetRolesQuery(undefined, {
+    selectFromResult: ({
+      data,
+      isLoading,
+      isFetching,
+      isSuccess,
+      isError,
+      error,
+    }) => ({ data, isLoading, isFetching, isSuccess, isError, error }),
+  });
 
   return (
     users &&

@@ -56,6 +56,7 @@ export const policyApiSlice = api.injectEndpoints({
               { type: 'Policy', id: 'LIST' },
             ]
           : [{ type: 'Policy', id: 'LIST' }],
+      keepUnusedDataFor: 600,
     }),
   }),
 });

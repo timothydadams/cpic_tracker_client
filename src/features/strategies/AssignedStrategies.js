@@ -95,7 +95,9 @@ const BoardMemberView = ({ data }) => {
 
 export const AssignedStrategies = () => {
   const { data: { execute, monitor } = {}, isLoading } =
-    useGetMyStrategiesQuery();
+    useGetMyStrategiesQuery(undefined, {
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+    });
 
   if (isLoading || !execute || !monitor) {
     return <Skeleton className='w-full h-[100px]' />;

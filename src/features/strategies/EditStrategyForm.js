@@ -65,7 +65,9 @@ const addLabelValue = (item, labelKey, valueKey) => {
 };
 
 export const TimelineSelector = ({ id, fieldState, ...props }) => {
-  const { data: timelineOptions } = useGetAllTimelineOptionsQuery();
+  const { data: timelineOptions } = useGetAllTimelineOptionsQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
 
   return (
     timelineOptions && (
@@ -92,7 +94,9 @@ export const TimelineSelector = ({ id, fieldState, ...props }) => {
 };
 
 export const StatusSelector = ({ id, fieldState, ...props }) => {
-  const { data: statusOptions } = useGetAllStatusesQuery();
+  const { data: statusOptions } = useGetAllStatusesQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
 
   return (
     statusOptions && (
@@ -186,10 +190,10 @@ export const StrategyForm = ({ strategyId }) => {
   const strategyRefId = strategyId ? strategyId : id ? id : null;
 
   const { data: implementerList, isLoading: isLoading_imps } =
-    useGetAllImplementersQuery({
-      params: { cpic_smes: 'true' },
-      applyTransformation: true,
-    });
+    useGetAllImplementersQuery(
+      { params: { cpic_smes: 'true' }, applyTransformation: true },
+      { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+    );
 
   const strategyParams = {
     timeline: 'true',
@@ -210,6 +214,11 @@ export const StrategyForm = ({ strategyId }) => {
     },
     {
       skip: !strategyRefId,
+      selectFromResult: ({ data, isLoading, isSuccess }) => ({
+        data,
+        isLoading,
+        isSuccess,
+      }),
     }
   );
 
@@ -264,12 +273,11 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
     getValues,
     setValue,
     control,
-    watch,
     getFieldState,
     formState: { dirtyFields },
   } = form;
 
-  const selectedImplementers = watch('implementers');
+  const selectedImplementers = useWatch({ control, name: 'implementers' });
 
   React.useEffect(() => {
     const current_primary = getValues('primary_implementer');

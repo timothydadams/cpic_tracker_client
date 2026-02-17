@@ -247,11 +247,21 @@ const defaultData = [
 ];
 
 export const StrategyList = () => {
-  const { data: strategies, isSuccess } = useGetAllStrategiesQuery();
-  const { data: statusOptions } = useGetAllStatusesQuery();
-  const { data: timelineOptions } = useGetAllTimelineOptionsQuery();
-  const { data: policies } = useGetAllPoliciesQuery();
-  const { data: focusareas } = useGetAllFocusAreasQuery();
+  const { data: strategies, isSuccess } = useGetAllStrategiesQuery(undefined, {
+    selectFromResult: ({ data, isSuccess }) => ({ data, isSuccess }),
+  });
+  const { data: statusOptions } = useGetAllStatusesQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
+  const { data: timelineOptions } = useGetAllTimelineOptionsQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
+  const { data: policies } = useGetAllPoliciesQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
+  const { data: focusareas } = useGetAllFocusAreasQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
 
   return (
     strategies &&

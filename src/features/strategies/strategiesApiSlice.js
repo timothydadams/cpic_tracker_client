@@ -112,12 +112,14 @@ export const strategyApiSlice = api.injectEndpoints({
       transformResponse: (response, meta, arg) => {
         return response.data.map(convertNumericValuesToStringRecursive);
       },
+      keepUnusedDataFor: 3600,
     }),
     getAllTimelineOptions: builder.query({
       query: () => `/strategies/timeline_options`,
       transformResponse: (response, meta, arg) => {
         return response.data.map(convertNumericValuesToStringRecursive);
       },
+      keepUnusedDataFor: 3600,
     }),
     /*
     getAllPolicies: builder.query({

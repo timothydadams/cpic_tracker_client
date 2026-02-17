@@ -21,6 +21,7 @@ module.exports = (env, argv) => {
       path: path.resolve(__dirname, 'dist'),
       publicPath: '/',
       filename: 'js/[name].[contenthash].bundle.js',
+      chunkFilename: 'js/[name].[contenthash].chunk.js',
     },
 
     // Determine how modules within the project are treated
@@ -155,6 +156,22 @@ module.exports = (env, argv) => {
         minimizer: [new TerserPlugin()],
         runtimeChunk: {
           name: 'runtime',
+        },
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              minChunks: 2,
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+          },
         },
       },
       performance: {

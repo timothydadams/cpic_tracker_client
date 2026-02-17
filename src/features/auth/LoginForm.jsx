@@ -19,7 +19,7 @@ import {
 } from './authApiSlice';
 import usePersist from 'hooks/usePersist';
 //form support
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 //import useAuth from 'hooks/useAuth.js';
@@ -116,21 +116,21 @@ export function LoginForm({ className, ...props }) {
 
   const {
     register,
-    watch,
     handleSubmit,
     setValue,
+    control,
     formState: { errors, isDirty, isValid },
   } = useForm({
     mode: 'all',
     resolver: yupResolver(schema),
   });
 
-  const emailValue = watch('email');
+  const emailValue = useWatch({ control, name: 'email' });
 
   useEffect(() => {
     setPasskey((prev) => null);
     setSocialLogins((prev) => []);
-  }, [emailValue, watch]);
+  }, [emailValue]);
 
   const togglePersist = () => {
     setPersist((prev) => (prev === 'SHORT' ? 'LONG' : 'SHORT'));

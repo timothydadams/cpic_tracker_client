@@ -42,7 +42,7 @@ import { useGetAllFocusAreasQuery } from '../focus_areas/focusAreaApiSlice';
 
 import { DataTableColumnHeader } from 'components/datatable-column-header';
 import { DataTableRowActions } from 'components/datatable-row-actions';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { Modal } from 'components/Modal';
 import { useSelector } from 'react-redux';
 import { selectMemoizedUser } from '../auth/authSlice';
@@ -67,14 +67,12 @@ export const TruncatedCellWithToolTip = ({ cell }) => {
   const cellVal = cell.getValue();
   const shortText = `${cellVal.substring(0, 22)}...`;
   return (
-    <HybridTooltipProvider>
-      <HybridTooltip>
-        <HybridTooltipTrigger>{shortText}</HybridTooltipTrigger>
-        <HybridTooltipContent>
-          <p>{cellVal}</p>
-        </HybridTooltipContent>
-      </HybridTooltip>
-    </HybridTooltipProvider>
+    <HybridTooltip>
+      <HybridTooltipTrigger>{shortText}</HybridTooltipTrigger>
+      <HybridTooltipContent>
+        <p>{cellVal}</p>
+      </HybridTooltipContent>
+    </HybridTooltip>
   );
 };
 
@@ -92,16 +90,14 @@ export const StatusBadge = ({ cell }) => {
   }
   return (
     <div className='items-center text-center gap-2'>
-      <HybridTooltipProvider>
-        <HybridTooltip>
-          <HybridTooltipTrigger>
-            <Icon className='text-muted-foreground size-4' />
-          </HybridTooltipTrigger>
-          <HybridTooltipContent>
-            <p>{status}</p>
-          </HybridTooltipContent>
-        </HybridTooltip>
-      </HybridTooltipProvider>
+      <HybridTooltip>
+        <HybridTooltipTrigger>
+          <Icon className='text-muted-foreground size-4' />
+        </HybridTooltipTrigger>
+        <HybridTooltipContent>
+          <p>{status}</p>
+        </HybridTooltipContent>
+      </HybridTooltip>
       {/* <Icon className="text-muted-foreground size-4" /> 
       <Tooltip>
         <TooltipTrigger>
@@ -372,13 +368,19 @@ export const StrategyTableList = ({ strategies, title }) => {
     );
   }, [roles]);
 
-  const { data: statusOptions } = useGetAllStatusesQuery();
-  const { data: timelineOptions } = useGetAllTimelineOptionsQuery();
-  const { data: policies } = useGetAllPoliciesQuery({
-    area: 'true',
-    strategies: 'false',
+  const { data: statusOptions } = useGetAllStatusesQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
   });
-  const { data: focusareas } = useGetAllFocusAreasQuery();
+  const { data: timelineOptions } = useGetAllTimelineOptionsQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
+  const { data: policies } = useGetAllPoliciesQuery(
+    { area: 'true', strategies: 'false' },
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
+  const { data: focusareas } = useGetAllFocusAreasQuery(undefined, {
+    selectFromResult: ({ data }) => ({ data }),
+  });
   const [isLoading, setIsLoading] = React.useState(true);
   React.useEffect(() => {
     if (
@@ -403,9 +405,9 @@ export const StrategyTableList = ({ strategies, title }) => {
   };
 
   return isLoading ? (
-    <Loading />
+    <Dots />
   ) : (
-    <>
+    <HybridTooltipProvider>
       {title && <Heading>{title}</Heading>}
       <div className='container mx-auto py-10'>
         <DataTable
@@ -455,22 +457,25 @@ export const StrategyTableList = ({ strategies, title }) => {
           ]}
         />
       </div>
-    </>
+    </HybridTooltipProvider>
   );
 };
 
 export const FullStrategyList = () => {
-  const { data: strategies, isLoading } = useGetAllStrategiesQuery({
-    include:
-      'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
-  });
+  const { data: strategies, isLoading } = useGetAllStrategiesQuery(
+    {
+      include:
+        'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
+    },
+    { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+  );
 
   const user = useSelector(selectMemoizedUser);
   const canCreate = user?.isAdmin || user?.isCPICAdmin;
   const [formOpen, setFormOpen] = React.useState(false);
 
   return isLoading ? (
-    <Loading />
+    <Dots />
   ) : (
     <>
       <div className='flex items-center justify-between'>

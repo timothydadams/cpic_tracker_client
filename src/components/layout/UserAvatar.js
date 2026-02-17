@@ -15,7 +15,9 @@ export const UserAvatar = ({ user, ...props }) => {
       <Avatar key={profile_pic || 'default-avatar-key'} {...props}>
         <AvatarImage
           src={profile_pic}
+          alt={`${given_name} ${family_name}`}
           referrerPolicy='no-referrer'
+          loading='lazy'
           onError={(e) => console.log(e)}
         />
         <AvatarFallback>{`${given_name[0]}${family_name[0]}`}</AvatarFallback>

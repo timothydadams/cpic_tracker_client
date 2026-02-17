@@ -63,13 +63,15 @@ export const PolicyCard = ({
             </DropdownMenu>
           </div>
         )}
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center justify-between'>
+          {area && (
+            <span className='text-sm text-muted-foreground'>{area.name}</span>
+          )}
           <Badge variant='outline' className='text-sm font-mono'>
             #{policy_number}
           </Badge>
         </div>
         <CardTitle className='text-base line-clamp-2'>{description}</CardTitle>
-        {area && <CardDescription>{area.name}</CardDescription>}
       </CardHeader>
     </Card>
   );

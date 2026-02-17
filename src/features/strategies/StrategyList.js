@@ -47,6 +47,9 @@ import { Modal } from 'components/Modal';
 import { useSelector } from 'react-redux';
 import { selectMemoizedUser } from '../auth/authSlice';
 import { selectStatuses } from './strategiesSlice';
+import { CreateStrategyForm } from './CreateStrategyForm';
+import { ResponsiveFormModal } from 'components/ResponsiveFormModal';
+import { Plus } from 'lucide-react';
 //import { StrategyForm } from './EditStrategyForm';
 
 /*
@@ -462,9 +465,38 @@ export const FullStrategyList = () => {
       'policy,focus_area,implementers,implementers.implementer.cpic_smes,timeline,status',
   });
 
+  const user = useSelector(selectMemoizedUser);
+  const canCreate = user?.isAdmin || user?.isCPICAdmin;
+  const [formOpen, setFormOpen] = React.useState(false);
+
   return isLoading ? (
     <Loading />
   ) : (
-    <StrategyTableList strategies={strategies} title='Explore All Strategies' />
+    <>
+      <div className='flex items-center justify-between'>
+        <Heading>Explore All Strategies</Heading>
+        {canCreate && (
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className='h-4 w-4 mr-2' />
+            Create Strategy
+          </Button>
+        )}
+      </div>
+      <StrategyTableList strategies={strategies} />
+
+      <ResponsiveFormModal
+        open={formOpen}
+        onOpenChange={(open) => {
+          if (!open) setFormOpen(false);
+        }}
+        title='Create Strategy'
+        description='Add a new strategy to the comprehensive plan'
+      >
+        <CreateStrategyForm
+          onSuccess={() => setFormOpen(false)}
+          onCancel={() => setFormOpen(false)}
+        />
+      </ResponsiveFormModal>
+    </>
   );
 };

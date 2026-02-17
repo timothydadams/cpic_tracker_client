@@ -15,10 +15,22 @@ import { ConfirmDeleteDialog } from 'components/ConfirmDeleteDialog';
 import { ResponsiveFormModal } from 'components/ResponsiveFormModal';
 import { Button } from 'ui/button';
 import { Skeleton } from 'ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from 'ui/select';
 
 const columnHelper = createColumnHelper();
 
 const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
+  columnHelper.accessor((row) => row.area?.name ?? '', {
+    id: 'focus_area',
+    header: () => 'Focus Area',
+    cell: ({ getValue }) => getValue() || '-',
+  }),
   columnHelper.accessor('policy_number', {
     header: () => '#',
     cell: ({ getValue }) => (
@@ -30,12 +42,6 @@ const getColumns = ({ onEdit, onDelete, isAdmin, isCPICAdmin }) => [
     cell: ({ getValue }) => (
       <span className='line-clamp-2 max-w-[400px]'>{getValue()}</span>
     ),
-  }),
-  columnHelper.display({
-    id: 'focus_area',
-    header: () => 'Focus Area',
-    cell: ({ row }) => row.original.area?.name ?? '-',
-    accessorFn: (row) => row.area?.name ?? '',
   }),
   columnHelper.display({
     id: 'actions',
@@ -82,6 +88,33 @@ export const ManagePolicies = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [focusAreaFilter, setFocusAreaFilter] = useState('all');
+
+  const focusAreaOptions = React.useMemo(() => {
+    if (!data) return [];
+    const unique = new Map();
+    data.forEach((p) => {
+      if (p.area && !unique.has(p.area.id)) {
+        unique.set(p.area.id, p.area.name);
+      }
+    });
+    return [...unique.entries()]
+      .map(([id, name]) => ({ id: String(id), name }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
+
+  const filteredData = React.useMemo(() => {
+    if (!data) return [];
+    const filtered =
+      focusAreaFilter === 'all'
+        ? data
+        : data.filter((p) => String(p.area?.id) === focusAreaFilter);
+    return [...filtered].sort(
+      (a, b) =>
+        (a.area?.name ?? '').localeCompare(b.area?.name ?? '') ||
+        a.policy_number - b.policy_number
+    );
+  }, [data, focusAreaFilter]);
 
   const handleEdit = (item) => {
     setEditingItem(item);
@@ -137,9 +170,23 @@ export const ManagePolicies = () => {
 
       {isSuccess && data && (
         <>
+          <Select value={focusAreaFilter} onValueChange={setFocusAreaFilter}>
+            <SelectTrigger className='w-full sm:w-[250px]'>
+              <SelectValue placeholder='Filter by focus area' />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='all'>All Focus Areas</SelectItem>
+              {focusAreaOptions.map((fa) => (
+                <SelectItem key={fa.id} value={fa.id}>
+                  {fa.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           {isSmallDevice ? (
             <div className='grid grid-cols-1 gap-4'>
-              {data.map((policy) => (
+              {filteredData.map((policy) => (
                 <PolicyCard
                   key={policy.id}
                   policy={policy}
@@ -152,14 +199,17 @@ export const ManagePolicies = () => {
             </div>
           ) : (
             <DataTable
-              data={data}
+              data={filteredData}
               columns={columns}
               columnSearch={{
                 id: 'description',
                 placeholder: 'Search policies...',
               }}
               initialState={{
-                sorting: [{ id: 'policy_number', desc: false }],
+                sorting: [
+                  { id: 'focus_area', desc: false },
+                  { id: 'policy_number', desc: false },
+                ],
               }}
             />
           )}

@@ -19,7 +19,7 @@ import { Label } from 'ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from 'ui/tabs';
 import { Separator } from 'ui/separator';
 import { useGetFocusAreaQuery } from '../focus_areas/focusAreaApiSlice';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { CustomOl, CustomLi } from 'components/custom-ol';
 import { useGetImplementerQuery } from '../implementers/implementersApiSlice';
 import { useGetStrategyCommentsQuery } from './strategiesApiSlice';
@@ -61,10 +61,10 @@ const Comments = ({ strategyId }) => {
   const params = {
     replies: 'true',
   };
-  const { data: comments, refetch } = useGetStrategyCommentsQuery({
-    id: strategyId,
-    params,
-  });
+  const { data: comments, refetch } = useGetStrategyCommentsQuery(
+    { id: strategyId, params },
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
 
   return (
     comments && (
@@ -144,13 +144,16 @@ export const PolicyOverview = ({ policy }) => {
         policies: 'true',
       },
     },
-    { skip: !policy.area.id }
+    {
+      skip: !policy.area.id,
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+    }
   );
 
   const matchClasses = 'text-green-700 font-bold';
 
   return isLoading ? (
-    <Loading />
+    <Dots />
   ) : focus_area ? (
     <Card>
       <CardHeader>
@@ -237,6 +240,7 @@ export const ViewStrategy = () => {
     },
     {
       skip: !id,
+      selectFromResult: ({ data }) => ({ data }),
     }
   );
 

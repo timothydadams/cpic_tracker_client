@@ -38,7 +38,9 @@ export const PolicyForm = ({ policy = null, onSuccess, onCancel }) => {
   const isEdit = Boolean(policy);
 
   const { data: focusAreas, isLoading: loadingFocusAreas } =
-    useGetAllFocusAreasQuery();
+    useGetAllFocusAreasQuery(undefined, {
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+    });
 
   const [createPolicy, { isLoading: isCreating }] = useCreatePolicyMutation();
   const [updatePolicy, { isLoading: isUpdating }] = useUpdatePolicyMutation();

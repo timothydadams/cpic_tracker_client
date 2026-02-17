@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 const focusAreaSlice = createSlice({
   name: 'focusArea',
@@ -19,4 +19,7 @@ export const { setFocusAreas, resetFocusAreas } = focusAreaSlice.actions;
 
 export default focusAreaSlice.reducer;
 
-export const selectFocusAreas = (state) => state.focusAreas.focusAreas;
+export const selectFocusAreas = createSelector(
+  [(state) => state.focusAreas],
+  (focusAreas) => focusAreas.focusAreas
+);

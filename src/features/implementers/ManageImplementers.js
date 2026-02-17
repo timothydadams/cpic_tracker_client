@@ -104,9 +104,16 @@ export const ManageImplementers = () => {
   const { isAdmin, isCPICAdmin } = user;
   const canEdit = isAdmin || isCPICAdmin;
 
-  const { data, isLoading, isSuccess } = useGetAllImplementersQuery({
-    params: {},
-  });
+  const { data, isLoading, isSuccess } = useGetAllImplementersQuery(
+    { params: {} },
+    {
+      selectFromResult: ({ data, isLoading, isSuccess }) => ({
+        data,
+        isLoading,
+        isSuccess,
+      }),
+    }
+  );
   const [deleteImplementer, { isLoading: isDeleting }] =
     useDeleteImplementerMutation();
 

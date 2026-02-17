@@ -15,7 +15,7 @@ const inviteSlice = createSlice({
   },
 });
 
-export const { setFocusAreas, resetFocusAreas } = inviteSlice.actions;
+export const { setInvites, resetInvites } = inviteSlice.actions;
 
 export default inviteSlice.reducer;
 

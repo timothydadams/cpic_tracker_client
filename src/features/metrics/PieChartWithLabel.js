@@ -47,6 +47,7 @@ export function ChartPieLabel({ data, title }) {
   const now = new Date();
 
   const chartData = React.useMemo(() => {
+    if (!data) return [];
     return data.map((item) => {
       const key = item.status.replace(' ', '_').toLowerCase();
       return {
@@ -55,7 +56,7 @@ export function ChartPieLabel({ data, title }) {
         fill: `var(--color-${key})`,
       };
     });
-  });
+  }, [data]);
 
   return (
     <Card className='flex flex-col'>

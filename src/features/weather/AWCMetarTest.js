@@ -18,10 +18,17 @@ const {
     'KU00'
   )
 */
-  const { data, isFetching, isLoading, isError } = useGetMetarByCoordsQuery({
-    latitude,
-    longitude,
-  });
+  const { data, isFetching, isLoading, isError } = useGetMetarByCoordsQuery(
+    { latitude, longitude },
+    {
+      selectFromResult: ({ data, isFetching, isLoading, isError }) => ({
+        data,
+        isFetching,
+        isLoading,
+        isError,
+      }),
+    }
+  );
 
   if (isLoading) return <Text>Loading...</Text>;
   if (!data || data.length === 0 || isError)

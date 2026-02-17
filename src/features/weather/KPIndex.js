@@ -16,7 +16,7 @@ import { Heading, Subheading } from 'catalyst/heading.jsx';
 import { Text } from 'catalyst/text.jsx';
 import { stateReducer, genDT, genDTFromISOWithDate } from 'utils/helpers';
 import { useGetKPIndexQuery } from './wxApiSlice';
-import { Loading, Dots } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { DateTime } from 'luxon';
 import { Badge, Tile } from 'catalyst/badge';
 import { genHoursFromISO } from 'utils/helpers';
@@ -56,7 +56,17 @@ const TimeDisplay = ({ startTime }) => {
 };
 
 export const KPIndex = () => {
-  const { data, isFetching, isLoading, isError } = useGetKPIndexQuery();
+  const { data, isFetching, isLoading, isError } = useGetKPIndexQuery(
+    undefined,
+    {
+      selectFromResult: ({ data, isFetching, isLoading, isError }) => ({
+        data,
+        isFetching,
+        isLoading,
+        isError,
+      }),
+    }
+  );
 
   const [stormCat, setCat] = useState(null);
 

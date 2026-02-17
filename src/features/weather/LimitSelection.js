@@ -32,7 +32,6 @@ export const WeatherLimitController = (props) => {
     handleSubmit,
     setValue,
     reset,
-    watch,
     formState: { errors, isDirty, isValid },
   } = useForm({
     mode: 'all',

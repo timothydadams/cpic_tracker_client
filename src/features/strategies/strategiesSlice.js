@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 import { strategyApiSlice } from './strategiesApiSlice';
 
 const strategySlice = createSlice({
@@ -58,7 +58,17 @@ export const {
 
 export default strategySlice.reducer;
 
-export const selectStatuses = (state) => state.strategy.statuses;
-export const selectTimelineOpts = (state) => state.strategy.timelineOptions;
-export const selectAssignedStrategies = (state) =>
-  state.strategy.assignedStrategies;
+const selectStrategyState = (state) => state.strategy;
+
+export const selectStatuses = createSelector(
+  [selectStrategyState],
+  (strategy) => strategy.statuses
+);
+export const selectTimelineOpts = createSelector(
+  [selectStrategyState],
+  (strategy) => strategy.timelineOptions
+);
+export const selectAssignedStrategies = createSelector(
+  [selectStrategyState],
+  (strategy) => strategy.assignedStrategies
+);

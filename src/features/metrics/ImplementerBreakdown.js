@@ -4,19 +4,27 @@ import {
   useGetStrategyStatsByImplementerQuery,
 } from './metricsApiSlice';
 import { Subheading } from 'catalyst/heading';
-import { Loading } from 'components/Spinners';
+import { Dots } from 'components/Spinners';
 import { ImplementerChartRadialStacked } from './RadialChartStacked';
 
 export const ImplementerBreakdown = () => {
   const { data: fullData, isLoading: isLoadingFullData } =
-    useGetImplementerMetricsQuery();
+    useGetImplementerMetricsQuery(undefined, {
+      selectFromResult: ({ data, isLoading }) => ({ data, isLoading }),
+    });
   const { data: leadData, isLoading: isLoadingLeadData } =
-    useGetImplementerMetricsQuery({ primary: 'true' });
+    useGetImplementerMetricsQuery(
+      { primary: 'true' },
+      { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
+    );
 
-  const { data: implementerStats } = useGetStrategyStatsByImplementerQuery();
+  const { data: implementerStats } = useGetStrategyStatsByImplementerQuery(
+    undefined,
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
 
   if (isLoadingFullData || isLoadingLeadData) {
-    return <Loading />;
+    return <Dots />;
   }
 
   const ready = fullData && leadData && implementerStats;

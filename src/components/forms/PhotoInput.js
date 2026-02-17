@@ -28,7 +28,7 @@ export const CameraInput = ({ imageSrc = '', setImageSource }) => {
           <UserCircleIcon className='rounded-full border-dashed border-2 border-dark-blue w-24 h-24' />
         ) : (
           <div className='overflow-hidden rounded-full w-24 h-24 border-dark-blue border-2'>
-            <img src={imageSrc} />
+            <img src={imageSrc} alt='Profile picture preview' loading='lazy' />
           </div>
         )}
 

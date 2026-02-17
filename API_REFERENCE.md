@@ -441,6 +441,9 @@ List all strategies. **Public** (no auth required).
       "timeline_id": 1,
       "status_id": 1,
       "last_comms_date": "ISO8601?",
+      "initial_deadline": "ISO8601?",
+      "current_deadline": "ISO8601?",
+      "completed_at": "ISO8601?",
       "createdAt": "ISO8601",
       "updatedAt": "ISO8601"
     }
@@ -527,13 +530,18 @@ Create a strategy. **Auth required** (Admin or CPIC Admin).
   "timeline_id": "int",
   "status_id": "int",
   "focus_area_id": "int",
-  "last_comms_date": "ISO8601?"
+  "last_comms_date": "ISO8601?",
+  "implementers": "int[] (implementer IDs)"
 }
 ```
 
-**Behavior:** Automatically creates a `StrategyActivity` audit record with action `CREATE`.
+**Behavior:**
 
-**Response (200):** New strategy object.
+- The strategy record and its implementer associations are created atomically in a single transaction. If either fails, the entire operation rolls back.
+- Automatically computes `initial_deadline` and `current_deadline` from `timeline_id` (Short-Term → 2026-08-31, Mid-Term → 2030-08-31, Long-Term → 2034-08-31, Ongoing → null).
+- Creates a `StrategyActivity` audit record with action `CREATE` (includes implementer names in the `changes` payload when implementers are provided).
+
+**Response (200):** New strategy object (includes `initial_deadline`, `current_deadline`, `completed_at`).
 
 ---
 
@@ -552,6 +560,8 @@ Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
   "status_id": "int?",
   "focus_area_id": "int?",
   "last_comms_date": "ISO8601?",
+  "current_deadline": "ISO8601?",
+  "completed_at": "ISO8601?",
   "implementers": {
     "add": [1, 2],
     "remove": [3]
@@ -560,7 +570,11 @@ Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
 }
 ```
 
-**Behavior:** Automatically creates a `StrategyActivity` audit record tracking field-level changes.
+**Behavior:**
+
+- `initial_deadline` is **not updatable** — it is stripped from the request body.
+- When `status_id` changes to "Completed" and `completed_at` is not provided, `completed_at` is auto-set to the current time. When status moves away from "Completed", `completed_at` is cleared to `null`.
+- Creates a `StrategyActivity` audit record tracking field-level changes (including `current_deadline` and `completed_at` diffs).
 
 ---
 
@@ -663,7 +677,7 @@ Get audit log for a strategy. **Auth required.**
 }
 ```
 
-**Activity actions:** `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT`
+**Activity actions:** `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT`, `ADD_IMPLEMENTERS`, `REMOVE_IMPLEMENTERS`, `UPDATE_IMPLEMENTERS`, `UPDATE_PRIMARY`
 
 ---
 
@@ -1179,18 +1193,21 @@ All **public** (no auth required).
 
 ### Strategy
 
-| Field             | Type       | Notes                 |
-| ----------------- | ---------- | --------------------- |
-| `id`              | `int`      | Auto-increment PK     |
-| `content`         | `string`   | Strategy description  |
-| `policy_id`       | `uuid`     | FK to Policies        |
-| `strategy_number` | `int`      |                       |
-| `focus_area_id`   | `int`      | FK to FocusArea       |
-| `timeline_id`     | `int`      | FK to TimelineOptions |
-| `status_id`       | `int`      | FK to StatusOptions   |
-| `last_comms_date` | `ISO8601?` |                       |
-| `createdAt`       | `ISO8601`  |                       |
-| `updatedAt`       | `ISO8601`  |                       |
+| Field              | Type       | Notes                                                                |
+| ------------------ | ---------- | -------------------------------------------------------------------- |
+| `id`               | `int`      | Auto-increment PK                                                    |
+| `content`          | `string`   | Strategy description                                                 |
+| `policy_id`        | `uuid`     | FK to Policies                                                       |
+| `strategy_number`  | `int`      |                                                                      |
+| `focus_area_id`    | `int`      | FK to FocusArea                                                      |
+| `timeline_id`      | `int`      | FK to TimelineOptions                                                |
+| `status_id`        | `int`      | FK to StatusOptions                                                  |
+| `last_comms_date`  | `ISO8601?` |                                                                      |
+| `initial_deadline` | `ISO8601?` | Immutable. Auto-computed from `timeline_id` on creation              |
+| `current_deadline` | `ISO8601?` | Active deadline. Updatable by authorized users                       |
+| `completed_at`     | `ISO8601?` | Auto-set when status → "Completed"; cleared when status changes away |
+| `createdAt`        | `ISO8601`  |                                                                      |
+| `updatedAt`        | `ISO8601`  |                                                                      |
 
 ### Policies
 

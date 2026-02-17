@@ -32,14 +32,54 @@ export const mockPolicies = [
     policy_number: 1,
     description: 'Policy A',
     focus_area_id: 1,
-    focus_area: { id: 1, name: 'Housing & Neighborhoods' },
+    area: { id: 1, name: 'Housing & Neighborhoods' },
   },
   {
     id: 11,
     policy_number: 2,
     description: 'Policy B',
     focus_area_id: 1,
+    area: { id: 1, name: 'Housing & Neighborhoods' },
+  },
+  {
+    id: 12,
+    policy_number: 1,
+    description: 'Policy C',
+    focus_area_id: 2,
+    area: { id: 2, name: 'Economic Development' },
+  },
+];
+
+export const mockStatuses = [
+  { id: '1', title: 'Not Started' },
+  { id: '2', title: 'In Progress' },
+  { id: '3', title: 'Completed' },
+  { id: '4', title: 'Needs Updating' },
+];
+
+export const mockTimelineOptions = [
+  { id: '1', title: 'Short-term (1-2 years)' },
+  { id: '2', title: 'Mid-term (3-5 years)' },
+  { id: '3', title: 'Long-term (5+ years)' },
+  { id: '4', title: 'Ongoing' },
+];
+
+export const mockStrategies = [
+  {
+    id: 1,
+    strategy_number: 1,
+    content: 'Test strategy one',
+    focus_area_id: 1,
+    policy_id: 10,
+    status_id: 2,
+    timeline_id: 1,
     focus_area: { id: 1, name: 'Housing & Neighborhoods' },
+    policy: { id: 10, policy_number: 1, description: 'Policy A' },
+    status: { id: 2, title: 'In Progress' },
+    timeline: { id: 1, title: 'Short-term (1-2 years)' },
+    implementers: [
+      { implementer_id: 1, implementer: { id: 1, name: 'Planning Board' } },
+    ],
   },
 ];
 
@@ -169,6 +209,40 @@ export const handlers = [
       status: 200,
       message: 'Deleted',
       data: { id: Number(params.id) },
+    });
+  }),
+
+  // Strategies
+  http.get(`${API_URL}/strategies`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockStrategies,
+    });
+  }),
+
+  http.post(`${API_URL}/strategies`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      status: 201,
+      message: 'Created',
+      data: { id: Date.now(), strategy_number: 1, ...body },
+    });
+  }),
+
+  http.get(`${API_URL}/strategies/statuses`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockStatuses,
+    });
+  }),
+
+  http.get(`${API_URL}/strategies/timeline_options`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockTimelineOptions,
     });
   }),
 

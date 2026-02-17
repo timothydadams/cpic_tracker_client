@@ -25,10 +25,16 @@ export default defineConfig({
     jsx: 'automatic',
     jsxImportSource: 'react',
   },
+  resolve: {
+    conditions: ['development', 'browser'],
+  },
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('test'),
+  },
   test: {
     environment: 'jsdom',
     globals: true,
-    pool: 'threads',
+    pool: 'forks',
     setupFiles: ['./src/test/setup.js'],
     css: false,
     include: ['src/**/*.{test,spec}.{js,jsx}'],

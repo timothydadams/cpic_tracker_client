@@ -12,10 +12,8 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { Button } from 'ui/button';
 import { Separator } from 'ui/separator';
-import { Checkbox } from 'ui/checkbox';
-
-import { useSelector } from 'react-redux';
-import { selectImplementers } from '../implementers/implementersSlice';
+import { DatePicker } from 'ui/date-picker';
+import useAuth from 'hooks/useAuth';
 
 import {
   Field,
@@ -47,13 +45,33 @@ import {
 import { MultiSelect } from 'components/Multiselect';
 import { Skeleton } from 'ui/skeleton';
 
-//form validation
+// Role-based field edit permissions
+const FIELD_PERMISSIONS = {
+  content: ['isAdmin', 'isCPICAdmin', 'isCPICMember'],
+  status_id: ['isAdmin', 'isCPICAdmin', 'isCPICMember', 'isImplementer'],
+  timeline_id: ['isAdmin', 'isCPICAdmin'],
+  implementers: ['isAdmin', 'isCPICAdmin', 'isCPICMember'],
+  primary_implementer: ['isAdmin', 'isCPICAdmin', 'isCPICMember'],
+  current_deadline: ['isAdmin', 'isCPICAdmin', 'isCPICMember', 'isImplementer'],
+  last_comms_date: ['isAdmin', 'isCPICAdmin', 'isCPICMember'],
+};
+
+const getDisabledFields = (auth) => {
+  const disabled = {};
+  for (const [field, allowedRoles] of Object.entries(FIELD_PERMISSIONS)) {
+    disabled[field] = !allowedRoles.some((role) => auth[role]);
+  }
+  return disabled;
+};
+
 const schema = yup.object().shape({
   content: yup.string().required('Description is required'),
   status_id: yup.string().required(),
   timeline_id: yup.string().required(),
   implementers: yup.array().min(1),
-  primary_implementer: yup.string().required(),
+  primary_implementer: yup.string().nullable().default(''),
+  current_deadline: yup.date().nullable().default(null),
+  last_comms_date: yup.date().nullable().default(null),
 });
 
 const addLabelValue = (item, labelKey, valueKey) => {
@@ -122,29 +140,16 @@ export const StatusSelector = ({ id, fieldState, ...props }) => {
   );
 };
 
-export const ImplementerToggle = ({ fieldState, ...props }) => {
-  const implementers = useSelector(selectImplementers);
-  /*
-  const params = {
-    cpic_smes: 'true',
-  };
-
-  const { data: transformedImplementers, isLoading } =
-    useGetAllImplementersQuery({
-      params,
-      applyTransformation: true,
-  });
-  */
-
+export const ImplementerToggle = ({ fieldState, options, ...props }) => {
   return (
-    implementers && (
+    options && (
       <>
         <MultiSelect
           {...props}
           aria-invalid={fieldState.invalid}
           placeholder='Add implementers...'
           maxCount={5}
-          options={implementers}
+          options={options}
           aria-label='Implementer selection'
           variant='inverted'
         />
@@ -206,7 +211,6 @@ export const StrategyForm = ({ strategyId }) => {
     data: strategy,
     isLoading,
     isSuccess,
-    refetch: refetchStrategy,
   } = useGetStrategyQuery(
     {
       id: strategyRefId,
@@ -234,6 +238,14 @@ export const StrategyForm = ({ strategyId }) => {
 
       rest['primary_implementer'] = primary_implementer;
 
+      // Convert ISO date strings to Date objects for the date picker
+      rest.current_deadline = rest.current_deadline
+        ? new Date(rest.current_deadline)
+        : null;
+      rest.last_comms_date = rest.last_comms_date
+        ? new Date(rest.last_comms_date)
+        : null;
+
       setFormVals({
         ...rest,
         implementers: implementers.map((i) => i.implementer_id),
@@ -248,15 +260,17 @@ export const StrategyForm = ({ strategyId }) => {
   ) : (
     <>
       <FormComponent
+        key={formVals.updatedAt}
         defaultValues={formVals}
-        refetchStrategy={refetchStrategy}
+        implementerList={implementerList}
       />
     </>
   );
 };
 
-const FormComponent = ({ defaultValues, refetchStrategy }) => {
-  const implementerList = useSelector(selectImplementers);
+const FormComponent = ({ defaultValues, implementerList }) => {
+  const auth = useAuth();
+  const disabledFields = getDisabledFields(auth);
 
   const [updateStrategy, { isLoading: isUpdating }] =
     useUpdateStrategyMutation();
@@ -268,33 +282,36 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
   });
 
   const {
-    reset,
     resetField,
     getValues,
     setValue,
     control,
     getFieldState,
-    formState: { dirtyFields },
+    formState: { dirtyFields, isDirty },
   } = form;
 
   const selectedImplementers = useWatch({ control, name: 'implementers' });
 
+  // When an implementer is removed from the list, clear primary if it was that implementer
   React.useEffect(() => {
     const current_primary = getValues('primary_implementer');
-    const isValidOption = selectedImplementers.some(
+
+    // "none" and "" are intentional unset states, not stale references
+    if (!current_primary || current_primary === 'none') return;
+
+    const isStillInList = selectedImplementers.some(
       (option) => option === current_primary
     );
 
-    const { isDirty: isImplementersDirty } = getFieldState('implementers');
-
-    if (!isValidOption) {
+    if (!isStillInList) {
+      const { isDirty: isImplementersDirty } = getFieldState('implementers');
       if (isImplementersDirty) {
-        setValue('primary_implementer', { defaultValue: '' });
+        setValue('primary_implementer', 'none', { shouldDirty: true });
       } else {
         resetField('primary_implementer');
       }
     }
-  }, [selectedImplementers, setValue, resetField]);
+  }, [selectedImplementers, setValue, resetField, getValues, getFieldState]);
 
   const handleStrategyUpdate = async (data, e) => {
     e.preventDefault();
@@ -303,6 +320,24 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
     if (Object.keys(changedFields).length === 0) return;
 
     const id = defaultValues.id;
+
+    // Convert Date objects to ISO strings for the API
+    if (changedFields.current_deadline !== undefined) {
+      changedFields.current_deadline = changedFields.current_deadline
+        ? changedFields.current_deadline.toISOString()
+        : null;
+    }
+    if (changedFields.last_comms_date !== undefined) {
+      changedFields.last_comms_date = changedFields.last_comms_date
+        ? changedFields.last_comms_date.toISOString()
+        : null;
+    }
+
+    if (changedFields.primary_implementer !== undefined) {
+      const val = changedFields.primary_implementer;
+      changedFields.primary_implementer =
+        !val || val === 'none' ? null : Number(val);
+    }
 
     if (changedFields.implementers !== undefined) {
       const originalList = defaultValues.implementers;
@@ -332,7 +367,6 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
         data: sanitizedData,
       }).unwrap();
       enqueueSnackbar('Strategy updated...', { variant: 'success' });
-      refetchStrategy();
     } catch (err) {
       enqueueSnackbar(`Update failed: ${err}`, { variant: 'error' });
     }
@@ -375,6 +409,7 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
                       name={field.name}
                       value={field.value}
                       onValueChange={field.onChange}
+                      disabled={disabledFields.status_id}
                     />
                   </Field>
                 )}
@@ -404,6 +439,69 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
                       name={field.name}
                       value={field.value}
                       onValueChange={field.onChange}
+                      disabled={disabledFields.timeline_id}
+                    />
+                  </Field>
+                )}
+              />
+            </div>
+          </div>
+
+          <div className='flex justify-between'>
+            <div>
+              <Controller
+                name='current_deadline'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field
+                    orientation='responsive'
+                    data-invalid={fieldState.invalid}
+                  >
+                    <FieldContent>
+                      <FieldLabel htmlFor='strategy-current-deadline-field'>
+                        Current Deadline
+                      </FieldLabel>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </FieldContent>
+                    <DatePicker
+                      id='strategy-current-deadline-field'
+                      selected={field.value}
+                      onSelect={(date) => field.onChange(date)}
+                      disabled={disabledFields.current_deadline}
+                      placeholder='Select deadline'
+                      clearable
+                    />
+                  </Field>
+                )}
+              />
+            </div>
+
+            <div>
+              <Controller
+                name='last_comms_date'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field
+                    orientation='responsive'
+                    data-invalid={fieldState.invalid}
+                  >
+                    <FieldContent>
+                      <FieldLabel htmlFor='strategy-last-comms-date-field'>
+                        Last Communication
+                      </FieldLabel>
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </FieldContent>
+                    <DatePicker
+                      id='strategy-last-comms-date-field'
+                      selected={field.value}
+                      onSelect={(date) => field.onChange(date)}
+                      disabled={disabledFields.last_comms_date}
+                      placeholder='Select date'
+                      clearable
                     />
                   </Field>
                 )}
@@ -427,6 +525,7 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
                   aria-invalid={fieldState.invalid}
                   placeholder='content...'
                   className='min-h-[150px]'
+                  disabled={disabledFields.content}
                 />
                 <FieldDescription></FieldDescription>
                 {fieldState.invalid && (
@@ -450,9 +549,11 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
 
                 <ImplementerToggle
                   fieldState={fieldState}
+                  options={implementerList}
                   name={field.name}
                   defaultValue={field.value}
                   onValueChange={field.onChange}
+                  disabled={disabledFields.implementers}
                 />
 
                 {fieldState.invalid && (
@@ -475,8 +576,9 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
 
                 <Select
                   name={field.name}
-                  value={field.value}
+                  value={field.value || ''}
                   onValueChange={field.onChange}
+                  disabled={disabledFields.primary_implementer}
                 >
                   <SelectTrigger
                     id='primary-implementer-id-field'
@@ -486,8 +588,12 @@ const FormComponent = ({ defaultValues, refetchStrategy }) => {
                     <SelectValue placeholder='select primary implementer' />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value='none'>
+                      <span className='text-muted-foreground'>None</span>
+                    </SelectItem>
                     {selectedImplementers
                       .map((i) => implementerList.find((imp) => imp.id === i))
+                      .filter(Boolean)
                       .map((implementer) => (
                         <SelectItem key={implementer.id} value={implementer.id}>
                           {implementer.name}

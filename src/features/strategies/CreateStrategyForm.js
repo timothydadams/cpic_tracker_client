@@ -51,11 +51,10 @@ export const CreateStrategyForm = ({ onSuccess, onCancel }) => {
   const [createStrategy, { isLoading: isCreating }] =
     useCreateStrategyMutation();
 
-  // Ensure implementers are loaded into Redux for ImplementerToggle
-  useGetAllImplementersQuery({
-    params: { cpic_smes: 'true' },
-    applyTransformation: true,
-  });
+  const { data: implementerList } = useGetAllImplementersQuery(
+    { params: { cpic_smes: 'true' }, applyTransformation: true },
+    { selectFromResult: ({ data }) => ({ data }) }
+  );
 
   const { data: focusAreas } = useGetAllFocusAreasQuery(undefined, {
     selectFromResult: ({ data }) => ({ data }),
@@ -271,6 +270,7 @@ export const CreateStrategyForm = ({ onSuccess, onCancel }) => {
             </FieldDescription>
             <ImplementerToggle
               fieldState={fieldState}
+              options={implementerList}
               name={field.name}
               defaultValue={field.value}
               onValueChange={field.onChange}

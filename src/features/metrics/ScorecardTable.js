@@ -8,15 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from 'catalyst/table';
-import { ScorecardDetail } from './ScorecardDetail';
-
-const gradeClasses = {
-  A: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  B: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  C: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  D: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  F: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-};
+import { ScorecardDetail, gradeClasses } from './ScorecardDetail';
 
 const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
   <TableRow
@@ -25,23 +17,31 @@ const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
   >
     <TableCell className='font-medium'>{rank}</TableCell>
     <TableCell className='font-medium'>{item.implementer_name}</TableCell>
-    <TableCell>
-      <Badge className={gradeClasses[item.overall.grade] || ''}>
-        {item.overall.grade}
-      </Badge>
-    </TableCell>
-    <TableCell>{item.overall.score}</TableCell>
-    <TableCell>{item.overall.total}</TableCell>
-    <TableCell>{item.overall.completed}</TableCell>
-    <TableCell>{item.overall.completion_rate}%</TableCell>
-    <TableCell>{item.overall.on_time_rate}%</TableCell>
-    <TableCell>
-      {item.overall.overdue > 0 ? (
-        <Badge variant='destructive'>{item.overall.overdue}</Badge>
-      ) : (
-        0
-      )}
-    </TableCell>
+    {item.overall.total === 0 ? (
+      <TableCell colSpan={7} className='text-center text-muted-foreground'>
+        N/A
+      </TableCell>
+    ) : (
+      <>
+        <TableCell>
+          <Badge className={gradeClasses[item.overall.grade] || ''}>
+            {item.overall.grade}
+          </Badge>
+        </TableCell>
+        <TableCell>{item.overall.score}</TableCell>
+        <TableCell>{item.overall.total}</TableCell>
+        <TableCell>{item.overall.completed}</TableCell>
+        <TableCell>{item.overall.completion_rate}%</TableCell>
+        <TableCell>{item.overall.on_time_rate}%</TableCell>
+        <TableCell>
+          {item.overall.overdue > 0 ? (
+            <Badge variant='destructive'>{item.overall.overdue}</Badge>
+          ) : (
+            0
+          )}
+        </TableCell>
+      </>
+    )}
   </TableRow>
 ));
 

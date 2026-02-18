@@ -31,7 +31,7 @@ import { Skeleton } from 'ui/skeleton';
 
 import { DataTable } from 'components/DataTable.js';
 
-import { StrategyCard } from '../strategies/StrategyCard';
+import { StrategyCard, StrategyActionCell } from '../strategies/StrategyCard';
 
 import { api } from '../../app/api/apiSlice';
 
@@ -133,6 +133,11 @@ const allColumns = [
       const { implementers = [] } = row;
       return parseInt(implementers.length, 10);
     },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: () => 'Actions',
+    cell: ({ row }) => <StrategyActionCell strategy={row.original} />,
   }),
 ];
 

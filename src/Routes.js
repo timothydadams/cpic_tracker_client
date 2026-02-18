@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import { PersistAuth } from './features/auth/PersistAuth.js';
 import { ProtectRoute } from './features/auth/ProtectRoute';
 import { AnonymousOnly } from './features/auth/AnonymousOnly';
@@ -75,6 +75,31 @@ const StrategyForm = lazy(() =>
 );
 const FAQ = lazy(() =>
   import('./features/faq/faq.js').then((m) => ({ default: m.FAQ }))
+);
+const MetricsLayout = lazy(() =>
+  import('./features/metrics/MetricsPage.js').then((m) => ({
+    default: m.MetricsPage,
+  }))
+);
+const OverviewTab = lazy(() =>
+  import('./features/metrics/OverviewTab.js').then((m) => ({
+    default: m.OverviewTab,
+  }))
+);
+const FocusAreaTab = lazy(() =>
+  import('./features/metrics/FocusAreaTab.js').then((m) => ({
+    default: m.FocusAreaTab,
+  }))
+);
+const TimelineTab = lazy(() =>
+  import('./features/metrics/TimelineTab.js').then((m) => ({
+    default: m.TimelineTab,
+  }))
+);
+const ImplementerTab = lazy(() =>
+  import('./features/metrics/ImplementerTab.js').then((m) => ({
+    default: m.ImplementerTab,
+  }))
 );
 
 // Lazy-loaded markdown page and its dependencies
@@ -195,6 +220,48 @@ const AppRoutes = () => (
             </Suspense>
           }
         />
+        <Route
+          path='metrics'
+          element={
+            <Suspense fallback={<PageLoader />}>
+              <MetricsLayout />
+            </Suspense>
+          }
+        >
+          <Route index element={<Navigate to='overview' replace />} />
+          <Route
+            path='overview'
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <OverviewTab />
+              </Suspense>
+            }
+          />
+          <Route
+            path='focus-areas'
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <FocusAreaTab />
+              </Suspense>
+            }
+          />
+          <Route
+            path='timelines'
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <TimelineTab />
+              </Suspense>
+            }
+          />
+          <Route
+            path='implementers'
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ImplementerTab />
+              </Suspense>
+            }
+          />
+        </Route>
         <Route
           path='policies'
           element={

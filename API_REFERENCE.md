@@ -526,7 +526,7 @@ Create a strategy. **Auth required** (Admin or CPIC Admin).
 {
   "content": "string",
   "policy_id": "string",
-  "strategy_number": "int",
+  "strategy_number": "int? (auto-computed as MAX+1 per policy_id when omitted)",
   "timeline_id": "int",
   "status_id": "int",
   "focus_area_id": "int",
@@ -538,6 +538,7 @@ Create a strategy. **Auth required** (Admin or CPIC Admin).
 **Behavior:**
 
 - The strategy record and its implementer associations are created atomically in a single transaction. If either fails, the entire operation rolls back.
+- When `strategy_number` is omitted, it is auto-computed as `MAX(strategy_number) + 1` among strategies with the same `policy_id` (defaults to `1` when the policy has no existing strategies).
 - Automatically computes `initial_deadline` and `current_deadline` from `timeline_id` (Short-Term → 2026-08-31, Mid-Term → 2030-08-31, Long-Term → 2034-08-31, Ongoing → null).
 - Creates a `StrategyActivity` audit record with action `CREATE` (includes implementer names in the `changes` payload when implementers are provided).
 
@@ -1165,6 +1166,345 @@ All **public** (no auth required).
       "id": 1,
       "name": "string",
       "strategy_stats": { "total": 10, "inProgress": 3, "completed": 5 }
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/metrics/plan-overview`
+
+Dashboard-level snapshot of the entire strategic plan.
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "total_strategies": 85,
+    "completed": 22,
+    "in_progress": 40,
+    "needs_updating": 23,
+    "completion_rate": 25.9,
+    "on_time_completions": 18,
+    "late_completions": 4,
+    "on_time_rate": 81.8,
+    "overdue": 7,
+    "avg_days_to_complete": 142.5
+  }
+}
+```
+
+---
+
+### GET `/api/metrics/completion-by-focus-area`
+
+Completion rates and overdue counts per focus area.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "focus_area_id": 1,
+      "focus_area_name": "Workforce Development",
+      "total": 20,
+      "completed": 8,
+      "in_progress": 7,
+      "needs_updating": 5,
+      "completion_rate": 40.0,
+      "overdue": 2,
+      "avg_days_to_complete": 120.3
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/metrics/completion-by-timeline`
+
+Progress vs. deadline for each timeline tier.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "timeline_id": 2,
+      "timeline_name": "Short-Term",
+      "deadline_date": "2026-08-31T16:00:00.000Z",
+      "total": 30,
+      "completed": 15,
+      "completion_rate": 50.0,
+      "overdue": 3,
+      "on_time_rate": 86.7,
+      "days_remaining": 195,
+      "avg_days_to_complete": 98.2
+    }
+  ]
+}
+```
+
+Note: `days_remaining` is negative if the deadline has passed. `deadline_date` is `null` for "Ongoing".
+
+---
+
+### GET `/api/metrics/deadline-drift`
+
+Measures how much strategy deadlines have been pushed from their original values.
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "total_with_deadlines": 70,
+    "pushed": 12,
+    "push_rate": 17.1,
+    "avg_drift_days": 87.3,
+    "by_timeline": [
+      {
+        "timeline_id": 2,
+        "timeline_name": "Short-Term",
+        "total": 30,
+        "pushed": 5,
+        "push_rate": 16.7,
+        "avg_drift_days": 45.2
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET `/api/metrics/overdue-strategies`
+
+Action-oriented list of strategies past their deadline and not yet completed.
+
+**Query params:**
+| Param | Type | Description |
+|-------|------|-------------|
+| `timeline_id` | `int` | Filter by timeline |
+| `focus_area_id` | `int` | Filter by focus area |
+| `implementer_id` | `int` | Filter by implementer |
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "strategy_id": 14,
+      "content": "Develop teacher recruitment pipeline...",
+      "focus_area": "Workforce Development",
+      "policy": "Policy description",
+      "timeline": "Short-Term",
+      "status": "In Progress",
+      "current_deadline": "2026-08-31T16:00:00.000Z",
+      "days_overdue": 12,
+      "primary_implementer": "HR Department"
+    }
+  ]
+}
+```
+
+---
+
+### GET `/api/metrics/implementer-scorecard`
+
+Graded scorecard per implementer with per-timeline breakdown. Sorted by overall score descending.
+
+**Query params:** `primary` (`"true"/"false"`) — grade only on strategies where implementer is primary.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "implementer_id": 3,
+      "implementer_name": "HR Department",
+      "overall": {
+        "total": 12,
+        "completed": 5,
+        "completion_rate": 41.7,
+        "on_time": 4,
+        "late": 1,
+        "on_time_rate": 80.0,
+        "overdue": 2,
+        "avg_days_to_complete": 134.2,
+        "score": 62.5,
+        "grade": "D"
+      },
+      "by_timeline": [
+        {
+          "timeline_id": 2,
+          "timeline_name": "Short-Term",
+          "total": 5,
+          "completed": 3,
+          "completion_rate": 60.0,
+          "on_time": 3,
+          "late": 0,
+          "on_time_rate": 100.0,
+          "overdue": 1,
+          "avg_days_to_complete": 98.0,
+          "score": 79.0,
+          "grade": "C"
+        }
+      ]
+    }
+  ]
+}
+```
+
+See `METRICS_GUIDE.md` for the grading formula and weight definitions.
+
+---
+
+### GET `/api/metrics/implementer-scorecard/:implementer_id`
+
+Deep-dive scorecard for a single implementer. Includes focus area breakdown, recent completions, and overdue list.
+
+**Query params:** `primary` (`"true"/"false"`) — grade only on strategies where implementer is primary.
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "implementer_id": 3,
+    "implementer_name": "HR Department",
+    "overall": {
+      "total": 12,
+      "completed": 5,
+      "completion_rate": 41.7,
+      "on_time": 4,
+      "late": 1,
+      "on_time_rate": 80.0,
+      "overdue": 2,
+      "avg_days_to_complete": 134.2,
+      "score": 62.5,
+      "grade": "D"
+    },
+    "by_timeline": [
+      {
+        "timeline_id": 2,
+        "timeline_name": "Short-Term",
+        "total": 5,
+        "completed": 3,
+        "completion_rate": 60.0,
+        "on_time": 3,
+        "late": 0,
+        "on_time_rate": 100.0,
+        "overdue": 1,
+        "avg_days_to_complete": 98.0,
+        "score": 79.0,
+        "grade": "C"
+      }
+    ],
+    "by_focus_area": [
+      {
+        "focus_area_id": 1,
+        "focus_area_name": "Workforce Development",
+        "total": 4,
+        "completed": 2,
+        "completion_rate": 50.0,
+        "on_time": 2,
+        "late": 0,
+        "on_time_rate": 100.0,
+        "overdue": 0,
+        "avg_days_to_complete": 110.0,
+        "score": 82.5,
+        "grade": "B"
+      }
+    ],
+    "recent_completions": [
+      {
+        "strategy_id": 22,
+        "content": "Strategy description...",
+        "completed_at": "2025-11-15T00:00:00.000Z",
+        "focus_area": "Workforce Development",
+        "timeline": "Short-Term",
+        "was_on_time": true
+      }
+    ],
+    "overdue_strategies": [
+      {
+        "strategy_id": 14,
+        "content": "Strategy description...",
+        "current_deadline": "2026-01-15T00:00:00.000Z",
+        "days_overdue": 33,
+        "focus_area": "Workforce Development",
+        "timeline": "Short-Term",
+        "status": "In Progress"
+      }
+    ]
+  }
+}
+```
+
+**Error (400):** Non-numeric `implementer_id`.
+**Error (404):** Implementer not found.
+
+---
+
+### GET `/api/metrics/completion-trend`
+
+Monthly or quarterly completion velocity with cumulative running total.
+
+**Query params:**
+| Param | Type | Default | Description |
+|-------|------|---------|-------------|
+| `period` | `string` | `"monthly"` | `"monthly"` or `"quarterly"` |
+| `focus_area_id` | `int` | — | Filter by focus area |
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    { "period": "2025-06", "completed": 3, "cumulative": 10 },
+    { "period": "2025-07", "completed": 5, "cumulative": 15 },
+    { "period": "2025-08", "completed": 2, "cumulative": 17 }
+  ]
+}
+```
+
+When `period=quarterly`, periods are formatted as `"2025-Q1"`, `"2025-Q2"`, etc.
+
+---
+
+### GET `/api/metrics/focus-area-progress`
+
+Hierarchical view: Focus Area → Policies → strategy completion counts per policy.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "focus_area_id": 1,
+      "name": "Workforce Development",
+      "state_goal": "State Goal 1",
+      "total_strategies": 20,
+      "completion_rate": 40.0,
+      "policies": [
+        {
+          "policy_id": "uuid",
+          "description": "Policy description",
+          "policy_number": 1,
+          "total": 6,
+          "completed": 3,
+          "completion_rate": 50.0,
+          "overdue": 0
+        }
+      ]
     }
   ]
 }

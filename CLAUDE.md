@@ -11,7 +11,9 @@ React frontend client for CPIC Tracker — an MVP for tracking a town's comprehe
 - `npm run dev` — Start Webpack dev server with hot reload (port 3000, proxies `/api/*` to `localhost:3500`)
 - `npm run build` — Development build to `dist/`
 - `npm run build-prod` — Production build (minified, tree-shaken)
-- No test framework is configured yet
+- `npx vitest run` — Run all tests once
+- `npx vitest run src/features/metrics/__tests__/` — Run tests for a specific directory
+- `npx vitest` — Run tests in watch mode
 
 **Important: NODE_ENV** — The shell environment has `NODE_ENV=production` set globally. This causes `npm install` and `npm uninstall` to skip devDependencies (which includes webpack, babel, etc.). Always prefix npm commands with `NODE_ENV=development`:
 
@@ -41,7 +43,7 @@ Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `
 
 **API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`.
 
-**Routing:** React Router v6 with nested routes in `src/Routes.js`. All route components are lazy-loaded via `React.lazy()` with a shared `PageLoader` Suspense fallback. Since components use named exports, the lazy imports use `.then(m => ({ default: m.NamedExport }))`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages).
+**Routing:** React Router v6 with nested routes in `src/Routes.js`. All route components are lazy-loaded via `React.lazy()` with a shared `PageLoader` Suspense fallback. Since components use named exports, the lazy imports use `.then(m => ({ default: m.NamedExport }))`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages). The `/metrics` route uses nested child routes (`/metrics/overview`, `/metrics/focus-areas`, `/metrics/timelines`, `/metrics/implementers`) with a shared layout shell (`MetricsPage`) rendering `<Outlet />`.
 
 **Roles:** Guest, Viewer, Implementer, CPIC Member, CPIC Admin, Admin. Role checks happen in `ProtectRoute` with an `allowedRoles` prop.
 
@@ -96,3 +98,14 @@ See `.env-example`. Key vars: `GOOGLE_CLIENT_ID`, `NODE_ENV`, `API_URL`. In dev,
 ## Formatting
 
 Prettier: single quotes, JSX single quotes, trailing commas (es5), 2-space indent, 80 char width. Runs automatically on commit via lint-staged.
+
+## Testing
+
+**Stack:** Vitest + React Testing Library + MSW (Mock Service Worker)
+
+- **Config:** `vitest.config.js` at project root, uses `jsdom` environment
+- **Test utils:** `src/test/test-utils.jsx` — exports a custom `render` (aliased from `renderWithProviders`) that wraps components in `Provider` (Redux), `MemoryRouter`, and `SnackbarProvider`. Accepts `route` and `preloadedState` options.
+- **MSW handlers:** `src/test/mocks/handlers.js` — mock API responses for all endpoints. Server setup in `src/test/mocks/server.js`, configured globally in `src/test/setup.js`.
+- **Test location:** `src/features/<domain>/__tests__/` directories (e.g., `src/features/metrics/__tests__/`)
+- **Auth presets:** `AUTH_STATES` object in test-utils provides preset auth states (`admin`, `cpicAdmin`, `cpicMember`, `implementer`, `viewer`, `guest`) for testing role-gated features.
+- **Patterns:** Tests import `render`, `screen`, `waitFor` from `test-utils.jsx` (not directly from `@testing-library/react`). Use `waitFor` for async data loading. User interactions via `@testing-library/user-event`.

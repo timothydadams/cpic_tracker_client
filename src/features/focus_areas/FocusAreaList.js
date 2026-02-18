@@ -244,20 +244,23 @@ export const FocusAreaList = () => {
         {data.map((fa) => {
           return (
             <AccordionItem key={fa.id} value={fa.id}>
-              <AccordionTrigger>{fa.name}</AccordionTrigger>
+              <AccordionTrigger className='no-underline hover:no-underline'>
+                {fa.name}
+              </AccordionTrigger>
               <AccordionContent className='flex flex-col gap-4 text-balance'>
                 <div>{fa.description}</div>
                 <Accordion
                   key={fa.id}
                   type='single'
                   collapsible
-                  className='w-full pl-5'
+                  className='w-full pl-5 [&>*:last-child]:border-b-0'
                   defaultValue=''
                 >
                   {fa.policies.map((p) => {
                     return (
                       <AccordionItem key={p.id} value={p.id}>
                         <AccordionTrigger
+                          className='no-underline hover:no-underline'
                           onMouseEnter={() => handleMouseEnter(p.id)}
                         >{`${p.policy_number}. ${p.description}`}</AccordionTrigger>
                         <AccordionContent className='flex flex-col gap-4 text-balance'>

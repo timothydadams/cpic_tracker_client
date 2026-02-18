@@ -68,7 +68,11 @@ export const FormWrapper = ({
             >
               Reset
             </Button>
-            <Button type='submit' form={formId}>
+            <Button
+              type='submit'
+              form={formId}
+              disabled={!form.formState.isDirty}
+            >
               Save
             </Button>
           </Field>

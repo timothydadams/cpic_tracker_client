@@ -10,46 +10,31 @@ import {
 
 import { DataTable } from 'components/DataTable.js';
 import { Heading } from 'catalyst/heading';
-import { Link } from 'catalyst/link';
 import {
-  MoreHorizontal,
   ArrowUpDown,
   HelpCircle,
   CircleOff,
   CheckCircle,
   Timer,
-  Circle,
+  Plus,
 } from 'lucide-react';
 import { Button } from 'ui/button.jsx';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from 'ui/dropdown-menu';
-import { Badge } from 'ui/badge';
 import {
   useGetAllStrategiesQuery,
   useGetAllStatusesQuery,
   useGetAllTimelineOptionsQuery,
 } from './strategiesApiSlice';
-import useAuth from 'hooks/useAuth';
 
 import { useGetAllPoliciesQuery } from '../policies/policiesApiSlice.js';
 import { useGetAllFocusAreasQuery } from '../focus_areas/focusAreaApiSlice';
 
 import { DataTableColumnHeader } from 'components/datatable-column-header';
-import { DataTableRowActions } from 'components/datatable-row-actions';
 import { Dots } from 'components/Spinners';
-import { Modal } from 'components/Modal';
 import { useSelector } from 'react-redux';
 import { selectMemoizedUser } from '../auth/authSlice';
-import { selectStatuses } from './strategiesSlice';
 import { CreateStrategyForm } from './CreateStrategyForm';
 import { ResponsiveFormModal } from 'components/ResponsiveFormModal';
-import { Plus } from 'lucide-react';
+import { StrategyActionCell } from './StrategyCard';
 //import { StrategyForm } from './EditStrategyForm';
 
 /*
@@ -237,137 +222,11 @@ const allColumns = [
   columnHelper.display({
     id: 'actions',
     header: () => 'Actions',
-    cell: ({ row }) => {
-      const strategy = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(JSON.stringify(strategy))
-              }
-            >
-              Copy strategy details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href={`${strategy.id}`} className='w-full'>
-                View Details
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>CPIC Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Request Implementer Update</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-    meta: {
-      roles: ['CPIC Member'],
-    },
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: () => 'Actions',
-    cell: ({ row }) => {
-      const strategy = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() =>
-                navigator.clipboard.writeText(JSON.stringify(strategy))
-              }
-            >
-              Copy strategy details
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-              <Link href={`/strategies/${strategy.id}`} className='w-full'>
-                View Details
-              </Link>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-    meta: {
-      roles: ['Implementer'],
-    },
-  }),
-  columnHelper.display({
-    id: 'actions',
-    header: () => 'Actions',
-    meta: {
-      roles: ['Admin', 'CPIC Admin'],
-    },
-    cell: ({ row }) => {
-      const strategy = row.original;
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <MoreHorizontal className='h-4 w-4' />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            {/*<DropdownMenuItem onClick={() => navigator.clipboard.writeText(JSON.stringify(strategy))}>
-              Copy strategy details
-            </DropdownMenuItem> */}
-            <DropdownMenuItem>
-              <Link href={`${strategy.id}`} className='w-full'>
-                View Details
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>CPIC Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Request Implementer Update</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Admin Actions</DropdownMenuLabel>
-            <DropdownMenuItem>
-              <Link href={`${strategy.id}/edit`} className='w-full'>
-                Edit
-              </Link>
-            </DropdownMenuItem>
-            {/**
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-              <EditFormInModal size="4xl" buttonText="Edit" strategy={strategy} />
-            </DropdownMenuItem>
-             */}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => <StrategyActionCell strategy={row.original} />,
   }),
 ];
 
 export const StrategyTableList = ({ strategies, title }) => {
-  const user = useSelector(selectMemoizedUser);
-  const { id, roles } = user;
-  // Conditionally generate the columns based on the user's role
-  const columns = React.useMemo(() => {
-    return allColumns.filter(
-      (column) =>
-        (column.meta?.roles.length === 0 && roles.length === 0) ||
-        !column.meta?.roles ||
-        column.meta.roles.some((r) => roles.includes(r))
-    );
-  }, [roles]);
-
   const { data: statusOptions } = useGetAllStatusesQuery(undefined, {
     selectFromResult: ({ data }) => ({ data }),
   });
@@ -412,7 +271,7 @@ export const StrategyTableList = ({ strategies, title }) => {
       <div className='container mx-auto py-10'>
         <DataTable
           data={strategies}
-          columns={columns}
+          columns={allColumns}
           columnSearch={{
             columnId: 'content',
             placeholder: 'Filter strategies...',

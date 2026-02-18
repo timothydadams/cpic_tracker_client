@@ -548,9 +548,27 @@ Create a strategy. **Auth required** (Admin or CPIC Admin).
 
 ### PUT `/api/strategies/:id`
 
-Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
+Update a strategy. **Auth required** (Admin, CPIC Admin, CPIC Member, or Implementer).
 
-**Request:**
+**Request fields are restricted by role:**
+
+| Field                 | Admin | CPIC Admin | CPIC Member | Implementer |
+| --------------------- | ----- | ---------- | ----------- | ----------- |
+| `content`             | Yes   | Yes        | Yes         | No          |
+| `policy_id`           | Yes   | Yes        | No          | No          |
+| `strategy_number`     | Yes   | Yes        | No          | No          |
+| `timeline_id`         | Yes   | Yes        | No          | No          |
+| `status_id`           | Yes   | Yes        | Yes         | Yes         |
+| `focus_area_id`       | Yes   | Yes        | No          | No          |
+| `last_comms_date`     | Yes   | Yes        | Yes         | No          |
+| `current_deadline`    | Yes   | Yes        | Yes         | Yes         |
+| `completed_at`        | Yes   | Yes        | Yes         | No          |
+| `implementers`        | Yes   | Yes        | Yes         | No          |
+| `primary_implementer` | Yes   | Yes        | Yes         | No          |
+
+**Implementer scope:** Implementers can only update strategies they are assigned to (via `StrategyImplementer`). Attempting to update a non-assigned strategy returns 403.
+
+**Request (Admin/CPIC Admin — all fields):**
 
 ```json
 {
@@ -567,15 +585,58 @@ Update a strategy. **Auth required** (Admin, CPIC Admin, or CPIC Member).
     "add": [1, 2],
     "remove": [3]
   },
-  "primary_implementer": "int?"
+  "primary_implementer": "int | null (omit to leave unchanged, null to unset)"
 }
 ```
+
+Sending fields outside the caller's allowed set returns **403** with a message listing the denied fields.
 
 **Behavior:**
 
 - `initial_deadline` is **not updatable** — it is stripped from the request body.
 - When `status_id` changes to "Completed" and `completed_at` is not provided, `completed_at` is auto-set to the current time. When status moves away from "Completed", `completed_at` is cleared to `null`.
-- Creates a `StrategyActivity` audit record tracking field-level changes (including `current_deadline` and `completed_at` diffs).
+- **`primary_implementer`**: Send an implementer ID to set, send `null` to unset, or omit the field entirely to leave unchanged.
+- All mutations (implementer add/remove, primary set/unset, field update, activity logging) are wrapped in a single database transaction — if any step fails, the entire update rolls back.
+- Creates a single `StrategyActivity` audit record combining field changes, implementer membership changes, and primary implementer changes into one `changes` object.
+
+**Response (200):** Updated strategy object with included relations: `timeline`, `policy`, `status`, and `implementers` (with nested `implementer` details).
+
+```json
+{
+  "data": {
+    "id": 1,
+    "content": "string",
+    "policy_id": "uuid",
+    "strategy_number": 1,
+    "focus_area_id": 1,
+    "timeline_id": 1,
+    "status_id": 1,
+    "last_comms_date": "ISO8601?",
+    "initial_deadline": "ISO8601?",
+    "current_deadline": "ISO8601?",
+    "completed_at": "ISO8601?",
+    "createdAt": "ISO8601",
+    "updatedAt": "ISO8601",
+    "timeline": { "id": 1, "title": "Short-Term", "enabled": true },
+    "policy": {
+      "id": "uuid",
+      "description": "string",
+      "policy_number": 1,
+      "focus_area_id": 1
+    },
+    "status": { "id": 1, "title": "In Progress", "enabled": true },
+    "implementers": [
+      {
+        "implementer_id": 1,
+        "strategy_id": 1,
+        "order_number": null,
+        "is_primary": true,
+        "implementer": { "id": 1, "name": "string", "...": "..." }
+      }
+    ]
+  }
+}
+```
 
 ---
 
@@ -678,7 +739,9 @@ Get audit log for a strategy. **Auth required.**
 }
 ```
 
-**Activity actions:** `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT`, `ADD_IMPLEMENTERS`, `REMOVE_IMPLEMENTERS`, `UPDATE_IMPLEMENTERS`, `UPDATE_PRIMARY`
+**Activity actions:** `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT`, `UPDATE_IMPLEMENTERS`, `UPDATE_PRIMARY`
+
+> **Note:** A single PUT request produces at most one activity record. When only one category changes, its specific action is used (`UPDATE`, `UPDATE_IMPLEMENTERS`, or `UPDATE_PRIMARY`). When multiple categories change in one request, the action is `UPDATE` with all changes combined in the `changes` JSON.
 
 ---
 
@@ -1666,16 +1729,16 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
 
 ## Role-Based Access Summary
 
-| Resource        | Create            | Read               | Update                         | Delete                    |
-| --------------- | ----------------- | ------------------ | ------------------------------ | ------------------------- |
-| **Strategy**    | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member | Admin                     |
-| **Policy**      | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member | Admin                     |
-| **FocusArea**   | Admin             | Public             | Admin                          | Admin                     |
-| **Implementer** | Admin, CPIC Admin | Public             | Admin, CPIC Admin              | Admin                     |
-| **Comment**     | Any authenticated | Public             | Admin, author                  | Admin, CPIC Admin, author |
-| **Role**        | Admin             | Any authenticated  | Admin                          | Admin                     |
-| **User**        | N/A (via invite)  | Admin, self        | Admin, self                    | Admin, self               |
-| **InviteCode**  | Any authenticated | Creator (my-codes) | N/A                            | N/A                       |
+| Resource        | Create            | Read               | Update                                                                         | Delete                    |
+| --------------- | ----------------- | ------------------ | ------------------------------------------------------------------------------ | ------------------------- |
+| **Strategy**    | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member, Implementer (restricted fields, assigned only) | Admin                     |
+| **Policy**      | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member                                                 | Admin                     |
+| **FocusArea**   | Admin             | Public             | Admin                                                                          | Admin                     |
+| **Implementer** | Admin, CPIC Admin | Public             | Admin, CPIC Admin                                                              | Admin                     |
+| **Comment**     | Any authenticated | Public             | Admin, author                                                                  | Admin, CPIC Admin, author |
+| **Role**        | Admin             | Any authenticated  | Admin                                                                          | Admin                     |
+| **User**        | N/A (via invite)  | Admin, self        | Admin, self                                                                    | Admin, self               |
+| **InviteCode**  | Any authenticated | Creator (my-codes) | N/A                                                                            | N/A                       |
 
 ---
 

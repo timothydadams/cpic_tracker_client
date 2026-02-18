@@ -81,63 +81,73 @@ const ScorecardCard = React.memo(({ item, primary }) => {
       <CardHeader className='pb-2'>
         <CardTitle className='flex items-center justify-between text-base'>
           <span className='truncate mr-2'>{item.implementer_name}</span>
-          <Badge className={`shrink-0 ${gradeClasses[overall.grade] || ''}`}>
-            {overall.grade}
-          </Badge>
+          {overall.total > 0 && (
+            <Badge className={`shrink-0 ${gradeClasses[overall.grade] || ''}`}>
+              {overall.grade}
+            </Badge>
+          )}
         </CardTitle>
-        <p className='text-sm text-muted-foreground'>Score: {overall.score}</p>
+        {overall.total > 0 ? (
+          <p className='text-sm text-muted-foreground'>
+            Score: {overall.score}
+          </p>
+        ) : (
+          <p className='text-sm text-muted-foreground'>N/A</p>
+        )}
       </CardHeader>
-      <Accordion type='multiple' value={expanded} onValueChange={setExpanded}>
-        <AccordionItem value='details'>
-          <AccordionTrigger className='px-6 no-underline hover:no-underline'>
-            Details
-          </AccordionTrigger>
-          <AccordionContent className='px-6'>
-            <dl className='grid grid-cols-2 gap-x-4 gap-y-2 text-sm'>
-              <dt className='text-muted-foreground'>Total</dt>
-              <dd className='text-right font-medium'>{overall.total}</dd>
-              <dt className='text-muted-foreground'>Completed</dt>
-              <dd className='text-right font-medium'>{overall.completed}</dd>
-              <dt className='text-muted-foreground'>Completion %</dt>
-              <dd className='text-right font-medium'>
-                {overall.completion_rate}%
-              </dd>
-              <dt className='text-muted-foreground'>On-Time %</dt>
-              <dd className='text-right font-medium'>
-                {overall.on_time_rate}%
-              </dd>
-              <dt className='text-muted-foreground'>Overdue</dt>
-              <dd className='text-right font-medium'>
-                {overall.overdue > 0 ? (
-                  <Badge variant='destructive'>{overall.overdue}</Badge>
-                ) : (
-                  0
-                )}
-              </dd>
-            </dl>
-          </AccordionContent>
-        </AccordionItem>
-        {needsDetail && (
-          <DetailSections
-            implementerId={item.implementer_id}
-            primary={primary}
-          />
-        )}
-        {!needsDetail && (
-          <>
-            <AccordionItem value='timeline'>
-              <AccordionTrigger className='px-6 no-underline hover:no-underline'>
-                By Timeline
-              </AccordionTrigger>
-            </AccordionItem>
-            <AccordionItem value='focus-area'>
-              <AccordionTrigger className='px-6 no-underline hover:no-underline'>
-                By Focus Area
-              </AccordionTrigger>
-            </AccordionItem>
-          </>
-        )}
-      </Accordion>
+      {overall.total > 0 && (
+        <Accordion type='multiple' value={expanded} onValueChange={setExpanded}>
+          <AccordionItem value='details'>
+            <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+              Details
+            </AccordionTrigger>
+            <AccordionContent className='px-6'>
+              <dl className='grid grid-cols-2 gap-x-4 gap-y-2 text-sm'>
+                <dt className='text-muted-foreground'>Total</dt>
+                <dd className='text-right font-medium'>{overall.total}</dd>
+                <dt className='text-muted-foreground'>Completed</dt>
+                <dd className='text-right font-medium'>{overall.completed}</dd>
+                <dt className='text-muted-foreground'>Completion %</dt>
+                <dd className='text-right font-medium'>
+                  {overall.completion_rate}%
+                </dd>
+                <dt className='text-muted-foreground'>On-Time %</dt>
+                <dd className='text-right font-medium'>
+                  {overall.on_time_rate}%
+                </dd>
+                <dt className='text-muted-foreground'>Overdue</dt>
+                <dd className='text-right font-medium'>
+                  {overall.overdue > 0 ? (
+                    <Badge variant='destructive'>{overall.overdue}</Badge>
+                  ) : (
+                    0
+                  )}
+                </dd>
+              </dl>
+            </AccordionContent>
+          </AccordionItem>
+          {needsDetail && (
+            <DetailSections
+              implementerId={item.implementer_id}
+              primary={primary}
+            />
+          )}
+          {!needsDetail && (
+            <>
+              <AccordionItem value='timeline'>
+                <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+                  By Timeline
+                </AccordionTrigger>
+              </AccordionItem>
+              <AccordionItem value='focus-area'>
+                <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+                  By Focus Area
+                </AccordionTrigger>
+              </AccordionItem>
+            </>
+          )}
+        </Accordion>
+      )}
     </Card>
   );
 });

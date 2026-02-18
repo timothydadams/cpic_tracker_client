@@ -69,7 +69,7 @@ import {
 } from './strategiesApiSlice';
 import { sanitizeString } from 'utils/rhf_helpers';
 
-const StrategyCardMenu = React.memo(function StrategyCardMenu({
+export const StrategyCardMenu = React.memo(function StrategyCardMenu({
   onEditClick,
   onAddNoteClick,
   canEdit,
@@ -102,7 +102,7 @@ const StrategyCardMenu = React.memo(function StrategyCardMenu({
   );
 });
 
-function StrategyEditSheet({ strategy, open, onOpenChange }) {
+export function StrategyEditSheet({ strategy, open, onOpenChange }) {
   useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     return () => {
@@ -136,7 +136,7 @@ function StrategyEditSheet({ strategy, open, onOpenChange }) {
   );
 }
 
-const InlineNoteInput = React.memo(function InlineNoteInput({
+export const InlineNoteInput = React.memo(function InlineNoteInput({
   strategyId,
   parentId,
   onClose,
@@ -544,6 +544,46 @@ function ActivityDialog({ strategyId, triggerButton }) {
     </Dialog>
   );
 }
+
+export const StrategyActionCell = React.memo(function StrategyActionCell({
+  strategy,
+}) {
+  const user = useAuth();
+  const showMenu = user?.status !== 'Guest';
+  const canEdit = user?.isAdmin || user?.isCPICAdmin || user?.isCPICMember;
+
+  const [showEditSheet, setShowEditSheet] = React.useState(false);
+  const [showNoteInput, setShowNoteInput] = React.useState(false);
+
+  if (!showMenu) return null;
+
+  return (
+    <>
+      <StrategyCardMenu
+        onEditClick={() => setShowEditSheet(true)}
+        onAddNoteClick={() => setShowNoteInput(true)}
+        canEdit={canEdit}
+      />
+      <StrategyEditSheet
+        strategy={strategy}
+        open={showEditSheet}
+        onOpenChange={setShowEditSheet}
+      />
+      <Dialog open={showNoteInput} onOpenChange={setShowNoteInput}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Note</DialogTitle>
+            <DialogDescription>Add a note to this strategy</DialogDescription>
+          </DialogHeader>
+          <InlineNoteInput
+            strategyId={strategy.id}
+            onClose={() => setShowNoteInput(false)}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+});
 
 export const StrategyCard = React.memo(function StrategyCard({
   strategy,

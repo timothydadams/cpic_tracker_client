@@ -22,7 +22,9 @@ const gradeClasses = {
 
 const StatCard = ({ title, stats }) => (
   <div className='rounded-lg border border-zinc-200 dark:border-zinc-800 p-3'>
-    <p className='text-sm font-medium mb-1'>{title}</p>
+    <p className='text-sm font-medium mb-1 truncate' title={title}>
+      {title}
+    </p>
     <div className='flex items-center gap-2'>
       <Badge className={gradeClasses[stats.grade] || ''}>{stats.grade}</Badge>
       <span className='text-sm text-muted-foreground'>
@@ -51,7 +53,7 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
 
   if (isLoading || !data) {
     return (
-      <Card className='mt-3'>
+      <Card className='rounded-none border-x-0'>
         <CardContent className='pt-6'>
           <div className='grid gap-3 grid-cols-2 lg:grid-cols-4'>
             {[1, 2, 3, 4].map((i) => (
@@ -64,7 +66,7 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
   }
 
   return (
-    <Card className='mt-3'>
+    <Card className='rounded-none border-x-0'>
       <CardHeader className='flex flex-row items-center justify-between'>
         <div>
           <CardTitle className='flex items-center gap-2'>

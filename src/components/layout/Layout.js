@@ -272,12 +272,15 @@ export const Layout = () => {
 
           <SidebarBody>
             <SidebarSection>
-              <SidebarItem href='/policies'>
+              <SidebarItem href='/policies' current={pathname === '/policies'}>
                 <MapIcon />
                 <SidebarLabel>Goals & Policies</SidebarLabel>
               </SidebarItem>
 
-              <SidebarItem href='/strategies'>
+              <SidebarItem
+                href='/strategies'
+                current={pathname.startsWith('/strategies')}
+              >
                 <GoalIcon />
                 <SidebarLabel>All Strategies</SidebarLabel>
               </SidebarItem>
@@ -325,7 +328,7 @@ export const Layout = () => {
 
             <SidebarSpacer />
             <SidebarSection>
-              <SidebarItem href='/faq'>
+              <SidebarItem href='/faq' current={pathname === '/faq'}>
                 <QuestionMarkCircleIcon />
                 <SidebarLabel>FAQ</SidebarLabel>
               </SidebarItem>

@@ -10,7 +10,6 @@ import {
 import { useGetImplementerScorecardQuery } from './metricsApiSlice';
 import { CompletionTrendChart } from './CompletionTrendChart';
 import { ScorecardTable } from './ScorecardTable';
-import { ScorecardDetail } from './ScorecardDetail';
 import { TableSkeleton } from './MetricsSkeleton';
 
 export const ImplementerTab = () => {
@@ -68,18 +67,11 @@ export const ImplementerTab = () => {
               data={scorecardData}
               expandedId={expandedId}
               onToggleExpand={handleToggleExpand}
+              primary={isPrimary}
             />
           )}
         </CardContent>
       </Card>
-
-      {expandedId && (
-        <ScorecardDetail
-          implementerId={expandedId}
-          primary={isPrimary}
-          onClose={() => setExpandedId(null)}
-        />
-      )}
     </div>
   );
 };

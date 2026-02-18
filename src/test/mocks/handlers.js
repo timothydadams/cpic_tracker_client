@@ -104,6 +104,279 @@ export const mockImplementers = [
   },
 ];
 
+// ─── Metrics fixture data ─────────────────────────────────
+
+export const mockPlanOverview = {
+  total_strategies: 85,
+  completed: 22,
+  in_progress: 40,
+  needs_updating: 23,
+  completion_rate: 25.9,
+  on_time_completions: 18,
+  late_completions: 4,
+  on_time_rate: 81.8,
+  overdue: 7,
+  avg_days_to_complete: 142.5,
+};
+
+export const mockStrategiesByStatus = [
+  { status: 'Needs Updating', count: 23 },
+  { status: 'In Progress', count: 40 },
+  { status: 'Completed', count: 22 },
+];
+
+export const mockStrategiesByTimeline = [
+  { timeline: 'Short-Term', count: 30 },
+  { timeline: 'Mid-Term', count: 25 },
+  { timeline: 'Long-Term', count: 15 },
+  { timeline: 'Ongoing', count: 15 },
+];
+
+export const mockCompletionByFocusArea = [
+  {
+    focus_area_id: 1,
+    focus_area_name: 'Housing & Neighborhoods',
+    total: 20,
+    completed: 8,
+    in_progress: 7,
+    needs_updating: 5,
+    completion_rate: 40.0,
+    overdue: 2,
+    avg_days_to_complete: 120.3,
+  },
+  {
+    focus_area_id: 2,
+    focus_area_name: 'Economic Development',
+    total: 15,
+    completed: 5,
+    in_progress: 6,
+    needs_updating: 4,
+    completion_rate: 33.3,
+    overdue: 1,
+    avg_days_to_complete: 98.0,
+  },
+];
+
+export const mockCompletionByTimeline = [
+  {
+    timeline_id: 1,
+    timeline_name: 'Short-Term',
+    deadline_date: '2026-08-31T16:00:00.000Z',
+    total: 30,
+    completed: 15,
+    completion_rate: 50.0,
+    overdue: 3,
+    on_time_rate: 86.7,
+    days_remaining: 195,
+    avg_days_to_complete: 98.2,
+  },
+  {
+    timeline_id: 2,
+    timeline_name: 'Mid-Term',
+    deadline_date: '2030-08-31T16:00:00.000Z',
+    total: 25,
+    completed: 5,
+    completion_rate: 20.0,
+    overdue: 0,
+    on_time_rate: 100.0,
+    days_remaining: 1656,
+    avg_days_to_complete: 200.0,
+  },
+];
+
+export const mockDeadlineDrift = {
+  total_with_deadlines: 70,
+  pushed: 12,
+  push_rate: 17.1,
+  avg_drift_days: 87.3,
+  by_timeline: [
+    {
+      timeline_id: 1,
+      timeline_name: 'Short-Term',
+      total: 30,
+      pushed: 5,
+      push_rate: 16.7,
+      avg_drift_days: 45.2,
+    },
+  ],
+};
+
+export const mockOverdueStrategies = [
+  {
+    strategy_id: 14,
+    content: 'Develop teacher recruitment pipeline for underserved areas',
+    focus_area: 'Housing & Neighborhoods',
+    policy: 'Policy A',
+    timeline: 'Short-Term',
+    status: 'In Progress',
+    current_deadline: '2026-01-15T00:00:00.000Z',
+    days_overdue: 33,
+    primary_implementer: 'Planning Board',
+  },
+];
+
+export const mockImplementerScorecard = [
+  {
+    implementer_id: 1,
+    implementer_name: 'Planning Board',
+    overall: {
+      total: 12,
+      completed: 5,
+      completion_rate: 41.7,
+      on_time: 4,
+      late: 1,
+      on_time_rate: 80.0,
+      overdue: 2,
+      avg_days_to_complete: 134.2,
+      score: 62.5,
+      grade: 'D',
+    },
+    by_timeline: [],
+  },
+  {
+    implementer_id: 2,
+    implementer_name: 'Public Works',
+    overall: {
+      total: 8,
+      completed: 6,
+      completion_rate: 75.0,
+      on_time: 6,
+      late: 0,
+      on_time_rate: 100.0,
+      overdue: 0,
+      avg_days_to_complete: 90.0,
+      score: 92.5,
+      grade: 'A',
+    },
+    by_timeline: [],
+  },
+];
+
+export const mockImplementerScorecardDetail = {
+  implementer_id: 1,
+  implementer_name: 'Planning Board',
+  overall: {
+    total: 12,
+    completed: 5,
+    completion_rate: 41.7,
+    on_time: 4,
+    late: 1,
+    on_time_rate: 80.0,
+    overdue: 2,
+    avg_days_to_complete: 134.2,
+    score: 62.5,
+    grade: 'D',
+  },
+  by_timeline: [
+    {
+      timeline_id: 1,
+      timeline_name: 'Short-Term',
+      total: 5,
+      completed: 3,
+      completion_rate: 60.0,
+      on_time: 3,
+      late: 0,
+      on_time_rate: 100.0,
+      overdue: 1,
+      avg_days_to_complete: 98.0,
+      score: 79.0,
+      grade: 'C',
+    },
+  ],
+  by_focus_area: [
+    {
+      focus_area_id: 1,
+      focus_area_name: 'Housing & Neighborhoods',
+      total: 4,
+      completed: 2,
+      completion_rate: 50.0,
+      on_time: 2,
+      late: 0,
+      on_time_rate: 100.0,
+      overdue: 0,
+      avg_days_to_complete: 110.0,
+      score: 82.5,
+      grade: 'B',
+    },
+  ],
+  recent_completions: [
+    {
+      strategy_id: 22,
+      content: 'Complete housing inventory assessment',
+      completed_at: '2025-11-15T00:00:00.000Z',
+      focus_area: 'Housing & Neighborhoods',
+      timeline: 'Short-Term',
+      was_on_time: true,
+    },
+  ],
+  overdue_strategies: [
+    {
+      strategy_id: 14,
+      content: 'Develop teacher recruitment pipeline',
+      current_deadline: '2026-01-15T00:00:00.000Z',
+      days_overdue: 33,
+      focus_area: 'Housing & Neighborhoods',
+      timeline: 'Short-Term',
+      status: 'In Progress',
+    },
+  ],
+};
+
+export const mockCompletionTrend = [
+  { period: '2025-06', completed: 3, cumulative: 10 },
+  { period: '2025-07', completed: 5, cumulative: 15 },
+  { period: '2025-08', completed: 2, cumulative: 17 },
+  { period: '2025-09', completed: 3, cumulative: 20 },
+];
+
+export const mockFocusAreaProgress = [
+  {
+    focus_area_id: 1,
+    name: 'Housing & Neighborhoods',
+    state_goal: 'State Goal 1',
+    total_strategies: 20,
+    completion_rate: 40.0,
+    policies: [
+      {
+        policy_id: 'uuid-1',
+        description: 'Policy A',
+        policy_number: 1,
+        total: 6,
+        completed: 3,
+        completion_rate: 50.0,
+        overdue: 0,
+      },
+      {
+        policy_id: 'uuid-2',
+        description: 'Policy B',
+        policy_number: 2,
+        total: 4,
+        completed: 1,
+        completion_rate: 25.0,
+        overdue: 1,
+      },
+    ],
+  },
+];
+
+export const mockStrategyStatsByImplementer = [
+  {
+    id: 1,
+    name: 'Planning Board',
+    strategy_stats: { total: 12, inProgress: 5, completed: 5 },
+  },
+  {
+    id: 2,
+    name: 'Public Works',
+    strategy_stats: { total: 8, inProgress: 2, completed: 6 },
+  },
+];
+
+export const mockImplementerBreakdown = [
+  { implementer_id: 1, implementer_name: 'Planning Board', count: 12 },
+  { implementer_id: 2, implementer_name: 'Public Works', count: 8 },
+];
+
 // ─── Handlers ──────────────────────────────────────────────
 
 export const handlers = [
@@ -243,6 +516,111 @@ export const handlers = [
       status: 200,
       message: 'Success',
       data: mockTimelineOptions,
+    });
+  }),
+
+  // Metrics
+  http.get(`${API_URL}/metrics/plan-overview`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockPlanOverview,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/strategies-by-status`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockStrategiesByStatus,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/strategies-by-timeline`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockStrategiesByTimeline,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/completion-by-focus-area`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockCompletionByFocusArea,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/completion-by-timeline`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockCompletionByTimeline,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/deadline-drift`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockDeadlineDrift,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/overdue-strategies`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockOverdueStrategies,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/implementer-scorecard`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockImplementerScorecard,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/implementer-scorecard/:id`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockImplementerScorecardDetail,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/completion-trend`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockCompletionTrend,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/focus-area-progress`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockFocusAreaProgress,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/implementer-breakdown`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockImplementerBreakdown,
+    });
+  }),
+
+  http.get(`${API_URL}/metrics/strategy-stats-by-implementer`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockStrategyStatsByImplementer,
     });
   }),
 

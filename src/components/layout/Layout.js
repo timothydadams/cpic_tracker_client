@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { GoalIcon, MapIcon, ChartNoAxesCombinedIcon } from 'lucide-react';
+import {
+  GoalIcon,
+  MapIcon,
+  LayoutDashboardIcon,
+  TargetIcon,
+  CalendarClockIcon,
+  UsersIcon,
+} from 'lucide-react';
 import {
   Dropdown,
   DropdownButton,
@@ -58,7 +65,7 @@ import {
   PresentationChartLineIcon,
 } from '@heroicons/react/24/solid';
 
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useSendLogoutMutation } from '../../features/auth/authApiSlice.js';
 //import useAuth from 'hooks/useAuth.js';
 import { userNavItems, adminNavItems } from './navLists.js';
@@ -175,6 +182,7 @@ export const Layout = () => {
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
   const user = useSelector(selectMemoizedUser);
+  const { pathname } = useLocation();
 
   const { id, roles } = user;
 
@@ -273,10 +281,37 @@ export const Layout = () => {
                 <GoalIcon />
                 <SidebarLabel>All Strategies</SidebarLabel>
               </SidebarItem>
+            </SidebarSection>
 
-              <SidebarItem href='/'>
-                <ChartNoAxesCombinedIcon />
-                <SidebarLabel>View Metrics</SidebarLabel>
+            <SidebarSection>
+              <SidebarHeading>Metrics</SidebarHeading>
+              <SidebarItem
+                href='/metrics/overview'
+                current={pathname.startsWith('/metrics/overview')}
+              >
+                <LayoutDashboardIcon />
+                <SidebarLabel>Overview</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem
+                href='/metrics/focus-areas'
+                current={pathname.startsWith('/metrics/focus-areas')}
+              >
+                <TargetIcon />
+                <SidebarLabel>Focus Areas</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem
+                href='/metrics/timelines'
+                current={pathname.startsWith('/metrics/timelines')}
+              >
+                <CalendarClockIcon />
+                <SidebarLabel>Timelines</SidebarLabel>
+              </SidebarItem>
+              <SidebarItem
+                href='/metrics/implementers'
+                current={pathname.startsWith('/metrics/implementers')}
+              >
+                <UsersIcon />
+                <SidebarLabel>Implementers</SidebarLabel>
               </SidebarItem>
             </SidebarSection>
 

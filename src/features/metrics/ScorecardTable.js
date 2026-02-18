@@ -8,6 +8,7 @@ import {
   TableHeader,
   TableRow,
 } from 'catalyst/table';
+import { ScorecardDetail } from './ScorecardDetail';
 
 const gradeClasses = {
   A: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -44,7 +45,12 @@ const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
   </TableRow>
 ));
 
-export const ScorecardTable = ({ data, expandedId, onToggleExpand }) => {
+export const ScorecardTable = ({
+  data,
+  expandedId,
+  onToggleExpand,
+  primary,
+}) => {
   if (!data?.length) {
     return (
       <p className='text-sm text-muted-foreground py-4 text-center'>
@@ -70,15 +76,30 @@ export const ScorecardTable = ({ data, expandedId, onToggleExpand }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {data.map((item, i) => (
-            <ScorecardRow
-              key={item.implementer_id}
-              item={item}
-              rank={i + 1}
-              isExpanded={expandedId === item.implementer_id}
-              onClick={() => onToggleExpand(item.implementer_id)}
-            />
-          ))}
+          {data.map((item, i) => {
+            const isExpanded = expandedId === item.implementer_id;
+            return (
+              <React.Fragment key={item.implementer_id}>
+                <ScorecardRow
+                  item={item}
+                  rank={i + 1}
+                  isExpanded={isExpanded}
+                  onClick={() => onToggleExpand(item.implementer_id)}
+                />
+                {isExpanded && (
+                  <TableRow>
+                    <TableCell colSpan={9} className='p-0 border-b-0'>
+                      <ScorecardDetail
+                        implementerId={item.implementer_id}
+                        primary={primary}
+                        onClose={() => onToggleExpand(item.implementer_id)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                )}
+              </React.Fragment>
+            );
+          })}
         </TableBody>
       </Table>
     </div>

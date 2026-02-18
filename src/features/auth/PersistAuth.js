@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import React, { useState, useEffect, useRef } from 'react';
 import { useRefreshMutation } from './authApiSlice';
 import usePersist from 'hooks/usePersist';
@@ -8,8 +8,6 @@ import { selectCurrentToken } from './authSlice';
 import { Skeleton } from 'ui/skeleton';
 
 export const PersistAuth = () => {
-  const location = useLocation();
-
   const [persist] = usePersist();
   const token = useSelector(selectCurrentToken);
   const effectRan = useRef(false);
@@ -42,19 +40,10 @@ export const PersistAuth = () => {
 
   let content;
 
-  if (trueSuccess || (token && isUninitialized)) {
+  if (trueSuccess || (token && isUninitialized) || isError) {
     content = <Outlet />;
   } else if (isLoading) {
     content = <Skeleton className='w-full h-[250px]' />;
-  } else if (isError) {
-    const allowed = location.pathname.includes('/register');
-    content = (
-      <Navigate
-        to={allowed ? location.pathname : '/login'}
-        replace={true}
-        state={{ from: location.pathname }}
-      />
-    );
   }
 
   return content;

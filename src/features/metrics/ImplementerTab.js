@@ -71,7 +71,7 @@ export const ImplementerTab = () => {
           </CardHeader>
           <CardContent>
             {scorecardLoading ? (
-              <TableSkeleton rows={6} cols={9} />
+              <TableSkeleton rows={6} cols={8} />
             ) : (
               <ScorecardTable
                 data={scorecardData}

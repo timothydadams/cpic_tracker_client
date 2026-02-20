@@ -18,7 +18,7 @@ const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
     <TableCell className='font-medium'>{rank}</TableCell>
     <TableCell className='font-medium'>{item.implementer_name}</TableCell>
     {item.overall.total === 0 ? (
-      <TableCell colSpan={7} className='text-center text-muted-foreground'>
+      <TableCell colSpan={6} className='text-center text-muted-foreground'>
         N/A
       </TableCell>
     ) : (
@@ -29,8 +29,9 @@ const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
           </Badge>
         </TableCell>
         <TableCell>{item.overall.score}</TableCell>
-        <TableCell>{item.overall.total}</TableCell>
-        <TableCell>{item.overall.completed}</TableCell>
+        <TableCell>
+          {item.overall.completed}/{item.overall.total}
+        </TableCell>
         <TableCell>{item.overall.completion_rate}%</TableCell>
         <TableCell>{item.overall.on_time_rate}%</TableCell>
         <TableCell>
@@ -61,16 +62,15 @@ export const ScorecardTable = ({
 
   return (
     <div className='overflow-x-auto'>
-      <Table>
+      <Table dense>
         <TableHead>
           <TableRow>
             <TableHeader>#</TableHeader>
             <TableHeader>Implementer</TableHeader>
             <TableHeader>Grade</TableHeader>
             <TableHeader>Score</TableHeader>
-            <TableHeader>Total</TableHeader>
-            <TableHeader>Completed</TableHeader>
-            <TableHeader>Completion %</TableHeader>
+            <TableHeader>Done</TableHeader>
+            <TableHeader>Comp %</TableHeader>
             <TableHeader>On-Time %</TableHeader>
             <TableHeader>Overdue</TableHeader>
           </TableRow>
@@ -88,7 +88,7 @@ export const ScorecardTable = ({
                 />
                 {isExpanded && (
                   <TableRow>
-                    <TableCell colSpan={9} className='p-0 border-b-0'>
+                    <TableCell colSpan={8} className='p-0 border-b-0'>
                       <ScorecardDetail
                         implementerId={item.implementer_id}
                         primary={primary}

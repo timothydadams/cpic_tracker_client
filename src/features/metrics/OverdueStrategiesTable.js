@@ -15,19 +15,11 @@ import {
   SelectValue,
 } from 'ui/select';
 import { Badge } from 'ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from 'catalyst/table';
+import { Skeleton } from 'ui/skeleton';
 import { useGetOverdueStrategiesQuery } from './metricsApiSlice';
 import { useGetAllTimelineOptionsQuery } from 'features/strategies/strategiesApiSlice';
 import { useGetAllFocusAreasQuery } from 'features/focus_areas/focusAreaApiSlice';
 import { useGetAllImplementersQuery } from 'features/implementers/implementersApiSlice';
-import { TableSkeleton } from './MetricsSkeleton';
 
 const ALL = 'all';
 
@@ -115,46 +107,50 @@ export const OverdueStrategiesTable = () => {
         </div>
 
         {isLoading ? (
-          <TableSkeleton rows={4} cols={5} />
+          <div className='space-y-3'>
+            {[1, 2, 3, 4].map((i) => (
+              <div
+                key={i}
+                className='rounded-lg border border-zinc-200 dark:border-zinc-800 p-3 space-y-2'
+              >
+                <Skeleton className='h-4 w-3/4 rounded' />
+                <Skeleton className='h-3 w-1/2 rounded' />
+              </div>
+            ))}
+          </div>
         ) : !data?.length ? (
           <p className='text-sm text-muted-foreground py-4 text-center'>
             No overdue strategies found.
           </p>
         ) : (
-          <div className='overflow-x-auto'>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableHeader>Strategy</TableHeader>
-                  <TableHeader>Focus Area</TableHeader>
-                  <TableHeader>Timeline</TableHeader>
-                  <TableHeader>Days Overdue</TableHeader>
-                  <TableHeader>Primary Implementer</TableHeader>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {data.map((s) => (
-                  <TableRow key={s.strategy_id}>
-                    <TableCell>
-                      <Link
-                        to={`/strategies/${s.strategy_id}`}
-                        className='text-blue-600 hover:underline dark:text-blue-400'
-                      >
-                        {s.content.length > 60
-                          ? s.content.slice(0, 57) + '...'
-                          : s.content}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{s.focus_area}</TableCell>
-                    <TableCell>{s.timeline}</TableCell>
-                    <TableCell>
-                      <Badge variant='destructive'>{s.days_overdue}d</Badge>
-                    </TableCell>
-                    <TableCell>{s.primary_implementer || '\u2014'}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          <div className='space-y-2'>
+            {data.map((s) => (
+              <div
+                key={s.strategy_id}
+                className='rounded-lg border border-zinc-200 dark:border-zinc-800 p-3'
+              >
+                <div className='flex items-start justify-between gap-3'>
+                  <Link
+                    to={`/strategies/${s.strategy_id}`}
+                    className='text-sm text-blue-600 hover:underline dark:text-blue-400'
+                  >
+                    {s.content}
+                  </Link>
+                  <Badge variant='destructive' className='shrink-0'>
+                    {s.days_overdue}d
+                  </Badge>
+                </div>
+                <div className='mt-1 text-xs text-muted-foreground space-y-0.5'>
+                  <p>{s.focus_area}</p>
+                  <div className='flex items-center justify-between'>
+                    <span>{s.timeline}</span>
+                    {s.primary_implementer && (
+                      <span>{s.primary_implementer}</span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </CardContent>

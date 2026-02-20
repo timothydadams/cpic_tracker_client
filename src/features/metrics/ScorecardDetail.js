@@ -61,7 +61,7 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
 
   if (isLoading || !data) {
     return (
-      <Card className='rounded-none border-x-0'>
+      <Card className='rounded-none border-x-0 whitespace-normal'>
         <CardContent className='pt-6'>
           <div className='grid gap-3 grid-cols-2 lg:grid-cols-4'>
             {[1, 2, 3, 4].map((i) => (
@@ -74,7 +74,7 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
   }
 
   return (
-    <Card className='rounded-none border-x-0'>
+    <Card className='rounded-none border-x-0 whitespace-normal'>
       <CardHeader className='flex flex-row items-center justify-between'>
         <div>
           <CardTitle className='flex items-center gap-2'>

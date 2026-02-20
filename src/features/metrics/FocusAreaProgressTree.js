@@ -11,6 +11,7 @@ import {
 import { Badge } from 'ui/badge';
 import { useGetFocusAreaProgressQuery } from './metricsApiSlice';
 import { ChartSkeleton } from './MetricsSkeleton';
+import { MetricInfoTip } from './MetricInfoTip';
 
 const ProgressBar = ({ rate }) => (
   <div className='h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800'>
@@ -58,6 +59,7 @@ const FocusAreaSection = React.memo(({ area }) => {
             <CardDescription>
               {area.total_strategies} strategies &middot; {area.completion_rate}
               % complete
+              <MetricInfoTip metricKey='completion_rate' />
             </CardDescription>
           </div>
           <ChevronDownIcon

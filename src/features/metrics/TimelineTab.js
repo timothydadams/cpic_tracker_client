@@ -7,10 +7,12 @@ import {
   CardTitle,
 } from 'ui/card';
 import { Badge } from 'ui/badge';
+import { HybridTooltipProvider } from 'ui/hybrid-tooltip';
 import { useGetCompletionByTimelineQuery } from './metricsApiSlice';
 import { DeadlineDriftCard } from './DeadlineDriftCard';
 import { OverdueStrategiesTable } from './OverdueStrategiesTable';
 import { KpiCardSkeleton } from './MetricsSkeleton';
+import { MetricInfoTip } from './MetricInfoTip';
 
 const ProgressBar = ({ rate }) => (
   <div className='h-2 w-full rounded-full bg-zinc-100 dark:bg-zinc-800'>
@@ -48,7 +50,10 @@ const TimelineCard = React.memo(({ tier }) => {
       </CardHeader>
       <CardContent className='space-y-3'>
         <div>
-          <div className='text-2xl font-bold'>{tier.completion_rate}%</div>
+          <div className='flex items-baseline gap-1'>
+            <span className='text-2xl font-bold'>{tier.completion_rate}%</span>
+            <MetricInfoTip metricKey='completion_rate' />
+          </div>
           <p className='text-xs text-muted-foreground'>
             {tier.completed} of {tier.total} completed
           </p>
@@ -74,8 +79,14 @@ const TimelineCard = React.memo(({ tier }) => {
         </div>
 
         <div className='text-sm text-muted-foreground space-y-1'>
-          <p>On-time rate: {tier.on_time_rate}%</p>
-          <p>Avg days to complete: {tier.avg_days_to_complete}</p>
+          <p>
+            On-time rate: {tier.on_time_rate}%
+            <MetricInfoTip metricKey='on_time_rate' />
+          </p>
+          <p>
+            Avg days to complete: {tier.avg_days_to_complete}
+            <MetricInfoTip metricKey='avg_days_to_complete' />
+          </p>
         </div>
       </CardContent>
     </Card>
@@ -108,10 +119,12 @@ const TimelineCards = () => {
 
 export const TimelineTab = () => {
   return (
-    <div className='space-y-6 pt-4'>
-      <TimelineCards />
-      <DeadlineDriftCard />
-      <OverdueStrategiesTable />
-    </div>
+    <HybridTooltipProvider>
+      <div className='space-y-6 pt-4'>
+        <TimelineCards />
+        <DeadlineDriftCard />
+        <OverdueStrategiesTable />
+      </div>
+    </HybridTooltipProvider>
   );
 };

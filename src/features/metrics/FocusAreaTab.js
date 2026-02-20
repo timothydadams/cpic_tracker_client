@@ -15,6 +15,7 @@ import {
   CardTitle,
 } from 'ui/card';
 import { ChartContainer, ChartTooltip } from 'ui/chart';
+import { HybridTooltipProvider } from 'ui/hybrid-tooltip';
 import { useGetCompletionByFocusAreaQuery } from './metricsApiSlice';
 import { FocusAreaProgressTree } from './FocusAreaProgressTree';
 import { ChartSkeleton } from './MetricsSkeleton';
@@ -119,9 +120,11 @@ const CompletionByFocusAreaChart = () => {
 
 export const FocusAreaTab = () => {
   return (
-    <div className='space-y-6 pt-4'>
-      <CompletionByFocusAreaChart />
-      <FocusAreaProgressTree />
-    </div>
+    <HybridTooltipProvider>
+      <div className='space-y-6 pt-4'>
+        <CompletionByFocusAreaChart />
+        <FocusAreaProgressTree />
+      </div>
+    </HybridTooltipProvider>
   );
 };

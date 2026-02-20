@@ -8,11 +8,12 @@ import {
   TableHeader,
   TableRow,
 } from 'catalyst/table';
-import { ScorecardDetail, gradeClasses } from './ScorecardDetail';
+import { ScorecardDetailModal, gradeClasses } from './ScorecardDetail';
+import { MetricInfoTip } from './MetricInfoTip';
 
-const ScorecardRow = React.memo(({ item, rank, isExpanded, onClick }) => (
+const ScorecardRow = React.memo(({ item, rank, onClick }) => (
   <TableRow
-    className={`cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${isExpanded ? 'bg-zinc-50 dark:bg-zinc-800/50' : ''}`}
+    className='cursor-pointer transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
     onClick={onClick}
   >
     <TableCell className='font-medium'>{rank}</TableCell>
@@ -61,47 +62,51 @@ export const ScorecardTable = ({
   }
 
   return (
-    <div className='overflow-x-auto'>
-      <Table dense>
-        <TableHead>
-          <TableRow>
-            <TableHeader>#</TableHeader>
-            <TableHeader>Implementer</TableHeader>
-            <TableHeader>Grade</TableHeader>
-            <TableHeader>Score</TableHeader>
-            <TableHeader>Done</TableHeader>
-            <TableHeader>Comp %</TableHeader>
-            <TableHeader>On-Time %</TableHeader>
-            <TableHeader>Overdue</TableHeader>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {data.map((item, i) => {
-            const isExpanded = expandedId === item.implementer_id;
-            return (
-              <React.Fragment key={item.implementer_id}>
-                <ScorecardRow
-                  item={item}
-                  rank={i + 1}
-                  isExpanded={isExpanded}
-                  onClick={() => onToggleExpand(item.implementer_id)}
-                />
-                {isExpanded && (
-                  <TableRow>
-                    <TableCell colSpan={8} className='p-0 border-b-0'>
-                      <ScorecardDetail
-                        implementerId={item.implementer_id}
-                        primary={primary}
-                        onClose={() => onToggleExpand(item.implementer_id)}
-                      />
-                    </TableCell>
-                  </TableRow>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <div className='overflow-x-auto'>
+        <Table dense>
+          <TableHead>
+            <TableRow>
+              <TableHeader>#</TableHeader>
+              <TableHeader>Implementer</TableHeader>
+              <TableHeader>
+                Grade <MetricInfoTip metricKey='grade' />
+              </TableHeader>
+              <TableHeader>
+                Score <MetricInfoTip metricKey='score' />
+              </TableHeader>
+              <TableHeader>Done</TableHeader>
+              <TableHeader>
+                Comp % <MetricInfoTip metricKey='completion_rate' />
+              </TableHeader>
+              <TableHeader>
+                On-Time % <MetricInfoTip metricKey='on_time_rate' />
+              </TableHeader>
+              <TableHeader>
+                Overdue <MetricInfoTip metricKey='overdue' />
+              </TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {data.map((item, i) => (
+              <ScorecardRow
+                key={item.implementer_id}
+                item={item}
+                rank={i + 1}
+                onClick={() => onToggleExpand(item.implementer_id)}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <ScorecardDetailModal
+        implementerId={expandedId}
+        primary={primary}
+        open={!!expandedId}
+        onOpenChange={(open) => {
+          if (!open) onToggleExpand(expandedId);
+        }}
+      />
+    </>
   );
 };

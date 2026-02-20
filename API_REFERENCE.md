@@ -1121,6 +1121,74 @@ Create an invite code. **Auth required.**
 
 ---
 
+### POST `/api/invites/send`
+
+Create a new invite code and email it to one or more recipients. **Auth required.** Role-scoped: users can only invite at or below their own role level (Admin → any, CPIC Admin → CPIC Admin/Member/Implementer, CPIC Member → Member/Implementer, Implementer → Implementer only).
+
+**Request:**
+
+```json
+{
+  "emails": ["string (required, non-empty array)"],
+  "roleId": "string (role UUID, required)",
+  "maxUses": "int? (default 1)",
+  "expiresInDays": "int? (default 7)"
+}
+```
+
+**Response (201):**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "code": "string",
+    "roleId": "uuid",
+    "maxUses": 1,
+    "expiresAt": "ISO8601",
+    "recipientEmails": ["string"],
+    "role": { "name": "string" },
+    "createdBy": { "id": "uuid", "email": "string", "display_name": "string?" }
+  }
+}
+```
+
+**Error (400):** Missing/invalid emails or roleId. **Error (403):** Insufficient role permissions.
+
+Each recipient receives an email with a registration link and inline QR code (for passkey setup on a personal device).
+
+---
+
+### POST `/api/invites/:code/send`
+
+Send an existing valid invite code to additional email addresses. **Auth required.** Must be the invite creator or a Global Admin. Subject to the same role-scoping rules as `POST /send`.
+
+**Request:**
+
+```json
+{
+  "emails": ["string (required, non-empty array)"]
+}
+```
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "id": "uuid",
+    "code": "string",
+    "recipientEmails": ["string (all recipients, including previously sent)"],
+    "role": { "name": "string" },
+    "createdBy": { "id": "uuid", "email": "string", "display_name": "string?" }
+  }
+}
+```
+
+**Error (400):** Missing/invalid emails. **Error (403):** Not the invite owner or insufficient role. **Error (404):** Code not found. **Error (410):** Code expired or fully used.
+
+---
+
 ### GET `/api/invites/my-codes`
 
 Get invite codes created by the current user. **Auth required.**
@@ -1575,6 +1643,167 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
 
 ---
 
+## Notification Endpoints (`/api/notifications`)
+
+All require `Authorization: Bearer <token>` and **Global Admin** role.
+
+### GET `/api/notifications/thresholds`
+
+List all notification thresholds.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "days": 90,
+      "label": "90 days before deadline",
+      "enabled": true,
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601"
+    }
+  ]
+}
+```
+
+Ordered by `days` descending. Positive values = days before deadline, zero = day-of, negative = days after deadline (overdue).
+
+---
+
+### GET `/api/notifications/thresholds/:id`
+
+Get a single threshold.
+
+**Response (200):** Single threshold object.
+
+**Error (404):** Threshold not found.
+
+---
+
+### POST `/api/notifications/thresholds`
+
+Create a notification threshold.
+
+**Request:**
+
+```json
+{
+  "days": 60,
+  "label": "60 days before deadline",
+  "enabled": true
+}
+```
+
+`days` must be unique. Positive = reminder before deadline, `0` = day-of (overdue), negative = days after deadline.
+
+**Response (201):** Created threshold object.
+
+**Error (409):** Duplicate `days` value.
+
+---
+
+### PUT `/api/notifications/thresholds/:id`
+
+Update a threshold.
+
+**Request:**
+
+```json
+{
+  "days": "int?",
+  "label": "string?",
+  "enabled": "boolean?"
+}
+```
+
+**Response (200):** Updated threshold object.
+
+---
+
+### DELETE `/api/notifications/thresholds/:id`
+
+Delete a threshold.
+
+**Response (200):** Success message.
+
+---
+
+### GET `/api/notifications/logs/strategy/:strategy_id`
+
+View notification logs for a strategy. Shows sent/failed email history.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "strategy_id": 1,
+      "threshold_id": 1,
+      "recipient_email": "dept@org.com",
+      "recipient_type": "implementer_org",
+      "sent_at": "ISO8601",
+      "status": "sent",
+      "error_message": null,
+      "job_id": "string?",
+      "threshold": {
+        "id": 1,
+        "days": 90,
+        "label": "90 days before deadline",
+        "enabled": true
+      }
+    }
+  ]
+}
+```
+
+Ordered by `sent_at` descending. `recipient_type` values: `implementer_org`, `implementer_member`, `cpic_sme`.
+
+---
+
+### GET `/api/notifications/feature-flags`
+
+List all feature flags controlling email notification categories.
+
+**Response (200):**
+
+```json
+{
+  "data": [
+    {
+      "key": "deadline_scheduler",
+      "enabled": true,
+      "description": "Enable daily deadline check cron job",
+      "updatedAt": "ISO8601",
+      "createdAt": "ISO8601"
+    }
+  ]
+}
+```
+
+Ordered by `key` ascending. Three default flags: `deadline_scheduler` (master switch for the daily cron), `deadline_reminders` (upcoming deadline and day-of emails, thresholds with `days >= 0`), `overdue_notifications` (overdue emails, thresholds with `days < 0`). Invite emails are always-on and bypass flags.
+
+---
+
+### PUT `/api/notifications/feature-flags/:key`
+
+Toggle a feature flag.
+
+**Request:**
+
+```json
+{ "enabled": false }
+```
+
+**Response (200):** Updated flag object.
+
+**Error (404):** Unknown flag key.
+
+---
+
 ## Data Models
 
 ### User
@@ -1687,16 +1916,17 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
 
 ### InviteCode
 
-| Field         | Type      | Notes              |
-| ------------- | --------- | ------------------ |
-| `id`          | `uuid`    | Primary key        |
-| `code`        | `string`  | Unique invite code |
-| `roleId`      | `uuid`    | FK to Role         |
-| `createdById` | `uuid`    | FK to User         |
-| `maxUses`     | `int`     | Default 1          |
-| `useCount`    | `int`     | Default 0          |
-| `used`        | `boolean` | Default false      |
-| `expiresAt`   | `ISO8601` |                    |
+| Field             | Type       | Notes                                                |
+| ----------------- | ---------- | ---------------------------------------------------- |
+| `id`              | `uuid`     | Primary key                                          |
+| `code`            | `string`   | Unique invite code                                   |
+| `roleId`          | `uuid`     | FK to Role                                           |
+| `createdById`     | `uuid`     | FK to User                                           |
+| `maxUses`         | `int`      | Default 1                                            |
+| `useCount`        | `int`      | Default 0                                            |
+| `used`            | `boolean`  | Default false                                        |
+| `recipientEmails` | `string[]` | Email addresses the invite was sent to. Default `[]` |
+| `expiresAt`       | `ISO8601`  |                                                      |
 
 ### StatusOptions
 
@@ -1714,6 +1944,43 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
 | `title`   | `string`  | Unique            |
 | `enabled` | `boolean` | Default true      |
 
+### NotificationThreshold
+
+| Field       | Type      | Notes                                                                     |
+| ----------- | --------- | ------------------------------------------------------------------------- |
+| `id`        | `int`     | Auto-increment PK                                                         |
+| `days`      | `int`     | Unique. Positive = before deadline, 0 = day-of, negative = after deadline |
+| `label`     | `string`  | Human-readable description (max 100 chars)                                |
+| `enabled`   | `boolean` | Default true                                                              |
+| `createdAt` | `ISO8601` |                                                                           |
+| `updatedAt` | `ISO8601` |                                                                           |
+
+### NotificationLog
+
+| Field             | Type      | Notes                                                  |
+| ----------------- | --------- | ------------------------------------------------------ |
+| `id`              | `int`     | Auto-increment PK                                      |
+| `strategy_id`     | `int`     | FK to Strategy                                         |
+| `threshold_id`    | `int`     | FK to NotificationThreshold                            |
+| `recipient_email` | `string`  |                                                        |
+| `recipient_type`  | `string`  | `implementer_org`, `implementer_member`, or `cpic_sme` |
+| `sent_at`         | `ISO8601` | Default now()                                          |
+| `status`          | `string`  | `sent` or `failed`                                     |
+| `error_message`   | `string?` | Error details (max 500 chars)                          |
+| `job_id`          | `string?` | BullMQ job ID                                          |
+
+Unique constraint on `(strategy_id, threshold_id, recipient_email)` for deduplication.
+
+### FeatureFlag
+
+| Field         | Type      | Notes                                                                                                   |
+| ------------- | --------- | ------------------------------------------------------------------------------------------------------- |
+| `key`         | `string`  | Primary key (max 50 chars). Values: `deadline_scheduler`, `deadline_reminders`, `overdue_notifications` |
+| `enabled`     | `boolean` | Default true                                                                                            |
+| `description` | `string`  | Human-readable description (max 200 chars)                                                              |
+| `updatedAt`   | `ISO8601` |                                                                                                         |
+| `createdAt`   | `ISO8601` |                                                                                                         |
+
 ### Stakeholder
 
 | Field               | Type       | Notes             |
@@ -1729,16 +1996,20 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
 
 ## Role-Based Access Summary
 
-| Resource        | Create            | Read               | Update                                                                         | Delete                    |
-| --------------- | ----------------- | ------------------ | ------------------------------------------------------------------------------ | ------------------------- |
-| **Strategy**    | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member, Implementer (restricted fields, assigned only) | Admin                     |
-| **Policy**      | Admin, CPIC Admin | Public             | Admin, CPIC Admin, CPIC Member                                                 | Admin                     |
-| **FocusArea**   | Admin             | Public             | Admin                                                                          | Admin                     |
-| **Implementer** | Admin, CPIC Admin | Public             | Admin, CPIC Admin                                                              | Admin                     |
-| **Comment**     | Any authenticated | Public             | Admin, author                                                                  | Admin, CPIC Admin, author |
-| **Role**        | Admin             | Any authenticated  | Admin                                                                          | Admin                     |
-| **User**        | N/A (via invite)  | Admin, self        | Admin, self                                                                    | Admin, self               |
-| **InviteCode**  | Any authenticated | Creator (my-codes) | N/A                                                                            | N/A                       |
+| Resource                   | Create                      | Read               | Update                                                                         | Delete                    |
+| -------------------------- | --------------------------- | ------------------ | ------------------------------------------------------------------------------ | ------------------------- |
+| **Strategy**               | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member, Implementer (restricted fields, assigned only) | Admin                     |
+| **Policy**                 | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member                                                 | Admin                     |
+| **FocusArea**              | Admin                       | Public             | Admin                                                                          | Admin                     |
+| **Implementer**            | Admin, CPIC Admin           | Public             | Admin, CPIC Admin                                                              | Admin                     |
+| **Comment**                | Any authenticated           | Public             | Admin, author                                                                  | Admin, CPIC Admin, author |
+| **Role**                   | Admin                       | Any authenticated  | Admin                                                                          | Admin                     |
+| **User**                   | N/A (via invite)            | Admin, self        | Admin, self                                                                    | Admin, self               |
+| **Notification Threshold** | Global Admin                | Global Admin       | Global Admin                                                                   | Global Admin              |
+| **Notification Log**       | N/A (system-generated)      | Global Admin       | N/A                                                                            | N/A                       |
+| **Feature Flag**           | N/A (seeded)                | Global Admin       | Global Admin                                                                   | N/A                       |
+| **InviteCode**             | Any authenticated           | Creator (my-codes) | N/A                                                                            | N/A                       |
+| **Invite Send**            | Role-scoped (see hierarchy) | N/A                | Creator or Admin (resend)                                                      | N/A                       |
 
 ---
 

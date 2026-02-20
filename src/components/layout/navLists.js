@@ -23,7 +23,6 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/20/solid';
 
-import { InviteUsers } from '../../features/users/InviteUserForm';
 import { CreateCodeForm } from '../../features/invites/CreateCodeForm';
 import { AssignedStrategies } from '../../features/strategies/AssignedStrategies';
 

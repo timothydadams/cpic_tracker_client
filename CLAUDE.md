@@ -41,7 +41,7 @@ Husky pre-commit runs Prettier via lint-staged on all staged files. Commits are 
 
 Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `policies`, `comments`, `invites`, `metrics`, `faq`, `maps`, `weather`.
 
-**API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`.
+**API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`. Cache tag types: `FocusArea`, `Policy`, `Implementer`, `Strategy`, `Comment`, `Invite`.
 
 **Routing:** React Router v6 with nested routes in `src/Routes.js`. All route components are lazy-loaded via `React.lazy()` with a shared `PageLoader` Suspense fallback. Since components use named exports, the lazy imports use `.then(m => ({ default: m.NamedExport }))`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages). The `/metrics` route uses nested child routes (`/metrics/overview`, `/metrics/focus-areas`, `/metrics/timelines`, `/metrics/implementers`) with a shared layout shell (`MetricsPage`) rendering `<Outlet />`.
 
@@ -109,3 +109,30 @@ Prettier: single quotes, JSX single quotes, trailing commas (es5), 2-space inden
 - **Test location:** `src/features/<domain>/__tests__/` directories (e.g., `src/features/metrics/__tests__/`)
 - **Auth presets:** `AUTH_STATES` object in test-utils provides preset auth states (`admin`, `cpicAdmin`, `cpicMember`, `implementer`, `viewer`, `guest`) for testing role-gated features.
 - **Patterns:** Tests import `render`, `screen`, `waitFor` from `test-utils.jsx` (not directly from `@testing-library/react`). Use `waitFor` for async data loading. User interactions via `@testing-library/user-event`.
+
+## Invites Feature
+
+The invites feature (`src/features/invites/`) allows authenticated users to invite others via email or shareable link. It uses a two-mode UI with Radix Tabs:
+
+- **Send Email** mode — `EmailInviteForm.js`: Dynamic email field array (`useFieldArray`) + role selector. Calls `POST /api/invites/send` which creates a code and emails recipients. `maxUses` is auto-set to `emails.length`.
+- **Generate Link** mode — `ManualCodeForm.js`: Role selector + maxUses + expiresInDays fields. Calls `POST /api/invites/` and displays a copyable URL.
+
+**Component structure:**
+
+- `InviteUsersForm.js` — Parent component with Tabs, renders in the nav drawer via `navLists.js`
+- `RoleSelector.js` — Shared role dropdown that filters options based on the invite hierarchy
+- `ExistingCodeList.js` — Lists active invite codes with copy + resend actions
+- `InviteCodeItem.js` — Single code display with copy-to-clipboard and resend toggle
+- `ResendForm.js` — Inline form to resend an existing code to additional emails (`POST /api/invites/:code/send`)
+- `CreateCodeForm.js` — Re-exports `InviteUsersForm` as `CreateCodeForm` for backward compatibility
+
+**Invite role hierarchy** (enforced by both frontend `RoleSelector` and backend):
+
+| User Role   | Can Invite                           |
+| ----------- | ------------------------------------ |
+| Admin       | All roles                            |
+| CPIC Admin  | CPIC Admin, CPIC Member, Implementer |
+| CPIC Member | CPIC Member, Implementer             |
+| Implementer | Implementer only                     |
+
+Role filtering uses a `ROLE_ALLOWLIST` map with `ROLE_PRIORITY` ordering, resolved via `useMemo` in `useFilteredRoles`.

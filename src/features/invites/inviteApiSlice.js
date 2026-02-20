@@ -7,10 +7,7 @@ export const inviteApiSlice = api.injectEndpoints({
         url: `/invites/${code}/validate`,
         method: 'GET',
       }),
-      //query: (code) => `/invites/${code}/validate`,
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
     }),
     createCode: builder.mutation({
       query: (data) => ({
@@ -18,9 +15,26 @@ export const inviteApiSlice = api.injectEndpoints({
         method: 'POST',
         body: { ...data },
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
+      invalidatesTags: [{ type: 'Invite', id: 'LIST' }],
+    }),
+    sendInvite: builder.mutation({
+      query: (data) => ({
+        url: '/invites/send',
+        method: 'POST',
+        body: { ...data },
+      }),
+      transformResponse: (response) => response.data,
+      invalidatesTags: [{ type: 'Invite', id: 'LIST' }],
+    }),
+    resendInvite: builder.mutation({
+      query: ({ code, ...data }) => ({
+        url: `/invites/${code}/send`,
+        method: 'POST',
+        body: { ...data },
+      }),
+      transformResponse: (response) => response.data,
+      invalidatesTags: [{ type: 'Invite', id: 'LIST' }],
     }),
     updateCode: builder.mutation({
       query: ({ id, ...data }) => ({
@@ -28,9 +42,7 @@ export const inviteApiSlice = api.injectEndpoints({
         method: 'PUT',
         body: { ...data },
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
     }),
     deleteCode: builder.mutation({
       query: (id) => ({
@@ -38,9 +50,7 @@ export const inviteApiSlice = api.injectEndpoints({
         method: 'DELETE',
         body: {},
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
     }),
     getMyCodes: builder.query({
       query: ({ params }) => ({
@@ -48,27 +58,28 @@ export const inviteApiSlice = api.injectEndpoints({
         method: 'GET',
         params,
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({ type: 'Invite', id })),
+              { type: 'Invite', id: 'LIST' },
+            ]
+          : [{ type: 'Invite', id: 'LIST' }],
     }),
     getMyInvites: builder.query({
       query: () => ({
         url: `/invites/my-invites`,
         method: 'GET',
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
     }),
     getCodeStats: builder.query({
       query: (code) => ({
         url: `/invites/${code}/stats`,
         method: 'GET',
       }),
-      transformResponse: (response, meta, arg) => {
-        return response.data;
-      },
+      transformResponse: (response) => response.data,
     }),
   }),
 });
@@ -79,4 +90,6 @@ export const {
   useGetMyInvitesQuery,
   useGetCodeStatsQuery,
   useCreateCodeMutation,
+  useSendInviteMutation,
+  useResendInviteMutation,
 } = inviteApiSlice;

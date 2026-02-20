@@ -39,9 +39,9 @@ Husky pre-commit runs Prettier via lint-staged on all staged files. Commits are 
 - `*ApiSlice.js` — RTK Query endpoint definitions injected into the base API (`src/app/api/apiSlice.js`)
 - Component files — UI for that feature
 
-Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `policies`, `comments`, `invites`, `metrics`, `faq`, `maps`, `weather`.
+Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `policies`, `comments`, `invites`, `metrics`, `settings`, `faq`, `maps`, `weather`.
 
-**API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`. Cache tag types: `FocusArea`, `Policy`, `Implementer`, `Strategy`, `Comment`, `Invite`.
+**API layer:** RTK Query with `fetchBaseQuery`. Base URL is `localhost:3500/api` in dev, `process.env.API_URL` in production. Includes automatic 401 → token refresh → retry logic in `baseQueryWithReauth`. Cache tag types: `FocusArea`, `Policy`, `Implementer`, `Strategy`, `Comment`, `Invite`, `FeatureFlag`, `ScorecardConfig`, `ImplementerScorecard`.
 
 **Routing:** React Router v6 with nested routes in `src/Routes.js`. All route components are lazy-loaded via `React.lazy()` with a shared `PageLoader` Suspense fallback. Since components use named exports, the lazy imports use `.then(m => ({ default: m.NamedExport }))`. Routes are wrapped in `PersistAuth` for session persistence. Protected routes use `ProtectRoute` (role-gated) and `AnonymousOnly` (login/register pages). The `/metrics` route uses nested child routes (`/metrics/overview`, `/metrics/focus-areas`, `/metrics/timelines`, `/metrics/implementers`) with a shared layout shell (`MetricsPage`) rendering `<Outlet />`.
 
@@ -136,3 +136,22 @@ The invites feature (`src/features/invites/`) allows authenticated users to invi
 | Implementer | Implementer only                     |
 
 Role filtering uses a `ROLE_ALLOWLIST` map with `ROLE_PRIORITY` ordering, resolved via `useMemo` in `useFilteredRoles`.
+
+## Settings Feature
+
+The settings feature (`src/features/settings/`) provides an App Settings page (`/app/settings`) accessible from the Winthrop CPIC sidebar dropdown. Route is protected by `ProtectRoute` with `allowedRoles={['Admin', 'CPIC Admin']}`.
+
+**Sections (role-gated within the page):**
+
+- **Scorecard Configuration** (Admin + CPIC Admin) — `ScorecardConfigSection.js`: React Hook Form with `useWatch` for live cross-field validation. Weights must sum to 1.0 (±0.001 tolerance), grade thresholds must be strictly descending (A > B > C > D). Uses `getDirtyValues` for partial updates. Saving invalidates both `ScorecardConfig` and `ImplementerScorecard` cache tags so metrics data refetches with new weights/thresholds.
+- **Notification Feature Flags** (Admin only) — `FeatureFlagsSection.js`: Toggle switches for `deadline_scheduler`, `deadline_reminders`, `overdue_notifications`. No form — each toggle fires a mutation immediately. Uses `FLAG_META` map for human-readable labels/descriptions.
+
+**Component structure:**
+
+- `AppSettingsPage.js` — Page layout, uses `selectMemoizedUser` for `isAdmin`/`isCPICAdmin` role gating
+- `ScorecardConfigSection.js` — Two-component pattern: outer fetches data, inner manages form with `key={JSON.stringify(config)}` for remount on data change
+- `FeatureFlagsSection.js` — Immediate toggle mutations with snackbar feedback
+- `scorecardValidation.js` — Yup schema for per-field validation (cross-field validation handled in component via `useWatch`)
+- `settingsApiSlice.js` — RTK Query endpoints for `GET/PUT /notifications/feature-flags` and `GET/PUT /metrics/config/scorecard`
+
+**Cache invalidation chain:** `updateScorecardConfig` invalidates `ScorecardConfig` (config form) + `ImplementerScorecard` (metrics scorecard list and detail views in `metricsApiSlice.js`).

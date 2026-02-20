@@ -21,6 +21,7 @@ vi.mock('../app/api/apiSlice', async () => {
       'Invite',
       'FeatureFlag',
       'ScorecardConfig',
+      'ImplementerScorecard',
     ],
     endpoints: () => ({}),
   });

@@ -254,6 +254,7 @@ describe('RTK Query Tag Configuration Logic', () => {
     // Mirrors: settingsApiSlice.js → updateScorecardConfig.invalidatesTags
     const updateScorecardConfigInvalidatesTags = [
       { type: 'ScorecardConfig', id: 'CONFIG' },
+      { type: 'ImplementerScorecard', id: 'LIST' },
     ];
 
     it('getFeatureFlags provides FeatureFlag tags for each result key + LIST', () => {
@@ -299,6 +300,48 @@ describe('RTK Query Tag Configuration Logic', () => {
       expect(updateScorecardConfigInvalidatesTags).toContainEqual({
         type: 'ScorecardConfig',
         id: 'CONFIG',
+      });
+    });
+
+    it('updateScorecardConfig invalidates ImplementerScorecard LIST tag', () => {
+      expect(updateScorecardConfigInvalidatesTags).toContainEqual({
+        type: 'ImplementerScorecard',
+        id: 'LIST',
+      });
+    });
+  });
+
+  describe('metricsApiSlice tags', () => {
+    // Mirrors: metricsApiSlice.js → getImplementerScorecard.providesTags
+    const getImplementerScorecardProvidesTags = [
+      { type: 'ImplementerScorecard', id: 'LIST' },
+    ];
+
+    // Mirrors: metricsApiSlice.js → getImplementerScorecardDetail.providesTags
+    const getImplementerScorecardDetailProvidesTags = (
+      result,
+      error,
+      { implementerId }
+    ) => [
+      { type: 'ImplementerScorecard', id: implementerId },
+      { type: 'ImplementerScorecard', id: 'LIST' },
+    ];
+
+    it('getImplementerScorecard provides ImplementerScorecard LIST tag', () => {
+      expect(getImplementerScorecardProvidesTags).toContainEqual({
+        type: 'ImplementerScorecard',
+        id: 'LIST',
+      });
+    });
+
+    it('getImplementerScorecardDetail provides specific id + LIST tags', () => {
+      const tags = getImplementerScorecardDetailProvidesTags(null, null, {
+        implementerId: 1,
+      });
+      expect(tags).toContainEqual({ type: 'ImplementerScorecard', id: 1 });
+      expect(tags).toContainEqual({
+        type: 'ImplementerScorecard',
+        id: 'LIST',
       });
     });
   });

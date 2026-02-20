@@ -43,7 +43,10 @@ export const settingsApiSlice = api.injectEndpoints({
         body: data,
       }),
       transformResponse: (response) => response.data,
-      invalidatesTags: [{ type: 'ScorecardConfig', id: 'CONFIG' }],
+      invalidatesTags: [
+        { type: 'ScorecardConfig', id: 'CONFIG' },
+        { type: 'ImplementerScorecard', id: 'LIST' },
+      ],
     }),
   }),
 });

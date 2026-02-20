@@ -64,6 +64,7 @@ export const metricsApiSlice = api.injectEndpoints({
         params,
       }),
       transformResponse: (response) => response.data,
+      providesTags: [{ type: 'ImplementerScorecard', id: 'LIST' }],
       keepUnusedDataFor: 600,
     }),
     getImplementerScorecardDetail: builder.query({
@@ -72,6 +73,10 @@ export const metricsApiSlice = api.injectEndpoints({
         params,
       }),
       transformResponse: (response) => response.data,
+      providesTags: (result, error, { implementerId }) => [
+        { type: 'ImplementerScorecard', id: implementerId },
+        { type: 'ImplementerScorecard', id: 'LIST' },
+      ],
       keepUnusedDataFor: 600,
     }),
     getCompletionTrend: builder.query({

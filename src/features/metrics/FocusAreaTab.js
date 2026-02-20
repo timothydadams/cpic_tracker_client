@@ -1,5 +1,12 @@
 import React from 'react';
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  LabelList,
+  XAxis,
+  YAxis,
+} from 'recharts';
 import {
   Card,
   CardContent,
@@ -7,7 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from 'ui/card';
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from 'ui/chart';
+import { ChartContainer, ChartTooltip } from 'ui/chart';
 import { useGetCompletionByFocusAreaQuery } from './metricsApiSlice';
 import { FocusAreaProgressTree } from './FocusAreaProgressTree';
 import { ChartSkeleton } from './MetricsSkeleton';
@@ -50,10 +57,12 @@ const CompletionByFocusAreaChart = () => {
   const chartData = data.map((d) => ({
     ...d,
     shortName:
-      d.focus_area_name.length > 25
-        ? d.focus_area_name.slice(0, 22) + '...'
+      d.focus_area_name.length > 20
+        ? d.focus_area_name.slice(0, 17) + '...'
         : d.focus_area_name,
   }));
+
+  const chartHeight = Math.max(300, chartData.length * 40 + 40);
 
   return (
     <Card>
@@ -64,8 +73,16 @@ const CompletionByFocusAreaChart = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig} className='min-h-[300px] w-full'>
-          <BarChart layout='vertical' data={chartData}>
+        <ChartContainer
+          config={chartConfig}
+          className='w-full aspect-auto!'
+          style={{ height: chartHeight }}
+        >
+          <BarChart
+            layout='vertical'
+            data={chartData}
+            margin={{ top: 5, right: 40, bottom: 20, left: 0 }}
+          >
             <CartesianGrid horizontal={false} />
             <XAxis
               type='number'
@@ -75,15 +92,24 @@ const CompletionByFocusAreaChart = () => {
             <YAxis
               type='category'
               dataKey='shortName'
-              width={180}
-              tick={{ fontSize: 12 }}
+              width={140}
+              tick={{ fontSize: 11 }}
+              interval={0}
             />
             <ChartTooltip content={<CustomTooltip />} />
             <Bar
               dataKey='completion_rate'
               fill='var(--color-completion_rate)'
               radius={[0, 4, 4, 0]}
-            />
+            >
+              <LabelList
+                dataKey='completion_rate'
+                position='right'
+                formatter={(v) => `${v}%`}
+                className='fill-foreground'
+                fontSize={11}
+              />
+            </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>

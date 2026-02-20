@@ -47,19 +47,14 @@ export const DeadlineDriftCard = () => {
         {data.by_timeline?.length > 0 && (
           <div className='border-t border-zinc-100 dark:border-zinc-800 pt-3'>
             <p className='text-sm font-medium mb-2'>By Timeline</p>
-            <div className='space-y-2'>
+            <div className='space-y-3'>
               {data.by_timeline.map((t) => (
-                <div
-                  key={t.timeline_id}
-                  className='flex items-center justify-between text-sm'
-                >
-                  <span className='text-muted-foreground'>
-                    {t.timeline_name}
-                  </span>
-                  <span>
+                <div key={t.timeline_id} className='text-sm'>
+                  <p className='font-medium'>{t.timeline_name}</p>
+                  <p className='text-muted-foreground'>
                     {t.pushed}/{t.total} pushed ({t.push_rate}%) &middot;{' '}
                     {t.avg_drift_days} days avg
-                  </span>
+                  </p>
                 </div>
               ))}
             </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Badge } from 'ui/badge';
 import { Card, CardHeader, CardTitle } from 'ui/card';
 import {
@@ -7,9 +8,16 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from 'ui/accordion';
+import { Skeleton } from 'ui/skeleton';
 import { useGetImplementerScorecardDetailQuery } from './metricsApiSlice';
 import { gradeClasses, StatCard } from './ScorecardDetail';
-import { KpiCardSkeleton } from './MetricsSkeleton';
+
+const loadingContent = (
+  <div className='space-y-2 py-1'>
+    <Skeleton className='h-4 w-full rounded' />
+    <Skeleton className='h-4 w-3/4 rounded' />
+  </div>
+);
 
 const DetailSections = ({ implementerId, primary }) => {
   const { data, isLoading } = useGetImplementerScorecardDetailQuery(
@@ -19,22 +27,45 @@ const DetailSections = ({ implementerId, primary }) => {
 
   if (isLoading || !data) {
     return (
-      <div className='grid gap-3 grid-cols-2'>
-        {[1, 2].map((i) => (
-          <KpiCardSkeleton key={i} />
-        ))}
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {data.by_timeline?.length > 0 && (
+      <>
         <AccordionItem value='timeline'>
           <AccordionTrigger className='px-6 no-underline hover:no-underline'>
             By Timeline
           </AccordionTrigger>
-          <AccordionContent className='px-6'>
+          <AccordionContent className='px-6'>{loadingContent}</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='focus-area'>
+          <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+            By Focus Area
+          </AccordionTrigger>
+          <AccordionContent className='px-6'>{loadingContent}</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='recent-completions'>
+          <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+            Recent Completions
+          </AccordionTrigger>
+          <AccordionContent className='px-6'>{loadingContent}</AccordionContent>
+        </AccordionItem>
+        <AccordionItem value='overdue-strategies'>
+          <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+            Overdue Strategies
+          </AccordionTrigger>
+          <AccordionContent className='px-6'>{loadingContent}</AccordionContent>
+        </AccordionItem>
+      </>
+    );
+  }
+
+  const empty = <p className='text-sm text-muted-foreground py-2'>None</p>;
+
+  return (
+    <>
+      <AccordionItem value='timeline'>
+        <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+          By Timeline
+        </AccordionTrigger>
+        <AccordionContent className='px-6'>
+          {data.by_timeline?.length > 0 ? (
             <div className='grid gap-3 grid-cols-2'>
               {data.by_timeline.map((t) => (
                 <StatCard
@@ -44,15 +75,17 @@ const DetailSections = ({ implementerId, primary }) => {
                 />
               ))}
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      )}
-      {data.by_focus_area?.length > 0 && (
-        <AccordionItem value='focus-area'>
-          <AccordionTrigger className='px-6 no-underline hover:no-underline'>
-            By Focus Area
-          </AccordionTrigger>
-          <AccordionContent className='px-6'>
+          ) : (
+            empty
+          )}
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='focus-area'>
+        <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+          By Focus Area
+        </AccordionTrigger>
+        <AccordionContent className='px-6'>
+          {data.by_focus_area?.length > 0 ? (
             <div className='grid gap-3 grid-cols-2'>
               {data.by_focus_area.map((f) => (
                 <StatCard
@@ -62,17 +95,85 @@ const DetailSections = ({ implementerId, primary }) => {
                 />
               ))}
             </div>
-          </AccordionContent>
-        </AccordionItem>
-      )}
+          ) : (
+            empty
+          )}
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='recent-completions'>
+        <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+          Recent Completions
+        </AccordionTrigger>
+        <AccordionContent className='px-6'>
+          {data.recent_completions?.length > 0 ? (
+            <div className='space-y-2'>
+              {data.recent_completions.map((s) => (
+                <div
+                  key={s.strategy_id}
+                  className='flex items-center justify-between text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0'
+                >
+                  <Link
+                    to={`/strategies/${s.strategy_id}`}
+                    className='text-blue-600 hover:underline dark:text-blue-400 flex-1 mr-4 truncate'
+                  >
+                    {s.content}
+                  </Link>
+                  <Badge
+                    variant={s.was_on_time ? 'secondary' : 'destructive'}
+                    className='shrink-0'
+                  >
+                    {s.was_on_time ? 'On time' : 'Late'}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            empty
+          )}
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value='overdue-strategies'>
+        <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+          Overdue Strategies
+        </AccordionTrigger>
+        <AccordionContent className='px-6'>
+          {data.overdue_strategies?.length > 0 ? (
+            <div className='space-y-2'>
+              {data.overdue_strategies.map((s) => (
+                <div
+                  key={s.strategy_id}
+                  className='flex items-center justify-between text-sm border-b border-zinc-100 dark:border-zinc-800 pb-2 last:border-0'
+                >
+                  <Link
+                    to={`/strategies/${s.strategy_id}`}
+                    className='text-blue-600 hover:underline dark:text-blue-400 flex-1 mr-4 truncate'
+                  >
+                    {s.content}
+                  </Link>
+                  <Badge variant='destructive' className='shrink-0'>
+                    {s.days_overdue}d overdue
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            empty
+          )}
+        </AccordionContent>
+      </AccordionItem>
     </>
   );
 };
 
 const ScorecardCard = React.memo(({ item, primary }) => {
   const [expanded, setExpanded] = React.useState([]);
-  const needsDetail =
-    expanded.includes('timeline') || expanded.includes('focus-area');
+  const detailValues = [
+    'timeline',
+    'focus-area',
+    'recent-completions',
+    'overdue-strategies',
+  ];
+  const needsDetail = expanded.some((v) => detailValues.includes(v));
 
   const { overall } = item;
 
@@ -142,6 +243,16 @@ const ScorecardCard = React.memo(({ item, primary }) => {
               <AccordionItem value='focus-area'>
                 <AccordionTrigger className='px-6 no-underline hover:no-underline'>
                   By Focus Area
+                </AccordionTrigger>
+              </AccordionItem>
+              <AccordionItem value='recent-completions'>
+                <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+                  Recent Completions
+                </AccordionTrigger>
+              </AccordionItem>
+              <AccordionItem value='overdue-strategies'>
+                <AccordionTrigger className='px-6 no-underline hover:no-underline'>
+                  Overdue Strategies
                 </AccordionTrigger>
               </AccordionItem>
             </>

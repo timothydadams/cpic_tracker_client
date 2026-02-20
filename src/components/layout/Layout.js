@@ -184,7 +184,7 @@ export const Layout = () => {
   const user = useSelector(selectMemoizedUser);
   const { pathname } = useLocation();
 
-  const { id, roles } = user;
+  const { id, roles, isAdmin, isCPICAdmin } = user;
 
   useEffect(() => {
     if (roles) {
@@ -248,17 +248,12 @@ export const Layout = () => {
                 className='min-w-80 lg:min-w-64'
                 anchor='bottom start'
               >
-                <DropdownItem href='/app/settings' disabled>
-                  <Cog8ToothIcon />
-                  <DropdownLabel>Settings</DropdownLabel>
-                </DropdownItem>
-                {/* 
-                <DropdownDivider />
-                <DropdownItem href='/teams/create'>
-                  <PlusIcon />
-                  <DropdownLabel>New team&hellip;</DropdownLabel>
-                </DropdownItem>
-                */}
+                {(isAdmin || isCPICAdmin) && (
+                  <DropdownItem href='/app/settings'>
+                    <Cog8ToothIcon />
+                    <DropdownLabel>App Settings</DropdownLabel>
+                  </DropdownItem>
+                )}
               </DropdownMenu>
             </Dropdown>
             <SidebarSection className='max-lg:hidden'>

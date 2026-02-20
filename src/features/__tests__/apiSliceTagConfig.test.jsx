@@ -231,6 +231,78 @@ describe('RTK Query Tag Configuration Logic', () => {
     });
   });
 
+  describe('settingsApiSlice tags', () => {
+    // Mirrors: settingsApiSlice.js → getFeatureFlags.providesTags
+    const getFeatureFlagsProvidesTags = (result) =>
+      result
+        ? [
+            ...result.map(({ key }) => ({ type: 'FeatureFlag', id: key })),
+            { type: 'FeatureFlag', id: 'LIST' },
+          ]
+        : [{ type: 'FeatureFlag', id: 'LIST' }];
+
+    // Mirrors: settingsApiSlice.js → updateFeatureFlag.invalidatesTags
+    const updateFeatureFlagInvalidatesTags = (result, error, { key }) => [
+      { type: 'FeatureFlag', id: key },
+    ];
+
+    // Mirrors: settingsApiSlice.js → getScorecardConfig.providesTags
+    const getScorecardConfigProvidesTags = [
+      { type: 'ScorecardConfig', id: 'CONFIG' },
+    ];
+
+    // Mirrors: settingsApiSlice.js → updateScorecardConfig.invalidatesTags
+    const updateScorecardConfigInvalidatesTags = [
+      { type: 'ScorecardConfig', id: 'CONFIG' },
+    ];
+
+    it('getFeatureFlags provides FeatureFlag tags for each result key + LIST', () => {
+      const result = [
+        { key: 'deadline_scheduler' },
+        { key: 'deadline_reminders' },
+      ];
+      const tags = getFeatureFlagsProvidesTags(result);
+      expect(tags).toContainEqual({
+        type: 'FeatureFlag',
+        id: 'deadline_scheduler',
+      });
+      expect(tags).toContainEqual({
+        type: 'FeatureFlag',
+        id: 'deadline_reminders',
+      });
+      expect(tags).toContainEqual({ type: 'FeatureFlag', id: 'LIST' });
+    });
+
+    it('getFeatureFlags provides LIST tag when result is null', () => {
+      const tags = getFeatureFlagsProvidesTags(null);
+      expect(tags).toEqual([{ type: 'FeatureFlag', id: 'LIST' }]);
+    });
+
+    it('updateFeatureFlag invalidates specific FeatureFlag key', () => {
+      const tags = updateFeatureFlagInvalidatesTags(null, null, {
+        key: 'deadline_scheduler',
+      });
+      expect(tags).toContainEqual({
+        type: 'FeatureFlag',
+        id: 'deadline_scheduler',
+      });
+    });
+
+    it('getScorecardConfig provides ScorecardConfig CONFIG tag', () => {
+      expect(getScorecardConfigProvidesTags).toContainEqual({
+        type: 'ScorecardConfig',
+        id: 'CONFIG',
+      });
+    });
+
+    it('updateScorecardConfig invalidates ScorecardConfig CONFIG tag', () => {
+      expect(updateScorecardConfigInvalidatesTags).toContainEqual({
+        type: 'ScorecardConfig',
+        id: 'CONFIG',
+      });
+    });
+  });
+
   describe('commentApiSlice tags', () => {
     // Mirrors: commentsApiSlice.js → createComment.invalidatesTags
     const createCommentInvalidatesTags = [{ type: 'Comment', id: 'LIST' }];

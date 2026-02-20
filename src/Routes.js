@@ -102,6 +102,12 @@ const ImplementerTab = lazy(() =>
   }))
 );
 
+const AppSettingsPage = lazy(() =>
+  import('./features/settings/AppSettingsPage.js').then((m) => ({
+    default: m.AppSettingsPage,
+  }))
+);
+
 // Lazy-loaded markdown page and its dependencies
 const MarkdownPage = lazy(() =>
   Promise.all([
@@ -344,6 +350,14 @@ const AppRoutes = () => (
             element={
               <Suspense fallback={<PageLoader />}>
                 <ManageImplementers />
+              </Suspense>
+            }
+          />
+          <Route
+            path='app/settings'
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <AppSettingsPage />
               </Suspense>
             }
           />

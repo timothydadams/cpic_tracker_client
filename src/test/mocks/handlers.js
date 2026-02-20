@@ -377,6 +377,36 @@ export const mockImplementerBreakdown = [
   { implementer_id: 2, implementer_name: 'Public Works', count: 8 },
 ];
 
+// ─── Settings fixture data ────────────────────────────────
+
+export const mockFeatureFlags = [
+  {
+    key: 'deadline_scheduler',
+    enabled: true,
+    description: 'Master switch for the daily deadline check cron job',
+  },
+  {
+    key: 'deadline_reminders',
+    enabled: true,
+    description: 'Upcoming deadline and day-of reminder emails',
+  },
+  {
+    key: 'overdue_notifications',
+    enabled: false,
+    description: 'Overdue strategy notification emails',
+  },
+];
+
+export const mockScorecardConfig = {
+  weight_completion_rate: 0.4,
+  weight_on_time_rate: 0.35,
+  weight_overdue_penalty: 0.25,
+  grade_a_min: 90,
+  grade_b_min: 80,
+  grade_c_min: 70,
+  grade_d_min: 60,
+};
+
 // ─── Handlers ──────────────────────────────────────────────
 
 export const handlers = [
@@ -621,6 +651,46 @@ export const handlers = [
       status: 200,
       message: 'Success',
       data: mockStrategyStatsByImplementer,
+    });
+  }),
+
+  // Feature Flags
+  http.get(`${API_URL}/notifications/feature-flags`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockFeatureFlags,
+    });
+  }),
+
+  http.put(
+    `${API_URL}/notifications/feature-flags/:key`,
+    async ({ params, request }) => {
+      const body = await request.json();
+      const flag = mockFeatureFlags.find((f) => f.key === params.key);
+      return HttpResponse.json({
+        status: 200,
+        message: 'Updated',
+        data: { ...flag, ...body },
+      });
+    }
+  ),
+
+  // Scorecard Config
+  http.get(`${API_URL}/metrics/config/scorecard`, () => {
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockScorecardConfig,
+    });
+  }),
+
+  http.put(`${API_URL}/metrics/config/scorecard`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      status: 200,
+      message: 'Updated',
+      data: { ...mockScorecardConfig, ...body },
     });
   }),
 

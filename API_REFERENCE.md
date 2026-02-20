@@ -1250,7 +1250,7 @@ Get stats for an invite code. **Auth required** (Admin or CPIC Admin).
 
 ## Metrics Endpoints (`/api/metrics`)
 
-All **public** (no auth required).
+All **public** (no auth required) unless noted otherwise.
 
 ### GET `/api/metrics/strategies-by-status`
 
@@ -1448,7 +1448,7 @@ Action-oriented list of strategies past their deadline and not yet completed.
 
 ### GET `/api/metrics/implementer-scorecard`
 
-Graded scorecard per implementer with per-timeline breakdown. Sorted by overall score descending.
+Graded scorecard per implementer with per-timeline breakdown. Sorted by overall score descending. **Ongoing strategies are excluded** from all calculations (they have no deadline and never technically complete). Weights and grade thresholds are read from the scorecard config (see `GET /api/metrics/config/scorecard`).
 
 **Query params:** `primary` (`"true"/"false"`) — grade only on strategies where implementer is primary.
 
@@ -1493,13 +1493,13 @@ Graded scorecard per implementer with per-timeline breakdown. Sorted by overall 
 }
 ```
 
-See `METRICS_GUIDE.md` for the grading formula and weight definitions.
+See `METRICS_GUIDE.md` for the grading formula, weight definitions, and an explanation of why 100% on-time rate can coexist with overdue strategies.
 
 ---
 
 ### GET `/api/metrics/implementer-scorecard/:implementer_id`
 
-Deep-dive scorecard for a single implementer. Includes focus area breakdown, recent completions, and overdue list.
+Deep-dive scorecard for a single implementer. Includes focus area breakdown, recent completions, and overdue list. **Ongoing strategies are excluded** from all calculations. Weights and grade thresholds are read from the scorecard config.
 
 **Query params:** `primary` (`"true"/"false"`) — grade only on strategies where implementer is primary.
 
@@ -1640,6 +1640,57 @@ Hierarchical view: Focus Area → Policies → strategy completion counts per po
   ]
 }
 ```
+
+---
+
+### GET `/api/metrics/config/scorecard`
+
+Get the current scorecard configuration (weights and grade thresholds). **Public.**
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "weight_completion_rate": 0.4,
+    "weight_on_time_rate": 0.35,
+    "weight_overdue_penalty": 0.25,
+    "grade_a_min": 90,
+    "grade_b_min": 80,
+    "grade_c_min": 70,
+    "grade_d_min": 60
+  }
+}
+```
+
+---
+
+### PUT `/api/metrics/config/scorecard`
+
+Update scorecard configuration. **Auth required** (Admin or CPIC Admin). Supports partial updates — omitted fields retain their current values.
+
+**Request:**
+
+```json
+{
+  "weight_completion_rate": 0.5,
+  "weight_on_time_rate": 0.3,
+  "weight_overdue_penalty": 0.2
+}
+```
+
+All fields are optional. Validation rules:
+
+- Weights must each be between 0 and 1
+- Weights must sum to 1.0 (±0.001 tolerance)
+- Grade thresholds must be strictly descending integers: `grade_a_min > grade_b_min > grade_c_min > grade_d_min > 0`
+- `grade_a_min` cannot exceed 100
+
+**Response (200):** Full merged config object (same shape as GET).
+
+**Error (400):** Validation failure (e.g., weights don't sum to 1.0, thresholds not descending).
+**Error (401):** No auth token.
+**Error (403):** Insufficient role (requires Admin or CPIC Admin).
 
 ---
 
@@ -1981,6 +2032,28 @@ Unique constraint on `(strategy_id, threshold_id, recipient_email)` for deduplic
 | `updatedAt`   | `ISO8601` |                                                                                                         |
 | `createdAt`   | `ISO8601` |                                                                                                         |
 
+### AppSetting
+
+| Field       | Type      | Notes                                                                     |
+| ----------- | --------- | ------------------------------------------------------------------------- |
+| `key`       | `string`  | Primary key (max 100 chars). Current keys: `scorecard_config`             |
+| `value`     | `JSON`    | JSONB column. Shape varies by key — see endpoint docs for per-key schemas |
+| `updatedAt` | `ISO8601` |                                                                           |
+
+**`scorecard_config` value schema:**
+
+```json
+{
+  "weight_completion_rate": 0.4,
+  "weight_on_time_rate": 0.35,
+  "weight_overdue_penalty": 0.25,
+  "grade_a_min": 90,
+  "grade_b_min": 80,
+  "grade_c_min": 70,
+  "grade_d_min": 60
+}
+```
+
 ### Stakeholder
 
 | Field               | Type       | Notes             |
@@ -1996,20 +2069,21 @@ Unique constraint on `(strategy_id, threshold_id, recipient_email)` for deduplic
 
 ## Role-Based Access Summary
 
-| Resource                   | Create                      | Read               | Update                                                                         | Delete                    |
-| -------------------------- | --------------------------- | ------------------ | ------------------------------------------------------------------------------ | ------------------------- |
-| **Strategy**               | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member, Implementer (restricted fields, assigned only) | Admin                     |
-| **Policy**                 | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member                                                 | Admin                     |
-| **FocusArea**              | Admin                       | Public             | Admin                                                                          | Admin                     |
-| **Implementer**            | Admin, CPIC Admin           | Public             | Admin, CPIC Admin                                                              | Admin                     |
-| **Comment**                | Any authenticated           | Public             | Admin, author                                                                  | Admin, CPIC Admin, author |
-| **Role**                   | Admin                       | Any authenticated  | Admin                                                                          | Admin                     |
-| **User**                   | N/A (via invite)            | Admin, self        | Admin, self                                                                    | Admin, self               |
-| **Notification Threshold** | Global Admin                | Global Admin       | Global Admin                                                                   | Global Admin              |
-| **Notification Log**       | N/A (system-generated)      | Global Admin       | N/A                                                                            | N/A                       |
-| **Feature Flag**           | N/A (seeded)                | Global Admin       | Global Admin                                                                   | N/A                       |
-| **InviteCode**             | Any authenticated           | Creator (my-codes) | N/A                                                                            | N/A                       |
-| **Invite Send**            | Role-scoped (see hierarchy) | N/A                | Creator or Admin (resend)                                                      | N/A                       |
+| Resource                          | Create                      | Read               | Update                                                                         | Delete                    |
+| --------------------------------- | --------------------------- | ------------------ | ------------------------------------------------------------------------------ | ------------------------- |
+| **Strategy**                      | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member, Implementer (restricted fields, assigned only) | Admin                     |
+| **Policy**                        | Admin, CPIC Admin           | Public             | Admin, CPIC Admin, CPIC Member                                                 | Admin                     |
+| **FocusArea**                     | Admin                       | Public             | Admin                                                                          | Admin                     |
+| **Implementer**                   | Admin, CPIC Admin           | Public             | Admin, CPIC Admin                                                              | Admin                     |
+| **Comment**                       | Any authenticated           | Public             | Admin, author                                                                  | Admin, CPIC Admin, author |
+| **Role**                          | Admin                       | Any authenticated  | Admin                                                                          | Admin                     |
+| **User**                          | N/A (via invite)            | Admin, self        | Admin, self                                                                    | Admin, self               |
+| **Notification Threshold**        | Global Admin                | Global Admin       | Global Admin                                                                   | Global Admin              |
+| **Notification Log**              | N/A (system-generated)      | Global Admin       | N/A                                                                            | N/A                       |
+| **Feature Flag**                  | N/A (seeded)                | Global Admin       | Global Admin                                                                   | N/A                       |
+| **AppSetting (scorecard config)** | N/A (seeded)                | Public             | Admin, CPIC Admin                                                              | N/A                       |
+| **InviteCode**                    | Any authenticated           | Creator (my-codes) | N/A                                                                            | N/A                       |
+| **Invite Send**                   | Role-scoped (see hierarchy) | N/A                | Creator or Admin (resend)                                                      | N/A                       |
 
 ---
 

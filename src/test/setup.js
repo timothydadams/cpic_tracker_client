@@ -12,7 +12,16 @@ vi.mock('../app/api/apiSlice', async () => {
       baseUrl: 'http://localhost:3500/api',
       credentials: 'include',
     }),
-    tagTypes: ['FocusArea', 'Policy', 'Implementer', 'Strategy', 'Comment'],
+    tagTypes: [
+      'FocusArea',
+      'Policy',
+      'Implementer',
+      'Strategy',
+      'Comment',
+      'Invite',
+      'FeatureFlag',
+      'ScorecardConfig',
+    ],
     endpoints: () => ({}),
   });
   return { api };

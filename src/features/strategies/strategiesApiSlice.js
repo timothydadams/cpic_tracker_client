@@ -46,6 +46,17 @@ export const strategyApiSlice = api.injectEndpoints({
       }),
       transformResponse: (response) => response.data,
     }),
+    getStrategySummary: builder.query({
+      query: ({ id }) => `/strategies/${id}/summary`,
+      transformResponse: (response) => {
+        const { strategy, ...rest } = response.data;
+        return {
+          ...rest,
+          strategy: convertNumericValuesToStringRecursive(strategy),
+        };
+      },
+      providesTags: (result, error, arg) => [{ type: 'Strategy', id: arg.id }],
+    }),
     getStrategy: builder.query({
       query: ({ id, params }) => ({
         url: `/strategies/${id}`,
@@ -176,6 +187,7 @@ export const {
   useGetAllTimelineOptionsQuery,
   useGetStrategyCommentsQuery,
   useGetStrategyActivitiesQuery,
+  useGetStrategySummaryQuery,
   //useGetAllFocusAreasQuery,
   useGetMyStrategiesQuery,
 } = strategyApiSlice;

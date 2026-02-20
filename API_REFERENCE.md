@@ -469,6 +469,106 @@ Get a single strategy. **Public**.
 
 ---
 
+### GET `/api/strategies/:id/summary`
+
+Comprehensive read-only summary of a single strategy. **Public** (no auth required). Returns the strategy with relations, computed metrics, counts, and sibling strategies under the same policy — all in one request.
+
+**Response (200):**
+
+```json
+{
+  "data": {
+    "strategy": {
+      "id": 1,
+      "content": "string",
+      "strategy_number": 1,
+      "initial_deadline": "ISO8601 | null",
+      "current_deadline": "ISO8601 | null",
+      "completed_at": "ISO8601 | null",
+      "last_comms_date": "ISO8601 | null",
+      "createdAt": "ISO8601",
+      "updatedAt": "ISO8601",
+      "status": { "id": 1, "title": "In Progress" },
+      "timeline": { "id": 1, "title": "Short-Term" },
+      "policy": { "id": "uuid", "description": "string", "policy_number": 1 },
+      "focus_area": { "id": 1, "name": "string" },
+      "implementers": [
+        {
+          "implementer_id": 1,
+          "is_primary": true,
+          "name": "string",
+          "cpic_smes": [
+            {
+              "id": "uuid",
+              "display_name": "string?",
+              "profile_pic": "string?",
+              "username": "string?",
+              "given_name": "string?",
+              "family_name": "string?",
+              "email": "string?"
+            }
+          ],
+          "members": [
+            {
+              "id": "uuid",
+              "display_name": "string?",
+              "profile_pic": "string?",
+              "username": "string?",
+              "given_name": "string?",
+              "family_name": "string?",
+              "email": "string?"
+            }
+          ]
+        }
+      ]
+    },
+    "counts": {
+      "comments": 12,
+      "activities": 34
+    },
+    "metrics": {
+      "days_until_deadline": 45,
+      "is_overdue": false,
+      "deadline_pushes": 3,
+      "days_since_last_activity": 5,
+      "days_since_last_comms": 12,
+      "total_updates": 18,
+      "completed_on_time": null
+    },
+    "siblings": [
+      {
+        "id": 2,
+        "strategy_number": 2,
+        "content": "string (truncated to ~100 chars)",
+        "status": { "id": 1, "title": "Not Started" },
+        "timeline": { "id": 1, "title": "Short-Term" }
+      }
+    ]
+  }
+}
+```
+
+**Metrics field definitions:**
+
+| Field                      | Type           | Description                                                                |
+| -------------------------- | -------------- | -------------------------------------------------------------------------- |
+| `days_until_deadline`      | `int \| null`  | Positive = days remaining, negative = days overdue, null = no deadline set |
+| `is_overdue`               | `bool`         | `current_deadline < now && completed_at == null`                           |
+| `deadline_pushes`          | `int`          | Count of activity records where `changes` includes `current_deadline`      |
+| `days_since_last_activity` | `int \| null`  | Days since most recent activity record (null if no activities)             |
+| `days_since_last_comms`    | `int \| null`  | Days since `last_comms_date` (null if never set)                           |
+| `total_updates`            | `int`          | Total activity record count                                                |
+| `completed_on_time`        | `bool \| null` | null if not completed; `completed_at <= current_deadline` if completed     |
+
+**Implementer user collections:** Each implementer includes `cpic_smes` (CPIC SME users assigned to the implementer) and `members` (users who belong to the implementer org). Both are arrays of User objects. For unauthenticated requests, PII fields are stripped: `email`, `display_name`, `given_name`, and `family_name`. Remaining visible fields: `id`, `profile_pic`, `username`.
+
+**Siblings:** Other strategies under the same `policy_id`, excluding the current one. Content truncated to ~100 characters. Ordered by `strategy_number` ascending.
+
+**Error (400):** Non-numeric `:id` parameter.
+**Error (404):** Strategy not found.
+
+---
+
 ### GET `/api/strategies/my-strategies`
 
 Get strategies assigned to the current user's implementer org(s). **Auth required.**

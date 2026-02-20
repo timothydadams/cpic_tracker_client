@@ -177,3 +177,26 @@ Every computed metric on the metrics dashboard has an info icon tooltip explaini
 - `MetricInfoTip.js` — Reusable component wrapping `HybridTooltip` + `InfoIcon`. Takes a `metricKey` prop, returns `null` if key not found. Uses `<span role="button">` (not `<button>`) to avoid DOM nesting issues when placed inside interactive elements.
 
 `HybridTooltipProvider` is placed at tab-wrapper level (OverviewTab, TimelineTab, FocusAreaTab, ImplementerTab) and inside `ScorecardDetailContent` (which renders in a Dialog portal, outside the tab provider). `MetricInfoTip` is used in: PlanOverviewCards, TimelineTab (TimelineCard), DeadlineDriftCard, FocusAreaProgressTree, OverdueStrategiesTable, ScorecardTable headers, ScorecardDetail (StatCard + DialogDescription), ScorecardCardList.
+
+## Strategy Detail Page
+
+The `/strategies/:id` route renders a bento-grid detail page (`StrategyDetailPage.js`) via `ViewStrategy.js` (thin re-export wrapper). It consumes a single summary endpoint (`GET /api/strategies/:id/summary`) that returns the strategy with all relations, computed metrics, comment/activity counts, and sibling strategies.
+
+**Component structure:**
+
+- `ViewStrategy.js` — Re-exports `StrategyDetailPage` as `ViewStrategy` (preserves lazy-load in `Routes.js`)
+- `StrategyDetailPage.js` — Page shell: fetches summary, renders header + bento grid layout (`grid-cols-1 lg:grid-cols-3`)
+- `StrategyMetricLabels.js` — Stat card grid (`grid-cols-2 lg:grid-cols-5`) showing status, deadline, pushes, last activity, last comms, and completion status. Uses `MetricCard` pattern matching `PlanOverviewCards`.
+- `StrategyImplementers.js` — Implementer list with name badges and "Primary Lead" indicator
+- `StrategyComments.js` — Inline threaded comments with add/reply/edit. Fetches via `useGetStrategyCommentsQuery` with `replies=true, user=true`.
+- `StrategyActivity.js` — Inline activity feed with `UserIdentity` and action badges. Auth-gated (guests see sign-in prompt).
+- `StrategyCpicSmes.js` — CPIC Board Oversight section showing SMEs per implementer. Visible to authenticated users only.
+- `StrategySiblings.js` — Related strategies under the same policy with status badges and links.
+
+**Shared component extractions:**
+
+- `CommentEntry` + `InlineNoteInput` extracted from `StrategyCard.js` → `src/features/comments/CommentEntry.js`. Used by both `StrategyComments` (inline) and `CommentsDialog` in `StrategyCard.js` (dialog).
+
+**RTK Query:** `useGetStrategySummaryQuery` in `strategiesApiSlice.js` fetches `GET /strategies/:id/summary`. Cache tag: `{ type: 'Strategy', id }`.
+
+**Summary endpoint response includes:** `strategy` (with status, timeline, policy, focus_area, implementers with `cpic_smes` and `members`), `counts` (comments, activities), `metrics` (days_until_deadline, is_overdue, deadline_pushes, days_since_last_activity, days_since_last_comms, total_updates, completed_on_time), `siblings` (lightweight strategy list under same policy).

@@ -24,8 +24,8 @@ const ImplementerView = ({ data }) => {
         <Heading className='mb-5'>{`${implementer_org.name} Strategy Execution Responsibilities`}</Heading>
       )}
       <Subheading>Primary Lead</Subheading>
-      {/* <StrategyTableList strategies={primary} /> xl:grid-cols-4 */}
-      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
+      {/* <StrategyTableList strategies={primary} /> xl:grid-cols-4 lg:grid-cols-3*/}
+      <div className='w-full grid grid-cols-1 md:grid-cols-2  xl:grid-cols-3 gap-5'>
         {primary.map((s) => (
           <StrategyCard
             strategy={s}
@@ -38,7 +38,7 @@ const ImplementerView = ({ data }) => {
 
       <Subheading>Supporting Effort</Subheading>
       {/* <StrategyTableList strategies={support} /> xl:grid-cols-4 */}
-      <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5'>
+      <div className='w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5'>
         {support.map((s) => (
           <StrategyCard
             strategy={s}

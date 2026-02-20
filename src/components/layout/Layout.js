@@ -33,7 +33,10 @@ import {
   SidebarSection,
   SidebarSpacer,
 } from 'catalyst/sidebar.jsx';
-import { SidebarLayout } from 'catalyst/sidebar-layout.jsx';
+import {
+  SidebarLayout,
+  useCloseMobileSidebar,
+} from 'catalyst/sidebar-layout.jsx';
 import {
   ArrowRightStartOnRectangleIcon,
   ChevronDownIcon,
@@ -76,6 +79,15 @@ import { UserAvatar } from './UserAvatar.js';
 import { ModalNavItem } from './ModalForm.js';
 import { selectMemoizedUser } from 'features/auth/authSlice.js';
 //import { selectCurrentRoles } from 'features/auth/authSlice.js';
+
+const SidebarDropdownLink = ({ href, children }) => {
+  const closeSidebar = useCloseMobileSidebar();
+  return (
+    <DropdownItem href={href} onClick={closeSidebar}>
+      {children}
+    </DropdownItem>
+  );
+};
 
 const ProfileSection = ({ user }) => {
   const { display_name, family_name, given_name, status } = user;
@@ -186,6 +198,11 @@ export const Layout = () => {
 
   const { id, roles, isAdmin, isCPICAdmin } = user;
 
+  const isAdminOnly = (item) =>
+    item.allowedRoles?.every((r) => r === 'Admin' || r === 'CPIC Admin');
+  const adminDropdownItems = adminNav.filter(isAdminOnly);
+  const quickActionItems = adminNav.filter((item) => !isAdminOnly(item));
+
   useEffect(() => {
     if (roles) {
       let items = adminNavItems.filter((u) =>
@@ -249,11 +266,19 @@ export const Layout = () => {
                 anchor='bottom start'
               >
                 {(isAdmin || isCPICAdmin) && (
-                  <DropdownItem href='/app/settings'>
+                  <SidebarDropdownLink href='/app/settings'>
                     <Cog8ToothIcon />
                     <DropdownLabel>App Settings</DropdownLabel>
-                  </DropdownItem>
+                  </SidebarDropdownLink>
                 )}
+                {(isAdmin || isCPICAdmin) && adminDropdownItems.length > 0 && (
+                  <DropdownDivider />
+                )}
+                {adminDropdownItems.map((item) => (
+                  <SidebarDropdownLink key={item.id} href={item.path}>
+                    <DropdownLabel>{item.label}</DropdownLabel>
+                  </SidebarDropdownLink>
+                ))}
               </DropdownMenu>
             </Dropdown>
             <SidebarSection className='max-lg:hidden'>
@@ -313,11 +338,11 @@ export const Layout = () => {
               </SidebarItem>
             </SidebarSection>
 
-            {adminNav.length > 0 && (
+            {quickActionItems.length > 0 && (
               <SideBarList
                 className=''
                 header='Quick Actions'
-                list={adminNav}
+                list={quickActionItems}
               />
             )}
 

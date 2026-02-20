@@ -107,8 +107,8 @@ describe('ImplementerTab', () => {
       expect(screen.getByText('By Timeline')).toBeInTheDocument();
     });
 
-    // Click the same row again to collapse (first match is the table row)
-    await user.click(screen.getAllByText('Planning Board')[0]);
+    // Close the modal via the close button
+    await user.click(screen.getByRole('button', { name: /close/i }));
 
     await waitFor(() => {
       expect(screen.queryByText('By Timeline')).not.toBeInTheDocument();

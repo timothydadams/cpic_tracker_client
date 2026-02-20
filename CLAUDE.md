@@ -137,6 +137,19 @@ The invites feature (`src/features/invites/`) allows authenticated users to invi
 
 Role filtering uses a `ROLE_ALLOWLIST` map with `ROLE_PRIORITY` ordering, resolved via `useMemo` in `useFilteredRoles`.
 
+## Sidebar Navigation
+
+The main layout (`src/components/layout/Layout.js`) uses the Catalyst `SidebarLayout` component. Navigation items are defined in `navLists.js`.
+
+**"Winthrop CPIC" dropdown** (sidebar header): Contains admin-restricted items visible only to Admin/CPIC Admin roles:
+
+- App Settings (`/app/settings`)
+- Manage Assigned Roles, Manage Focus Areas, Manage Policies, Manage Implementers, Manage Strategies
+
+Items are split from `adminNavItems` based on whether `allowedRoles` contains only Admin/CPIC Admin. Items with broader role access (e.g., Invite Users, My Strategies) remain in the "Quick Actions" sidebar section.
+
+**Mobile sidebar close:** `SidebarLayout` exposes a `useCloseMobileSidebar` hook (via `MobileSidebarCloseContext`) so that dropdown items inside the sidebar can close the mobile `Dialog` on navigation. Regular `SidebarItem` links use Headless UI's `CloseButton` for this automatically, but `DropdownItem` (which uses `MenuItem`) only closes its parent `Menu`. The `SidebarDropdownLink` wrapper component in `Layout.js` consumes this hook to close both the dropdown and the mobile sidebar.
+
 ## Settings Feature
 
 The settings feature (`src/features/settings/`) provides an App Settings page (`/app/settings`) accessible from the Winthrop CPIC sidebar dropdown. Route is protected by `ProtectRoute` with `allowedRoles={['Admin', 'CPIC Admin']}`.
@@ -155,3 +168,12 @@ The settings feature (`src/features/settings/`) provides an App Settings page (`
 - `settingsApiSlice.js` — RTK Query endpoints for `GET/PUT /notifications/feature-flags` and `GET/PUT /metrics/config/scorecard`
 
 **Cache invalidation chain:** `updateScorecardConfig` invalidates `ScorecardConfig` (config form) + `ImplementerScorecard` (metrics scorecard list and detail views in `metricsApiSlice.js`).
+
+## Metrics Feature — Info Tooltips
+
+Every computed metric on the metrics dashboard has an info icon tooltip explaining its formula. Implemented via two files in `src/features/metrics/`:
+
+- `metricDefinitions.js` — Centralized map of metric key → plain-English formula explanation (10 keys: `completion_rate`, `on_time_rate`, `overdue`, `avg_days_to_complete`, `push_rate`, `avg_drift_days`, `days_overdue`, `score`, `grade`, `pushed`).
+- `MetricInfoTip.js` — Reusable component wrapping `HybridTooltip` + `InfoIcon`. Takes a `metricKey` prop, returns `null` if key not found. Uses `<span role="button">` (not `<button>`) to avoid DOM nesting issues when placed inside interactive elements.
+
+`HybridTooltipProvider` is placed at tab-wrapper level (OverviewTab, TimelineTab, FocusAreaTab, ImplementerTab) and inside `ScorecardDetailContent` (which renders in a Dialog portal, outside the tab provider). `MetricInfoTip` is used in: PlanOverviewCards, TimelineTab (TimelineCard), DeadlineDriftCard, FocusAreaProgressTree, OverdueStrategiesTable, ScorecardTable headers, ScorecardDetail (StatCard + DialogDescription), ScorecardCardList.

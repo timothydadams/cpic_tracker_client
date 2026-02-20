@@ -1,16 +1,17 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { XIcon } from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from 'ui/card';
 import { Badge } from 'ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from 'ui/dialog';
+import { HybridTooltipProvider } from 'ui/hybrid-tooltip';
 import { useGetImplementerScorecardDetailQuery } from './metricsApiSlice';
 import { KpiCardSkeleton } from './MetricsSkeleton';
+import { MetricInfoTip } from './MetricInfoTip';
 
 export const gradeClasses = {
   A: 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900 dark:text-green-200 dark:hover:bg-green-800',
@@ -35,13 +36,19 @@ export const StatCard = ({ title, stats }) => (
           </Badge>
           <span className='text-sm text-muted-foreground'>
             Score: {stats.score}
+            <MetricInfoTip metricKey='score' />
           </span>
         </div>
         <div className='mt-2 text-xs text-muted-foreground space-y-0.5'>
           <p>
-            {stats.completed}/{stats.total} completed ({stats.completion_rate}%)
+            {stats.completed}/{stats.total} completed ({stats.completion_rate}
+            %)
+            <MetricInfoTip metricKey='completion_rate' />
           </p>
-          <p>On-time: {stats.on_time_rate}%</p>
+          <p>
+            On-time: {stats.on_time_rate}%
+            <MetricInfoTip metricKey='on_time_rate' />
+          </p>
           {stats.overdue > 0 && (
             <p className='text-red-600 dark:text-red-400'>
               {stats.overdue} overdue
@@ -53,7 +60,7 @@ export const StatCard = ({ title, stats }) => (
   </div>
 );
 
-export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
+const ScorecardDetailContent = ({ implementerId, primary }) => {
   const { data, isLoading } = useGetImplementerScorecardDetailQuery(
     { implementerId, ...(primary ? { primary: 'true' } : {}) },
     { selectFromResult: ({ data, isLoading }) => ({ data, isLoading }) }
@@ -61,43 +68,31 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
 
   if (isLoading || !data) {
     return (
-      <Card className='rounded-none border-x-0 whitespace-normal'>
-        <CardContent className='pt-6'>
-          <div className='grid gap-3 grid-cols-2 lg:grid-cols-4'>
-            {[1, 2, 3, 4].map((i) => (
-              <KpiCardSkeleton key={i} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className='grid gap-3 grid-cols-2 lg:grid-cols-4'>
+        {[1, 2, 3, 4].map((i) => (
+          <KpiCardSkeleton key={i} />
+        ))}
+      </div>
     );
   }
 
   return (
-    <Card className='rounded-none border-x-0 whitespace-normal'>
-      <CardHeader className='flex flex-row items-center justify-between'>
-        <div>
-          <CardTitle className='flex items-center gap-2'>
-            {data.implementer_name}
-            <Badge className={gradeClasses[data.overall.grade] || ''}>
-              {data.overall.grade}
-            </Badge>
-          </CardTitle>
-          <CardDescription>
-            Score: {data.overall.score} &middot; {data.overall.completed}/
-            {data.overall.total} completed &middot; On-time:{' '}
-            {data.overall.on_time_rate}%
-          </CardDescription>
-        </div>
-        <button
-          onClick={onClose}
-          className='rounded-md p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800'
-          type='button'
-        >
-          <XIcon className='h-5 w-5' />
-        </button>
-      </CardHeader>
-      <CardContent className='space-y-6'>
+    <HybridTooltipProvider>
+      <DialogHeader>
+        <DialogTitle className='flex items-center gap-2'>
+          {data.implementer_name}
+          <Badge className={gradeClasses[data.overall.grade] || ''}>
+            {data.overall.grade}
+          </Badge>
+        </DialogTitle>
+        <DialogDescription>
+          Score: {data.overall.score}
+          <MetricInfoTip metricKey='score' /> &middot; {data.overall.completed}/
+          {data.overall.total} completed &middot; On-time:{' '}
+          {data.overall.on_time_rate}%
+        </DialogDescription>
+      </DialogHeader>
+      <div className='space-y-6 overflow-y-auto flex-1 min-h-0'>
         {data.by_timeline?.length > 0 && (
           <div>
             <p className='text-sm font-medium mb-2'>By Timeline</p>
@@ -187,7 +182,25 @@ export const ScorecardDetail = ({ implementerId, primary, onClose }) => {
             </div>
           </div>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </HybridTooltipProvider>
   );
 };
+
+export const ScorecardDetailModal = ({
+  implementerId,
+  primary,
+  open,
+  onOpenChange,
+}) => (
+  <Dialog open={open} onOpenChange={onOpenChange}>
+    <DialogContent className='sm:max-w-[90vw] h-[90vh] flex flex-col'>
+      {implementerId && (
+        <ScorecardDetailContent
+          implementerId={implementerId}
+          primary={primary}
+        />
+      )}
+    </DialogContent>
+  </Dialog>
+);

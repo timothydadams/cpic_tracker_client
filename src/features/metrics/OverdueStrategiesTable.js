@@ -20,6 +20,7 @@ import { useGetOverdueStrategiesQuery } from './metricsApiSlice';
 import { useGetAllTimelineOptionsQuery } from 'features/strategies/strategiesApiSlice';
 import { useGetAllFocusAreasQuery } from 'features/focus_areas/focusAreaApiSlice';
 import { useGetAllImplementersQuery } from 'features/implementers/implementersApiSlice';
+import { MetricInfoTip } from './MetricInfoTip';
 
 const ALL = 'all';
 
@@ -56,7 +57,10 @@ export const OverdueStrategiesTable = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Overdue Strategies</CardTitle>
+        <CardTitle>
+          Overdue Strategies
+          <MetricInfoTip metricKey='overdue' />
+        </CardTitle>
         <CardDescription>
           Strategies past their deadline that have not been completed
         </CardDescription>

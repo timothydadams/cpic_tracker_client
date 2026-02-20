@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from 'ui/select';
 import { useMediaQuery } from '@uidotdev/usehooks';
+import { HybridTooltipProvider } from 'ui/hybrid-tooltip';
 import { useGetImplementerScorecardQuery } from './metricsApiSlice';
 import { CompletionTrendChart } from './CompletionTrendChart';
 import { ScorecardTable } from './ScorecardTable';
@@ -33,56 +34,58 @@ export const ImplementerTab = () => {
   };
 
   return (
-    <div className='space-y-6 pt-4'>
-      <div className='flex flex-wrap gap-3'>
-        <Select value={primaryOnly} onValueChange={setPrimaryOnly}>
-          <SelectTrigger className='w-[180px]'>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='false'>All Strategies</SelectItem>
-            <SelectItem value='true'>Primary Only</SelectItem>
-          </SelectContent>
-        </Select>
+    <HybridTooltipProvider>
+      <div className='space-y-6 pt-4'>
+        <div className='flex flex-wrap gap-3'>
+          <Select value={primaryOnly} onValueChange={setPrimaryOnly}>
+            <SelectTrigger className='w-[180px]'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='false'>All Strategies</SelectItem>
+              <SelectItem value='true'>Primary Only</SelectItem>
+            </SelectContent>
+          </Select>
 
-        <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className='w-[150px]'>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value='monthly'>Monthly</SelectItem>
-            <SelectItem value='quarterly'>Quarterly</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          <Select value={period} onValueChange={setPeriod}>
+            <SelectTrigger className='w-[150px]'>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value='monthly'>Monthly</SelectItem>
+              <SelectItem value='quarterly'>Quarterly</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
-      <CompletionTrendChart period={period} />
+        <CompletionTrendChart period={period} />
 
-      {isMobile ? (
-        scorecardLoading ? (
-          <TableSkeleton rows={4} cols={3} />
+        {isMobile ? (
+          scorecardLoading ? (
+            <TableSkeleton rows={4} cols={3} />
+          ) : (
+            <ScorecardCardList data={scorecardData} primary={isPrimary} />
+          )
         ) : (
-          <ScorecardCardList data={scorecardData} primary={isPrimary} />
-        )
-      ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Implementer Scorecard</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {scorecardLoading ? (
-              <TableSkeleton rows={6} cols={8} />
-            ) : (
-              <ScorecardTable
-                data={scorecardData}
-                expandedId={expandedId}
-                onToggleExpand={handleToggleExpand}
-                primary={isPrimary}
-              />
-            )}
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Implementer Scorecard</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {scorecardLoading ? (
+                <TableSkeleton rows={6} cols={8} />
+              ) : (
+                <ScorecardTable
+                  data={scorecardData}
+                  expandedId={expandedId}
+                  onToggleExpand={handleToggleExpand}
+                  primary={isPrimary}
+                />
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </HybridTooltipProvider>
   );
 };

@@ -11,6 +11,7 @@ import {
 import { Skeleton } from 'ui/skeleton';
 import { useGetImplementerScorecardDetailQuery } from './metricsApiSlice';
 import { gradeClasses, StatCard } from './ScorecardDetail';
+import { MetricInfoTip } from './MetricInfoTip';
 
 const loadingContent = (
   <div className='space-y-2 py-1'>
@@ -191,6 +192,7 @@ const ScorecardCard = React.memo(({ item, primary }) => {
         {overall.total > 0 ? (
           <p className='text-sm text-muted-foreground'>
             Score: {overall.score}
+            <MetricInfoTip metricKey='score' />
           </p>
         ) : (
           <p className='text-sm text-muted-foreground'>N/A</p>
@@ -208,15 +210,24 @@ const ScorecardCard = React.memo(({ item, primary }) => {
                 <dd className='text-right font-medium'>{overall.total}</dd>
                 <dt className='text-muted-foreground'>Completed</dt>
                 <dd className='text-right font-medium'>{overall.completed}</dd>
-                <dt className='text-muted-foreground'>Completion %</dt>
+                <dt className='text-muted-foreground'>
+                  Completion %
+                  <MetricInfoTip metricKey='completion_rate' />
+                </dt>
                 <dd className='text-right font-medium'>
                   {overall.completion_rate}%
                 </dd>
-                <dt className='text-muted-foreground'>On-Time %</dt>
+                <dt className='text-muted-foreground'>
+                  On-Time %
+                  <MetricInfoTip metricKey='on_time_rate' />
+                </dt>
                 <dd className='text-right font-medium'>
                   {overall.on_time_rate}%
                 </dd>
-                <dt className='text-muted-foreground'>Overdue</dt>
+                <dt className='text-muted-foreground'>
+                  Overdue
+                  <MetricInfoTip metricKey='overdue' />
+                </dt>
                 <dd className='text-right font-medium'>
                   {overall.overdue > 0 ? (
                     <Badge variant='destructive'>{overall.overdue}</Badge>

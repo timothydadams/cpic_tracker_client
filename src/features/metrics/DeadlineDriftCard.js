@@ -8,6 +8,7 @@ import {
 } from 'ui/card';
 import { useGetDeadlineDriftQuery } from './metricsApiSlice';
 import { KpiCardSkeleton } from './MetricsSkeleton';
+import { MetricInfoTip } from './MetricInfoTip';
 
 export const DeadlineDriftCard = () => {
   const { data, isLoading } = useGetDeadlineDriftQuery(undefined, {
@@ -32,15 +33,22 @@ export const DeadlineDriftCard = () => {
             <div className='text-2xl font-bold'>{data.pushed}</div>
             <p className='text-xs text-muted-foreground'>
               of {data.total_with_deadlines} pushed
+              <MetricInfoTip metricKey='pushed' />
             </p>
           </div>
           <div>
             <div className='text-2xl font-bold'>{data.push_rate}%</div>
-            <p className='text-xs text-muted-foreground'>push rate</p>
+            <p className='text-xs text-muted-foreground'>
+              push rate
+              <MetricInfoTip metricKey='push_rate' />
+            </p>
           </div>
           <div>
             <div className='text-2xl font-bold'>{data.avg_drift_days}</div>
-            <p className='text-xs text-muted-foreground'>avg drift (days)</p>
+            <p className='text-xs text-muted-foreground'>
+              avg drift (days)
+              <MetricInfoTip metricKey='avg_drift_days' />
+            </p>
           </div>
         </div>
 

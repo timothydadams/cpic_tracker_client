@@ -69,6 +69,8 @@ export const api = createApi({
     'Strategy',
     'Comment',
     'Invite',
+    'FeatureFlag',
+    'ScorecardConfig',
   ],
   endpoints: (builder) => ({}),
 });

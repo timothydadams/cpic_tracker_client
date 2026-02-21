@@ -407,6 +407,44 @@ export const mockScorecardConfig = {
   grade_d_min: 60,
 };
 
+// ─── Registration fixture data ───────────────────────────
+
+export const mockValidInviteCode = {
+  valid: true,
+  roleId: 'role-uuid-implementer',
+  roleName: 'Implementer',
+};
+
+export const mockValidCPICInviteCode = {
+  valid: true,
+  roleId: 'role-uuid-cpic-member',
+  roleName: 'CPIC Member',
+};
+
+export const mockRegisteredUser = {
+  id: 'new-user-uuid',
+  email: 'newuser@test.com',
+  display_name: 'New User',
+};
+
+export const mockPasskeyRegOptions = {
+  rp: { name: 'CPIC Tracker', id: 'localhost' },
+  user: {
+    id: 'dXNlci1pZA',
+    name: 'newuser@test.com',
+    displayName: 'New User',
+  },
+  challenge: 'dGVzdC1jaGFsbGVuZ2U',
+  pubKeyCredParams: [{ type: 'public-key', alg: -7 }],
+  timeout: 60000,
+  attestation: 'none',
+};
+
+export const mockPasskeyVerification = {
+  verified: true,
+  accessToken: 'fake-jwt-for-new-user',
+};
+
 // ─── Handlers ──────────────────────────────────────────────
 
 export const handlers = [
@@ -697,5 +735,50 @@ export const handlers = [
   // Auth refresh — returns 401 since tests use preloaded auth state
   http.post(`${API_URL}/auth/refresh`, () => {
     return HttpResponse.json({ message: 'No token' }, { status: 401 });
+  }),
+
+  // Invite validation
+  http.get(`${API_URL}/invites/:code/validate`, ({ params }) => {
+    if (params.code === 'INVALID_CODE') {
+      return HttpResponse.json(
+        { status: 400, message: 'Invalid or expired invite code', data: null },
+        { status: 400 }
+      );
+    }
+    if (params.code === 'CPIC_CODE') {
+      return HttpResponse.json({
+        status: 200,
+        message: 'Success',
+        data: mockValidCPICInviteCode,
+      });
+    }
+    return HttpResponse.json({
+      status: 200,
+      message: 'Success',
+      data: mockValidInviteCode,
+    });
+  }),
+
+  // Registration
+  http.post(`${API_URL}/auth/register`, async ({ request }) => {
+    const body = await request.json();
+    return HttpResponse.json({
+      status: 200,
+      message: 'User created',
+      data: {
+        ...mockRegisteredUser,
+        email: body.user?.email || mockRegisteredUser.email,
+      },
+    });
+  }),
+
+  // Passkey registration options
+  http.post(`${API_URL}/auth/generate-passkey-reg-options`, () => {
+    return HttpResponse.json(mockPasskeyRegOptions);
+  }),
+
+  // Passkey registration verification
+  http.post(`${API_URL}/auth/passkey-reg-verification`, () => {
+    return HttpResponse.json(mockPasskeyVerification);
   }),
 ];

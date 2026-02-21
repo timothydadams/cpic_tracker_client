@@ -1,13 +1,11 @@
-// Parent Component (e.g., OnboardingForm.jsx)
-import React, { useState } from 'react';
-import { FingerprintIcon } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { VerifyInvitationCode } from './InvitationCode';
 import { UserInfo } from './UserInfo';
 import { useDispatch } from 'react-redux';
 import { setCredentials } from '../authSlice';
 import { useForm, FormProvider } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { Button } from 'ui/button';
 import * as yup from 'yup';
 import { sanitizeString } from 'utils/rhf_helpers';
@@ -19,8 +17,8 @@ import {
 import { startRegistration } from '@simplewebauthn/browser';
 import usePersist from 'hooks/usePersist';
 import { Spinner } from 'ui/spinner';
+import { enqueueSnackbar } from 'notistack';
 
-//form validation
 const schema = yup.object().shape({
   inviteCode: yup
     .string()
@@ -34,7 +32,9 @@ const schema = yup.object().shape({
     email: yup
       .string()
       .email()
-      .transform((value) => sanitizeString(value.trim().toLowerCase()))
+      .transform((value) =>
+        value ? sanitizeString(value.trim().toLowerCase()) : value
+      )
       .required('Email is required'),
     family_name: yup
       .string()
@@ -44,8 +44,32 @@ const schema = yup.object().shape({
       .string()
       .transform((value) => sanitizeString(value))
       .required('First name is required'),
-    implementer_org_id: yup.string().notRequired(),
-    assigned_implementers: yup.array().of(yup.string()).notRequired(),
+    username: yup
+      .string()
+      .transform((value) => (value ? sanitizeString(value) : value))
+      .notRequired(),
+    implementer_org_id: yup
+      .string()
+      .nullable()
+      .test(
+        'implementer-org-required',
+        'Please select your organization',
+        function (value) {
+          const roleType = this.from[1]?.value?.inviteDetails?.roleType;
+          return roleType === 'Implementer' ? !!value : true;
+        }
+      ),
+    assigned_implementers: yup
+      .array()
+      .of(yup.string())
+      .test(
+        'assigned-implementers-required',
+        'Please select at least one implementer',
+        function (value) {
+          const roleType = this.from[1]?.value?.inviteDetails?.roleType;
+          return roleType === 'Implementer' ? true : value && value.length > 0;
+        }
+      ),
   }),
 });
 
@@ -59,6 +83,7 @@ const defaultFormValues = {
     email: '',
     family_name: '',
     given_name: '',
+    username: '',
     implementer_org_id: null,
     assigned_implementers: [],
   },
@@ -66,6 +91,8 @@ const defaultFormValues = {
 
 export function OnboardingForm() {
   const { code } = useParams();
+  const [searchParams] = useSearchParams();
+  const emailFromUrl = searchParams.get('email');
   const [persist] = usePersist();
   const dispatch = useDispatch();
 
@@ -82,7 +109,13 @@ export function OnboardingForm() {
     defaultValues: defaultFormValues,
   });
 
-  const { handleSubmit, trigger, getValues } = methods;
+  const { handleSubmit, trigger, setValue } = methods;
+
+  useEffect(() => {
+    if (emailFromUrl) {
+      setValue('user.email', emailFromUrl, { shouldDirty: true });
+    }
+  }, [emailFromUrl, setValue]);
 
   const handleNext = async () => {
     let fields;
@@ -93,6 +126,7 @@ export function OnboardingForm() {
         'user.email',
         'user.family_name',
         'user.given_name',
+        'user.username',
         'user.implementer_org_id',
         'user.assigned_implementers',
       ];
@@ -118,24 +152,18 @@ export function OnboardingForm() {
     const user_email = data.user.email;
 
     try {
-      //create new user and get user back
       const { data: user } = await createUserAccount(data).unwrap();
-      //console.log(user);
-      //start webauthn registration
+
       if (user && user.id) {
         const options = await genPasskeyRegOpts({ email: user_email }).unwrap();
-        //console.log(`options returned from genRegOpts`, options);
+
         let attResp;
         try {
-          // Pass the options to the authenticator and wait for a response
           attResp = await startRegistration({ optionsJSON: options });
         } catch (error) {
-          //console.log(error);
           throw error;
         }
 
-        // POST the response to the endpoint that calls
-        // @simplewebauthn/server -> verifyRegistrationResponse()
         const verifcationResults = await verifyPasskeyRegOpts({
           email: user_email,
           duration: persist,
@@ -144,19 +172,25 @@ export function OnboardingForm() {
 
         const { verified, accessToken } = verifcationResults;
 
-        // Show UI appropriate for the `verified` status
         if (verified && accessToken) {
           dispatch(setCredentials({ accessToken }));
+        } else {
+          enqueueSnackbar('Passkey verification failed. Please try again.', {
+            variant: 'error',
+          });
         }
       }
     } catch (e) {
-      // registration error — UI should handle
+      enqueueSnackbar(e?.data?.message || 'Registration failed', {
+        variant: 'error',
+      });
+    } finally {
+      setRegistrationInProgress(false);
     }
   };
 
   return (
     <FormProvider {...methods}>
-      {/* Stepper/Progress Indicator (Optional) */}
       <form
         onSubmit={handleSubmit(handleFinalSubmit)}
         className='flex flex-col'
@@ -169,7 +203,7 @@ export function OnboardingForm() {
             </Button>
           )}
 
-          {/* deliberatly hiding next button on invite component (step 0), using verify button in input to progress */}
+          {/* deliberately hiding next button on invite component (step 0), using verify button in input to progress */}
           {currentStepIndex < steps.length - 1 && currentStepIndex > 0 && (
             <Button type='button' onClick={handleNext}>
               Next

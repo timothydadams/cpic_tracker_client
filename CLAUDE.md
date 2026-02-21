@@ -57,6 +57,8 @@ Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `
 - `src/components/catalyst/` — Higher-level design system components
 - `src/components/` — App-specific shared components (DataTable, Multiselect, layout)
 
+**Navigation links:** Use the Catalyst `Link` component (`catalyst/link`) for all in-app navigation — never use `useNavigate` directly. The `Link` component wraps React Router's `Link` with Headless UI's `DataInteractive` and accepts an `href` prop (not `to`). For links inside Radix dropdown menus, use `<DropdownMenuItem asChild><Link href="...">...</Link></DropdownMenuItem>`.
+
 **Loading indicators** (`src/components/Spinners.js`):
 
 - `Dots` — Pulsing dots animation, used for data-loading states (API fetches, list loading)
@@ -67,7 +69,7 @@ Feature domains: `auth`, `strategies`, `users`, `implementers`, `focus_areas`, `
 
 - Route-level code splitting via `React.lazy()` + `Suspense` in `Routes.js`
 - Webpack `splitChunks` separates vendor and common chunks in production builds
-- `React.memo` on list-rendered components (e.g., `StrategyCard`, `StrategyCardMenu`, `CommentEntry`)
+- `React.memo` on list-rendered components (e.g., `StrategyCard`, `StrategyCardMenu`, `StrategyActionCell`, `CommentEntry`)
 - `HybridTooltipProvider` wraps at the table level, not per-cell, to avoid provider proliferation
 - `selectFromResult` on all RTK Query hooks to limit re-renders to only the destructured fields (prevents re-renders from internal metadata changes)
 
@@ -192,6 +194,8 @@ The `/strategies/:id` route renders a bento-grid detail page (`StrategyDetailPag
 - `StrategyActivity.js` — Inline activity feed with `UserIdentity` and action badges. Auth-gated (guests see sign-in prompt).
 - `StrategyCpicSmes.js` — CPIC Board Oversight section showing SMEs per implementer. Visible to authenticated users only.
 - `StrategySiblings.js` — Related strategies under the same policy with status badges and links.
+
+**StrategyCardMenu visibility:** The three-dot action menu on strategy cards and table rows is visible to all users (including guests). Menu items are progressively disclosed based on auth/role: "View Full Details" (all users) → "Add Note" (authenticated) → "Edit" (Admin/CPIC Admin/CPIC Member). `StrategyActionCell` wraps the menu for table column cells and is used in `StrategyList.js` and `FocusAreaList.js`.
 
 **Shared component extractions:**
 

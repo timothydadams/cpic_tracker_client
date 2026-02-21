@@ -7,7 +7,9 @@ import {
   MessageSquarePlus,
   MessageCircle,
   History,
+  ExternalLink,
 } from 'lucide-react';
+import { Link } from 'catalyst/link';
 import { StatusBadge, DeadLine } from 'components/data-table-util-components';
 import { Separator } from 'ui/separator';
 import {
@@ -56,9 +58,11 @@ import {
 import { CommentEntry, InlineNoteInput } from '../comments/CommentEntry';
 
 export const StrategyCardMenu = React.memo(function StrategyCardMenu({
+  strategyId,
   onEditClick,
   onAddNoteClick,
   canEdit,
+  isAuthenticated,
 }) {
   return (
     <DropdownMenu>
@@ -70,10 +74,21 @@ export const StrategyCardMenu = React.memo(function StrategyCardMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end'>
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-        <DropdownMenuItem onSelect={onAddNoteClick}>
-          <MessageSquarePlus className='h-4 w-4 mr-2' />
-          Add Note
+        <DropdownMenuItem asChild>
+          <Link href={`/strategies/${strategyId}`}>
+            <ExternalLink className='h-4 w-4 mr-2' />
+            View Full Details
+          </Link>
         </DropdownMenuItem>
+        {isAuthenticated && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onAddNoteClick}>
+              <MessageSquarePlus className='h-4 w-4 mr-2' />
+              Add Note
+            </DropdownMenuItem>
+          </>
+        )}
         {canEdit && (
           <>
             <DropdownMenuSeparator />
@@ -292,38 +307,44 @@ export const StrategyActionCell = React.memo(function StrategyActionCell({
   strategy,
 }) {
   const user = useAuth();
-  const showMenu = user?.status !== 'Guest';
+  const isAuthenticated = user?.status !== 'Guest';
   const canEdit = user?.isAdmin || user?.isCPICAdmin || user?.isCPICMember;
 
   const [showEditSheet, setShowEditSheet] = React.useState(false);
   const [showNoteInput, setShowNoteInput] = React.useState(false);
 
-  if (!showMenu) return null;
-
   return (
     <>
       <StrategyCardMenu
+        strategyId={strategy.id}
         onEditClick={() => setShowEditSheet(true)}
         onAddNoteClick={() => setShowNoteInput(true)}
         canEdit={canEdit}
+        isAuthenticated={isAuthenticated}
       />
-      <StrategyEditSheet
-        strategy={strategy}
-        open={showEditSheet}
-        onOpenChange={setShowEditSheet}
-      />
-      <Dialog open={showNoteInput} onOpenChange={setShowNoteInput}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Note</DialogTitle>
-            <DialogDescription>Add a note to this strategy</DialogDescription>
-          </DialogHeader>
-          <InlineNoteInput
-            strategyId={strategy.id}
-            onClose={() => setShowNoteInput(false)}
+      {isAuthenticated && (
+        <>
+          <StrategyEditSheet
+            strategy={strategy}
+            open={showEditSheet}
+            onOpenChange={setShowEditSheet}
           />
-        </DialogContent>
-      </Dialog>
+          <Dialog open={showNoteInput} onOpenChange={setShowNoteInput}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Note</DialogTitle>
+                <DialogDescription>
+                  Add a note to this strategy
+                </DialogDescription>
+              </DialogHeader>
+              <InlineNoteInput
+                strategyId={strategy.id}
+                onClose={() => setShowNoteInput(false)}
+              />
+            </DialogContent>
+          </Dialog>
+        </>
+      )}
     </>
   );
 });
@@ -335,7 +356,7 @@ export const StrategyCard = React.memo(function StrategyCard({
   showFocusAreaAndPolicyDetails = true,
 }) {
   const user = useAuth();
-  const showMenu = user?.status !== 'Guest';
+  const isAuthenticated = user?.status !== 'Guest';
   const canEdit =
     (user?.isAdmin || user?.isCPICAdmin || user?.isCPICMember) &&
     mockRole == null;
@@ -377,15 +398,15 @@ export const StrategyCard = React.memo(function StrategyCard({
       )}
     >
       <CardHeader className='grid grid-col-2 relative'>
-        {showMenu && (
-          <div className='absolute top-2 right-2'>
-            <StrategyCardMenu
-              onEditClick={() => setShowEditSheet(true)}
-              onAddNoteClick={() => setShowNoteInput(true)}
-              canEdit={canEdit}
-            />
-          </div>
-        )}
+        <div className='absolute top-2 right-2'>
+          <StrategyCardMenu
+            strategyId={strategy.id}
+            onEditClick={() => setShowEditSheet(true)}
+            onAddNoteClick={() => setShowNoteInput(true)}
+            canEdit={canEdit}
+            isAuthenticated={isAuthenticated}
+          />
+        </div>
 
         <div className='absolute top-2 left-2 flex gap-4 text-sm text-zinc-500 dark:text-zinc-400'>
           <div>

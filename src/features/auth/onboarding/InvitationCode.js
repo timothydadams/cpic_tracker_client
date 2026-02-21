@@ -3,9 +3,6 @@ import { useParams } from 'react-router-dom';
 import { useValidateCodeMutation } from 'features/invites/inviteApiSlice';
 import { useFormContext, Controller } from 'react-hook-form';
 import { RegisteredInput } from 'components/forms/Input';
-import { yupResolver } from '@hookform/resolvers/yup';
-import * as yup from 'yup';
-import { Button } from 'catalyst/button.jsx';
 import { Spinner } from 'ui/spinner';
 
 import {
@@ -14,9 +11,6 @@ import {
   FieldGroup,
   FieldLabel,
   FieldError,
-  FieldLegend,
-  FieldSeparator,
-  FieldSet,
 } from 'ui/field';
 
 import {
@@ -28,39 +22,43 @@ import {
 
 export function VerifyInvitationCode({ nextStep }) {
   const { code } = useParams();
-  const [verifyCode, { isLoading, error }] = useValidateCodeMutation();
+  const [verifyCode, { isLoading }] = useValidateCodeMutation();
   const {
     register,
     control,
     getValues,
     setValue,
     setError,
-    handleSubmit,
     formState: { errors, isDirty, isValid },
-    trigger,
   } = useFormContext();
 
-  async function checkCodeAndUpdateFields(code) {
-    try {
-      const result = await verifyCode(code).unwrap();
-      const roleType =
-        result.roleName === 'Implementer' ? 'Implementer' : 'CPIC';
-      setValue('inviteDetails.roleId', result.roleId);
-      setValue('inviteDetails.roleType', roleType);
-      nextStep();
-    } catch (e) {
-      setValue('inviteDetails.roleId', '');
-      setValue('inviteDetails.roleType', '');
-      setError('inviteCode', { type: 'server', message: e.data.message });
-    }
-  }
+  const checkCodeAndUpdateFields = React.useCallback(
+    async (code) => {
+      try {
+        const result = await verifyCode(code).unwrap();
+        const roleType =
+          result.roleName === 'Implementer' ? 'Implementer' : 'CPIC';
+        setValue('inviteDetails.roleId', result.roleId);
+        setValue('inviteDetails.roleType', roleType);
+        nextStep();
+      } catch (e) {
+        setValue('inviteDetails.roleId', '');
+        setValue('inviteDetails.roleType', '');
+        setError('inviteCode', {
+          type: 'server',
+          message: e?.data?.message || 'Invalid invite code',
+        });
+      }
+    },
+    [verifyCode, setValue, nextStep, setError]
+  );
 
   React.useEffect(() => {
     if (code) {
       setValue('inviteCode', code, { shouldDirty: true });
       checkCodeAndUpdateFields(code);
     }
-  }, [code, setValue]);
+  }, [code, setValue, checkCodeAndUpdateFields]);
 
   return (
     <>
@@ -82,19 +80,12 @@ export function VerifyInvitationCode({ nextStep }) {
                 />
                 <InputGroupAddon align='inline-end'>
                   <InputGroupButton
-                    variant='destructive'
                     onClick={() =>
                       checkCodeAndUpdateFields(getValues('inviteCode'))
                     }
                     disabled={!isDirty && !isValid}
                   >
-                    {isLoading ? (
-                      <>
-                        <Spinner />
-                      </>
-                    ) : (
-                      'Verify Code'
-                    )}
+                    {isLoading ? <Spinner /> : 'Verify Code'}
                   </InputGroupButton>
                 </InputGroupAddon>
               </InputGroup>

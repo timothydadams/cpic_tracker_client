@@ -200,3 +200,25 @@ The `/strategies/:id` route renders a bento-grid detail page (`StrategyDetailPag
 **RTK Query:** `useGetStrategySummaryQuery` in `strategiesApiSlice.js` fetches `GET /strategies/:id/summary`. Cache tag: `{ type: 'Strategy', id }`.
 
 **Summary endpoint response includes:** `strategy` (with status, timeline, policy, focus_area, implementers with `cpic_smes` and `members`), `counts` (comments, activities), `metrics` (days_until_deadline, is_overdue, deadline_pushes, days_since_last_activity, days_since_last_comms, total_updates, completed_on_time), `siblings` (lightweight strategy list under same policy).
+
+## Onboarding / Registration
+
+The `/register/:code?` route renders a multi-step onboarding form (`OnboardingForm` in `src/features/auth/onboarding/OnboardNewUser.js`) wrapped in `AnonymousOnly` (redirects authenticated users). The invite email link format is `/register/${inviteCode}?email=${encodeURIComponent(recipientEmail)}`.
+
+**Step flow:**
+
+- **Step 0** — `InvitationCode.js`: Validates invite code via `GET /invites/:code/validate` (RTK Query mutation). Auto-fills code from URL param `:code` and auto-verifies on mount. Sets `inviteDetails.roleId` and `inviteDetails.roleType` (`'Implementer'` or `'CPIC'`) in form state. Uses `React.useCallback` for the verify function with proper `useEffect` deps.
+- **Step 1** — `UserInfo.js`: Collects email, first name, last name, username (optional). Email auto-populates from `?email=` query param via `useSearchParams` + `useEffect` in the parent. Uses `useWatch` (not `getValues`) for reactive `roleType` branching. Shows `Dots` loading indicator while implementers fetch. Role-conditional fields:
+  - **Implementer** → single Radix `Select` for `implementer_org_id` (required)
+  - **CPIC/Admin** → `MultiSelect` for `assigned_implementers` (at least one required)
+- **Submit** — Creates user via `POST /auth/register`, then WebAuthn passkey flow (`@simplewebauthn/browser`): generate options → `startRegistration` → verify → `setCredentials`. Errors shown via `enqueueSnackbar`. `registrationInProgress` state resets in `finally` block.
+
+**Yup validation:** Schema uses `yup.test()` with `this.from[1].value.inviteDetails.roleType` to conditionally require `implementer_org_id` (Implementer only) or `assigned_implementers` (CPIC/Admin only) via cross-object references.
+
+**Component structure:**
+
+- `OnboardNewUser.js` — Form container with `FormProvider`, Yup schema, step navigation, passkey submission
+- `InvitationCode.js` — Step 0: invite code input + verify button + hidden role fields
+- `UserInfo.js` — Step 1: user fields + conditional implementer/CPIC selection
+
+**Tests:** `src/features/auth/onboarding/__tests__/OnboardNewUser.test.jsx` — mocks `@simplewebauthn/browser` and `hooks/usePersist` at module level, uses `AUTH_STATES.guest`. Covers: step rendering, code validation (valid/invalid), field display, email auto-populate from URL, Implementer vs CPIC role branching, conditional validation errors, loading state.

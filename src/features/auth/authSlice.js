@@ -14,7 +14,9 @@ const authSlice = createSlice({
       const { accessToken } = action.payload;
       const parsedToken = jwtDecode(accessToken);
       state.token = accessToken;
-      state.user = parsedToken;
+      state.user = state.user
+        ? Object.assign(state.user, parsedToken)
+        : parsedToken;
     },
     setUserProfile: (state, action) => {
       if (state.user) {

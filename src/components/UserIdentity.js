@@ -24,6 +24,31 @@ function getDisplayName(user, isAuthenticated) {
 }
 
 export function UserIdentity({ user, isAuthenticated, timestamp }) {
+  if (!user) {
+    return (
+      <div className='flex gap-3 min-w-0'>
+        <Avatar className='h-8 w-8 shrink-0'>
+          <AvatarFallback className='text-xs'>?</AvatarFallback>
+        </Avatar>
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center justify-between mb-1'>
+            <span className='text-sm font-medium truncate text-muted-foreground'>
+              [Deleted User]
+            </span>
+            {timestamp && (
+              <time
+                dateTime={timestamp}
+                className='text-xs text-zinc-500 dark:text-zinc-400'
+              >
+                {new Date(timestamp).toLocaleDateString()}
+              </time>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const displayName = getDisplayName(user, isAuthenticated);
 
   return (

@@ -46,7 +46,7 @@ httpOnly: true, sameSite: 'Strict', secure: true, path: '/'
 
 Unauthenticated requests automatically have PII fields stripped from responses:
 
-- `User.email` — omitted
+- `User.email`, `User.display_name`, `User.given_name`, `User.family_name` — omitted
 - `Implementer.emails`, `Implementer.phone_numbers` — omitted
 
 The system checks the access token first, then falls back to the refresh token cookie, so logged-in users see PII even on public endpoints where the frontend doesn't send an Authorization header.
@@ -89,7 +89,7 @@ If `username` is not provided, one is auto-generated in the format `user_<hex>`.
 }
 ```
 
-Also sets refresh token cookie.
+Also sets refresh token cookie. Enqueues a welcome email (fire-and-forget) summarizing the user's assigned strategies. Implementer-role users receive a single-org template; all other roles receive a committee template grouped by implementer org.
 
 ---
 
@@ -772,8 +772,8 @@ Get comments for a strategy. **Public.** Returns a nested tree — all replies a
 
 **Auth-aware user fields:**
 
-- **Unauthenticated:** `user: { id, username, profile_pic }`
-- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }`
+- **Unauthenticated:** `user: { id, username, profile_pic }` or `null` if the author was deleted
+- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }` or `null` if the author was deleted
 
 **Response (200):**
 
@@ -784,7 +784,7 @@ Get comments for a strategy. **Public.** Returns a nested tree — all replies a
       "id": 1,
       "content": "string",
       "strategy_id": 1,
-      "user_id": "uuid",
+      "user_id": "uuid | null",
       "parent_id": null,
       "createdAt": "ISO8601",
       "updatedAt": "ISO8601",
@@ -803,6 +803,8 @@ Get comments for a strategy. **Public.** Returns a nested tree — all replies a
 }
 ```
 
+> **Note:** `user_id` and `user` can be `null` when the comment author has been deleted. Display these as "Deleted User" or similar in the UI.
+
 ---
 
 ### GET `/api/strategies/:id/activities`
@@ -817,8 +819,8 @@ Get audit log for a strategy. **Auth required.**
 
 **Auth-aware user fields:**
 
-- **Unauthenticated:** `user: { id, username, profile_pic }`
-- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }`
+- **Unauthenticated:** `user: { id, username, profile_pic }` or `null` if the actor was deleted
+- **Authenticated:** `user: { id, username, profile_pic, display_name, given_name, family_name, email }` or `null` if the actor was deleted
 
 **Response (200):**
 
@@ -831,13 +833,15 @@ Get audit log for a strategy. **Auth required.**
       "summary": "string",
       "changes": { "field": { "old": "...", "new": "..." } },
       "strategy_id": 1,
-      "user_id": "uuid",
+      "user_id": "uuid | null",
       "createdAt": "ISO8601",
       "user": { "id": "uuid", "username": "string", "profile_pic": "string?" }
     }
   ]
 }
 ```
+
+> **Note:** `user_id` and `user` can be `null` when the actor has been deleted. Display these as "Deleted User" or similar in the UI.
 
 **Activity actions:** `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT`, `UPDATE_IMPLEMENTERS`, `UPDATE_PRIMARY`
 
@@ -1212,12 +1216,14 @@ Create an invite code. **Auth required.**
     "useCount": 0,
     "used": false,
     "expiresAt": "ISO8601",
-    "createdById": "uuid",
+    "createdById": "uuid | null",
     "createdAt": "ISO8601",
     "createdBy": { "id": "uuid", "email": "string" }
   }
 }
 ```
+
+> **Note:** `createdById` and `createdBy` can be `null` when the invite creator has been deleted.
 
 ---
 
@@ -1253,6 +1259,8 @@ Create a new invite code and email it to one or more recipients. **Auth required
 }
 ```
 
+> **Note:** `createdBy` can be `null` when the invite creator has been deleted.
+
 **Error (400):** Missing/invalid emails or roleId. **Error (403):** Insufficient role permissions.
 
 Each recipient receives an email with a registration link and inline QR code (for passkey setup on a personal device).
@@ -1284,6 +1292,8 @@ Send an existing valid invite code to additional email addresses. **Auth require
   }
 }
 ```
+
+> **Note:** `createdBy` can be `null` when the invite creator has been deleted.
 
 **Error (400):** Missing/invalid emails. **Error (403):** Not the invite owner or insufficient role. **Error (404):** Code not found. **Error (410):** Code expired or fully used.
 
@@ -1959,20 +1969,20 @@ Toggle a feature flag.
 
 ### User
 
-| Field                | Type      | Notes                                         |
-| -------------------- | --------- | --------------------------------------------- |
-| `id`                 | `uuid`    | Primary key                                   |
-| `email`              | `string?` | Unique. Stripped for unauthenticated requests |
-| `username`           | `string?` |                                               |
-| `given_name`         | `string?` |                                               |
-| `family_name`        | `string?` |                                               |
-| `display_name`       | `string?` |                                               |
-| `profile_pic`        | `string?` | URL                                           |
-| `disabled`           | `boolean` | Default false                                 |
-| `implementer_org_id` | `int?`    | FK to Implementer                             |
-| `invitedById`        | `uuid?`   | FK to User who invited them                   |
-| `createdAt`          | `ISO8601` |                                               |
-| `updatedAt`          | `ISO8601` |                                               |
+| Field                | Type      | Notes                                                                           |
+| -------------------- | --------- | ------------------------------------------------------------------------------- |
+| `id`                 | `uuid`    | Primary key                                                                     |
+| `email`              | `string?` | Unique. Stripped for unauthenticated requests                                   |
+| `username`           | `string?` |                                                                                 |
+| `given_name`         | `string?` | Stripped for unauthenticated requests                                           |
+| `family_name`        | `string?` | Stripped for unauthenticated requests                                           |
+| `display_name`       | `string?` | Stripped for unauthenticated requests                                           |
+| `profile_pic`        | `string?` | URL                                                                             |
+| `disabled`           | `boolean` | Default false                                                                   |
+| `implementer_org_id` | `int?`    | FK to Implementer                                                               |
+| `invitedById`        | `uuid?`   | FK to User who invited them. `null` when the inviter has been deleted (SetNull) |
+| `createdAt`          | `ISO8601` |                                                                                 |
+| `updatedAt`          | `ISO8601` |                                                                                 |
 
 ### Strategy
 
@@ -2035,15 +2045,15 @@ Toggle a feature flag.
 
 ### Comment
 
-| Field         | Type      | Notes                                    |
-| ------------- | --------- | ---------------------------------------- |
-| `id`          | `int`     | Auto-increment PK                        |
-| `content`     | `string`  |                                          |
-| `user_id`     | `uuid`    | FK to User                               |
-| `strategy_id` | `int`     | FK to Strategy                           |
-| `parent_id`   | `int?`    | Self-referential FK for threaded replies |
-| `createdAt`   | `ISO8601` |                                          |
-| `updatedAt`   | `ISO8601` |                                          |
+| Field         | Type      | Notes                                                         |
+| ------------- | --------- | ------------------------------------------------------------- |
+| `id`          | `int`     | Auto-increment PK                                             |
+| `content`     | `string`  |                                                               |
+| `user_id`     | `uuid?`   | FK to User. `null` when the author has been deleted (SetNull) |
+| `strategy_id` | `int`     | FK to Strategy                                                |
+| `parent_id`   | `int?`    | Self-referential FK for threaded replies                      |
+| `createdAt`   | `ISO8601` |                                                               |
+| `updatedAt`   | `ISO8601` |                                                               |
 
 ### StrategyActivity (audit log)
 
@@ -2051,7 +2061,7 @@ Toggle a feature flag.
 | ------------- | --------- | ------------------------------------------------------------- |
 | `id`          | `int`     | Auto-increment PK                                             |
 | `strategy_id` | `int`     | FK to Strategy                                                |
-| `user_id`     | `uuid`    | FK to User                                                    |
+| `user_id`     | `uuid?`   | FK to User. `null` when the actor has been deleted (SetNull)  |
 | `action`      | `string`  | `CREATE`, `UPDATE`, `DELETE`, `ADD_COMMENT`, `UPDATE_COMMENT` |
 | `summary`     | `string`  | Human-readable description                                    |
 | `changes`     | `JSON`    | Field-level diff: `{ "field": { "old": ..., "new": ... } }`   |
@@ -2067,17 +2077,17 @@ Toggle a feature flag.
 
 ### InviteCode
 
-| Field             | Type       | Notes                                                |
-| ----------------- | ---------- | ---------------------------------------------------- |
-| `id`              | `uuid`     | Primary key                                          |
-| `code`            | `string`   | Unique invite code                                   |
-| `roleId`          | `uuid`     | FK to Role                                           |
-| `createdById`     | `uuid`     | FK to User                                           |
-| `maxUses`         | `int`      | Default 1                                            |
-| `useCount`        | `int`      | Default 0                                            |
-| `used`            | `boolean`  | Default false                                        |
-| `recipientEmails` | `string[]` | Email addresses the invite was sent to. Default `[]` |
-| `expiresAt`       | `ISO8601`  |                                                      |
+| Field             | Type       | Notes                                                          |
+| ----------------- | ---------- | -------------------------------------------------------------- |
+| `id`              | `uuid`     | Primary key                                                    |
+| `code`            | `string`   | Unique invite code                                             |
+| `roleId`          | `uuid`     | FK to Role                                                     |
+| `createdById`     | `uuid?`    | FK to User. `null` when the creator has been deleted (SetNull) |
+| `maxUses`         | `int`      | Default 1                                                      |
+| `useCount`        | `int`      | Default 0                                                      |
+| `used`            | `boolean`  | Default false                                                  |
+| `recipientEmails` | `string[]` | Email addresses the invite was sent to. Default `[]`           |
+| `expiresAt`       | `ISO8601`  |                                                                |
 
 ### StatusOptions
 

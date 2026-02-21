@@ -199,6 +199,8 @@ The `/strategies/:id` route renders a bento-grid detail page (`StrategyDetailPag
 
 **RTK Query:** `useGetStrategySummaryQuery` in `strategiesApiSlice.js` fetches `GET /strategies/:id/summary`. Cache tag: `{ type: 'Strategy', id }`.
 
+**Deleted user handling:** The backend returns `null` for `comment.user` and `activity.user` when the author/actor has been deleted. `UserIdentity` (`src/components/UserIdentity.js`) handles this with an early return rendering `[Deleted User]` with a `?` placeholder avatar. All comment and activity rendering flows through `UserIdentity`, so no per-component null checks are needed.
+
 **Summary endpoint response includes:** `strategy` (with status, timeline, policy, focus_area, implementers with `cpic_smes` and `members`), `counts` (comments, activities), `metrics` (days_until_deadline, is_overdue, deadline_pushes, days_since_last_activity, days_since_last_comms, total_updates, completed_on_time), `siblings` (lightweight strategy list under same policy).
 
 ## Onboarding / Registration

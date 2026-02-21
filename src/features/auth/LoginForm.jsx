@@ -36,6 +36,7 @@ import { FingerprintIcon } from 'lucide-react';
 import { sanitizeString } from 'utils/rhf_helpers';
 import { startAuthentication } from '@simplewebauthn/browser';
 import { Spinner } from 'ui/spinner';
+import { enqueueSnackbar } from 'notistack';
 
 const schema = yup.object().shape({
   email: yup
@@ -89,9 +90,9 @@ export function LoginForm({ className, ...props }) {
 
   const navigate = useNavigate();
   const location = useLocation();
-  const currentPath = location.state?.from || '/';
+  const currentPath =
+    location.state?.from || sessionStorage.getItem('returnTo') || '/';
 
-  const [errorMsg, setErrorMsg] = useState(null);
   const [persist, setPersist] = usePersist();
 
   async function setAuthOpts(email) {
@@ -110,7 +111,12 @@ export function LoginForm({ className, ...props }) {
         setSocialLogins((prev) => []);
       }
     } catch (e) {
-      //console.log(e);
+      if (e?.status === 429) {
+        enqueueSnackbar(
+          'Too many attempts. Please wait a moment and try again.',
+          { variant: 'error' }
+        );
+      }
     }
   }
 
@@ -139,36 +145,53 @@ export function LoginForm({ className, ...props }) {
   const handlePasskeyLogin = async ({ email }, e) => {
     e.preventDefault();
     setAuthInprogress(true);
-    const authOpts = await getOptions(email).unwrap();
+
+    let authOpts;
+    try {
+      authOpts = await getOptions(email).unwrap();
+    } catch (err) {
+      setAuthInprogress(false);
+      if (err?.status === 429) {
+        enqueueSnackbar(
+          'Too many attempts. Please wait a moment and try again.',
+          { variant: 'error' }
+        );
+      } else {
+        enqueueSnackbar('Unable to retrieve login options', {
+          variant: 'error',
+        });
+      }
+      return;
+    }
+
     const { passkey } = authOpts;
 
-    //console.log('optionsJSON for webauthn start:', passkey);
-
-    let asseResp;
     try {
-      asseResp = await startAuthentication({ optionsJSON: passkey });
-      //console.log('asse response from auth start:', asseResp);
+      const asseResp = await startAuthentication({ optionsJSON: passkey });
       const verifyResults = await verifyPasskey({
         email,
         duration: persist,
         webAuth: asseResp,
       }).unwrap();
       if (verifyResults) {
-        //console.log('verificationResults from verification step:',verifyResults);
         const { verified, accessToken } = verifyResults;
         if (verified && accessToken) {
           dispatch(setCredentials({ accessToken }));
-          navigate(currentPath, { replace: true });
         }
       }
     } catch (err) {
       setAuthInprogress(false);
-      if (!err?.originalStatus) {
-        setErrorMsg('No server response');
+      if (err?.status === 429) {
+        enqueueSnackbar(
+          'Too many attempts. Please wait a moment and try again.',
+          { variant: 'error' }
+        );
+      } else if (!err?.originalStatus) {
+        enqueueSnackbar('No server response', { variant: 'error' });
       } else if (err?.originalStatus === 400) {
-        setErrorMsg('Missing data');
+        enqueueSnackbar('Missing data', { variant: 'error' });
       } else {
-        setErrorMsg('Login failed');
+        enqueueSnackbar('Login failed', { variant: 'error' });
       }
     }
   };

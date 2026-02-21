@@ -16,6 +16,11 @@ const authSlice = createSlice({
       state.token = accessToken;
       state.user = parsedToken;
     },
+    setUserProfile: (state, action) => {
+      if (state.user) {
+        Object.assign(state.user, action.payload);
+      }
+    },
     logout: (state) => {
       state.token = null;
       state.user = null;
@@ -23,7 +28,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, setUserProfile, logout } = authSlice.actions;
 
 export default authSlice.reducer;
 
@@ -54,7 +59,7 @@ export const selectMemoizedUser = createSelector([selectUser], (user) => {
   return data;
 });
 
-export const selectCurrentEmail = (state) => state.auth.user.email;
-export const selectCurrentUserId = (state) => state.auth.user.id;
+export const selectCurrentEmail = (state) => state.auth.user?.email;
+export const selectCurrentUserId = (state) => state.auth.user?.id;
 export const selectCurrentToken = (state) => state.auth.token;
-export const selectCurrentRoles = (state) => state.auth.user.roles;
+export const selectCurrentRoles = (state) => state.auth.user?.roles;

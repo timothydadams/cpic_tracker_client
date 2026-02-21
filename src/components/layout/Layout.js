@@ -78,6 +78,7 @@ import { ModalFromMarkdown } from './NavItemModelWithMd.js';
 import { UserAvatar } from './UserAvatar.js';
 import { ModalNavItem } from './ModalForm.js';
 import { selectMemoizedUser } from 'features/auth/authSlice.js';
+import useHydrateUser from 'hooks/useHydrateUser.js';
 //import { selectCurrentRoles } from 'features/auth/authSlice.js';
 
 const SidebarDropdownLink = ({ href, children }) => {
@@ -194,7 +195,18 @@ export const Layout = () => {
   const [userNav, setUserNav] = useState([]);
   const [adminNav, setAdminNav] = useState([]);
   const user = useSelector(selectMemoizedUser);
-  const { pathname } = useLocation();
+  useHydrateUser();
+  const location = useLocation();
+  const { pathname } = location;
+
+  useEffect(() => {
+    if (pathname !== '/login' && !pathname.startsWith('/register')) {
+      sessionStorage.setItem(
+        'returnTo',
+        pathname + location.search + location.hash
+      );
+    }
+  }, [pathname, location.search, location.hash]);
 
   const { id, roles, isAdmin, isCPICAdmin } = user;
 
